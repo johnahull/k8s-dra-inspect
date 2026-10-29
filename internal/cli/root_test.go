@@ -9,7 +9,7 @@ import (
 func runCmd(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 	var buf bytes.Buffer
-	cmd := NewRootCommand(&Options{}, "v1.2.3")
+	cmd := NewRootCommand(&Options{}, "v1.2.3", Deps{})
 	cmd.SetOut(&buf)
 	cmd.SetErr(&buf)
 	cmd.SetArgs(args)
@@ -100,7 +100,7 @@ func TestRun(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var stdout, stderr bytes.Buffer
-			if got := run(tt.args, &stdout, &stderr, "v1"); got != tt.want {
+			if got := run(tt.args, &stdout, &stderr, "v1", Deps{}); got != tt.want {
 				t.Fatalf("exit %d, want %d", got, tt.want)
 			}
 			if (stdout.Len() > 0) != tt.wantStdout {

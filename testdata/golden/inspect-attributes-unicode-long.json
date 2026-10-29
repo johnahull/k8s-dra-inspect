@@ -1,0 +1,44 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total/dev-b",
+      "details": {
+        "attributes": {
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID": "0000:3b:00.0",
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName": "Café Accelerator Ünï",
+          "resource.kubernetes.io/numaNode": "0"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total/device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total",
+      "details": {
+        "attributes": {
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName": "示例加速器 カード 한국어",
+          "resource.kubernetes.io/numaNode": "1",
+          "resource.kubernetes.io/pcieRoot": "[pci0000:00,pci0000:80]"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "other.example.com/node-b.example.com/nic0",
+      "details": {
+        "attributes": {
+          "other.example.com/pciDevice": "10de"
+        },
+        "node": "node-b.example.com"
+      }
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.cpu",
+      "details": {
+        "attributes": [
+          "dra.cpu/numCPUs",
+          "dra.cpu/numaNodeID",
+          "dra.cpu/smtEnabled",
+          "dra.cpu/socketID",
+          "dra.net/numaNode",
+          "resource.kubernetes.io/numaNode",
+          "resource.kubernetes.io/pcieRoot"
+        ],
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.memory",
+      "details": {
+        "attributes": [
+          "dra.cpu/numaNodeID",
+          "dra.memory/hugeTLB",
+          "dra.memory/numaNode",
+          "dra.memory/pageSize",
+          "dra.net/numaNode",
+          "resource.kubernetes.io/cpuSocketID",
+          "resource.kubernetes.io/numaNode"
+        ],
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "gpu.amd.com",
+      "details": {
+        "attributes": [
+          "deviceID",
+          "dra.net/numaNode",
+          "iommuGroup",
+          "isVF",
+          "numaNode",
+          "pciAddr",
+          "resource.kubernetes.io/numaNode",
+          "resource.kubernetes.io/pciBusID",
+          "resource.kubernetes.io/pcieRoot",
+          "type",
+          "vendorID"
+        ],
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io",
+      "details": {
+        "attributes": [
+          "dra.net/numaNode",
+          "k8s.cni.cncf.io/deviceID",
+          "resource.kubernetes.io/cpuSocketID",
+          "resource.kubernetes.io/numaNode",
+          "resource.kubernetes.io/pciBusID",
+          "resource.kubernetes.io/pcieRoot",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID"
+        ],
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    }
+  ]
+}

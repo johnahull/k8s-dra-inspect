@@ -1,0 +1,71 @@
+# Synthetic fixture: long names, wide characters, list attributes.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: slice-a-with-a-long-generated-name-pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total
+  spec:
+    driver: gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com
+    nodeName: node-a.example.com
+    pool:
+      name: pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total
+      generation: 2
+      resourceSliceCount: 1
+    devices:
+    - name: device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total
+      attributes:
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName:
+          string: "示例加速器 カード 한국어"
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID:
+          int: 1
+        resource.kubernetes.io/numaNode:
+          int: 1
+        resource.kubernetes.io/pcieRoot:
+          strings:
+          - pci0000:00
+          - pci0000:80
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels:
+          ints:
+          - 4
+          - 2
+      capacity:
+        memory:
+          value: 64Gi
+          requestPolicy:
+            default: 1Gi
+            validRange:
+              min: 1Gi
+              step: 1Gi
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/slots:
+          value: "8"
+    - name: dev-b
+      attributes:
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName:
+          string: "Café Accelerator Ünï"
+        gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID:
+          string: "0000:3b:00.0"
+        resource.kubernetes.io/numaNode:
+          int: 0
+      capacity:
+        memory:
+          value: 500Mi
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: slice-b
+  spec:
+    driver: other.example.com
+    nodeName: node-b.example.com
+    pool:
+      name: node-b.example.com
+      generation: 1
+      resourceSliceCount: 1
+    devices:
+    - name: nic0
+      attributes:
+        other.example.com/pciDevice:
+          string: "10de"
+        other.example.com/mtu:
+          int: 9000

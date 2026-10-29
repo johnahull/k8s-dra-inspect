@@ -2,6 +2,7 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -16,7 +17,7 @@ func ColorEnabled(noColor bool, getenv func(string) string, isTTY bool) bool {
 }
 
 // NewRootCommand builds the command tree; flags bind to opts.
-func NewRootCommand(opts *Options, version string) *cobra.Command {
+func NewRootCommand(opts *Options, version string, deps Deps) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "dra-inspect",
 		Short:         "Inspect and diagnose Kubernetes Dynamic Resource Allocation",
@@ -53,28 +54,36 @@ func NewRootCommand(opts *Options, version string) *cobra.Command {
 		{"report", "Produce cluster and support reports"},
 		{"snapshot", "Capture and replay cluster snapshots"},
 	} {
-		root.AddCommand(&cobra.Command{
+		c := &cobra.Command{
 			Use:   g.name,
 			Short: g.short,
 			Args:  cobra.NoArgs,
 			RunE:  func(cmd *cobra.Command, _ []string) error { return cmd.Help() },
-		})
+		}
+		if g.name == "inspect" {
+			addInspectCommands(c, opts, deps)
+		}
+		root.AddCommand(c)
 	}
 	return root
 }
 
 // Execute runs the CLI and returns the process exit code.
 func Execute(version string) int {
-	return run(os.Args[1:], os.Stdout, os.Stderr, version)
+	return run(os.Args[1:], os.Stdout, os.Stderr, version, DefaultDeps())
 }
 
-// run returns 2 for both CLI errors and error-status results, by design.
-func run(args []string, stdout, stderr io.Writer, version string) int {
-	cmd := NewRootCommand(&Options{}, version)
+// run returns 2 for CLI errors; an ExitError supplies its own code.
+func run(args []string, stdout, stderr io.Writer, version string, deps Deps) int {
+	cmd := NewRootCommand(&Options{}, version, deps)
 	cmd.SetArgs(args)
 	cmd.SetOut(stdout)
 	cmd.SetErr(stderr)
 	if err := cmd.Execute(); err != nil {
+		var ee *ExitError
+		if errors.As(err, &ee) {
+			return ee.Code
+		}
 		_, _ = fmt.Fprintln(stderr, err)
 		return 2
 	}

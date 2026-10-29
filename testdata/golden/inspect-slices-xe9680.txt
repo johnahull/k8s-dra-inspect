@@ -1,0 +1,6 @@
+NODE                DRIVER                  POOL                SLICE                   GEN  DEVICES
+node-a.example.com  dra.cpu                 node-a.example.com  node-a.example.com-dr…  1    4
+node-a.example.com  dra.memory              node-a.example.com  00000-dra.memory-node…  1    4
+node-a.example.com  dra.memory              node-a.example.com  00001-dra.memory-node…  1    4
+node-a.example.com  gpu.amd.com             node-a.example.com  00000-gpu.amd.com-nod…  1    16
+node-a.example.com  sriovnetwork.k8snetwo…  node-a.example.com  00000-sriovnetwork.k8…  1    32

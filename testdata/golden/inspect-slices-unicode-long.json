@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "slice-a-with-a-long-generated-name-pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total",
+      "details": {
+        "deviceCount": 2,
+        "driver": "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com",
+        "generation": 2,
+        "node": "node-a.example.com",
+        "pool": "pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total",
+        "sharedCounterSets": 0
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "slice-b",
+      "details": {
+        "deviceCount": 1,
+        "driver": "other.example.com",
+        "generation": 1,
+        "node": "node-b.example.com",
+        "pool": "node-b.example.com",
+        "sharedCounterSets": 0
+      }
+    }
+  ]
+}
