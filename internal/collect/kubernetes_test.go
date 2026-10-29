@@ -3,6 +3,11 @@ package collect
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -171,7 +176,7 @@ func TestCollectForbiddenDoesNotAbort(t *testing.T) {
 	if snap.Collection["nodes"].State != model.StateNotFound {
 		t.Errorf("nodes: %+v", snap.Collection["nodes"])
 	}
-	if st := snap.Collection["pods"]; st.State != model.StateError || st.Reason != context.DeadlineExceeded.Error() {
+	if st := snap.Collection["pods"]; st.State != model.StateError || st.Reason != "timed out" {
 		t.Errorf("pods: %+v", st)
 	}
 	if snap.Collection["resourceclaims"].State != model.StateOK || len(snap.ResourceClaims) != 1 {
@@ -230,5 +235,75 @@ func TestCollectPaginatesAll(t *testing.T) {
 	}
 	if len(snap.Pods) != 1200 || snap.Collection["pods"].State != model.StateOK {
 		t.Fatalf("pods=%d %+v", len(snap.Pods), snap.Collection["pods"])
+	}
+}
+
+const timedOutReason = "timed out after 300ms"
+
+// hungKubeconfig serves a kubeconfig for a server that never answers until
+// the client gives up.
+func hungKubeconfig(t *testing.T, h http.Handler) string {
+	t.Helper()
+	srv := httptest.NewServer(h)
+	t.Cleanup(srv.Close)
+	cfg := fmt.Sprintf("apiVersion: v1\nkind: Config\nclusters:\n- name: c\n  cluster: {server: %q}\ncontexts:\n- name: x\n  context: {cluster: c, user: u}\nusers:\n- name: u\n  user: {}\ncurrent-context: x\n", srv.URL)
+	p := filepath.Join(t.TempDir(), "kubeconfig")
+	if err := os.WriteFile(p, []byte(cfg), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return p
+}
+
+func hang(w http.ResponseWriter, r *http.Request) { <-r.Context().Done() }
+
+func TestCollectOverallDeadline(t *testing.T) {
+	live, err := NewClients(hungKubeconfig(t, http.HandlerFunc(hang)), "", 300*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	snap, err := live.Collect(context.Background(), Scope{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if el := time.Since(start); el > 800*time.Millisecond {
+		t.Errorf("Collect took %v, want < 800ms (one overall deadline)", el)
+	}
+	if len(snap.Collection) == 0 {
+		t.Fatal("no collection entries")
+	}
+	for k, st := range snap.Collection {
+		if st.State == model.StateOK || st.Reason != timedOutReason {
+			t.Errorf("%s: %+v, want non-ok with reason %q", k, st, timedOutReason)
+		}
+	}
+}
+
+func okHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	switch {
+	case strings.HasPrefix(r.URL.Path, "/apis/kubevirt.io"):
+		w.WriteHeader(http.StatusNotFound)
+		_, _ = w.Write([]byte(`{"kind":"Status","apiVersion":"v1","status":"Failure","reason":"NotFound","code":404}`))
+	default:
+		_, _ = w.Write([]byte(`{"kind":"List","apiVersion":"v1","items":[]}`))
+	}
+}
+
+func TestCollectFastServerUnaffected(t *testing.T) {
+	for _, to := range []time.Duration{0, 5 * time.Second} {
+		live, err := NewClients(hungKubeconfig(t, http.HandlerFunc(okHandler)), "", to)
+		if err != nil {
+			t.Fatal(err)
+		}
+		snap, err := live.Collect(context.Background(), Scope{})
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, k := range []string{"resourceslices", "deviceclasses", "resourceclaims", "pods", "nodes"} {
+			if st := snap.Collection[k]; st.State != model.StateOK {
+				t.Errorf("timeout %v: %s = %+v, want ok", to, k, st)
+			}
+		}
 	}
 }

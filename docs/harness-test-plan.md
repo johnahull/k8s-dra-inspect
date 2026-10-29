@@ -283,7 +283,7 @@ These prove the comparison helpers can fail. The cluster-dependent assertions
 S=<scratch>; go build -o $S/dra-inspect ./cmd/dra-inspect
 $S/dra-inspect --kubeconfig closed-port.kubeconfig inspect slices      # exit 0, UNAVAILABLE ... connection refused
 $S/dra-inspect --kubeconfig closed-port.kubeconfig report cluster --strict  # exit 3
-$S/dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices # exit 0 after 18 s, "context deadline exceeded"
+$S/dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices # exit 0 after 18 s, "context deadline exceeded" (before fix F2; now one overall deadline)
 ```
 
 `closed-port.kubeconfig` points at `https://127.0.0.1:1`; `hang.kubeconfig` at a
@@ -307,7 +307,7 @@ or written; no cluster ever held a kubeconfig. Scratch dir is under `/tmp`
 | ID | Severity | Finding | Minimal repro |
 |---|---|---|---|
 | F1 | environment (blocks live phase) | kind v0.33.0 cannot create a cluster on rootless podman 3.4.4: the `kind` CNI network conflist uses config version 1.0.0 which the installed `firewall` plugin rejects. Also only `memory pids` cgroup controllers are delegated to the user (kind rootless docs need `cpu cpuset` too), so a CNI fix alone would probably not suffice. No workaround attempted (would need system config changes). | `KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name dra-inspect-test --kubeconfig $S/kind.kubeconfig --image kindest/node:v1.34.11@sha256:44e2...d67d` fails with `Error: error configuring network namespace for container ...: CNI network "kind" not found` after `plugin firewall does not support config version "1.0.0"` |
-| F2 | medium | `--timeout` is a per-request timeout and collection is sequential over 6 resource kinds, so wall time against a hung API server is about 6 x timeout (3 s gave 18 s for a single `inspect slices`; the 30 s default gives about 3 min). Neither README nor `--help` says so. | hang listener, `dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices` takes 18 s |
+| F2 | medium (fixed: `--timeout` is now one overall deadline, kinds past it report `timed out after <timeout>`) | `--timeout` was a per-request timeout and collection is sequential over 6 resource kinds, so wall time against a hung API server is about 6 x timeout (3 s gave 18 s for a single `inspect slices`; the 30 s default gives about 3 min). Neither README nor `--help` says so. | hang listener, `dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices` takes 18 s |
 | F3 | low | Total API failure exits 0 and prints `UNAVAILABLE: ...` unless `--strict` (documented behavior, but surprising for a single-purpose `inspect slices`; the message carries the raw client-go URL including `?limit=500`). Exit is 3 with `--strict`, as documented. | `dra-inspect --kubeconfig closed-port.kubeconfig inspect slices; echo $?` prints 0 |
 | F4 | low (doc) | Job template comment said the in-cluster fallback was "verified live in Task 8"; it was not. Comment reworded. | `deploy/helm/dra-inspect/templates/job.yaml` |
 | F5 | low (doc) | The plan named the cluster `dra-inspect-harness`, built the image from a plain `go build` binary, and listed "rootless works" as the only podman prerequisite. Corrected in this document. | |

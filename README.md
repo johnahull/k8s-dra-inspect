@@ -45,6 +45,12 @@ dra-inspect version
 Global flags: `-n/--namespace`, `-o/--output table|json`, `--from FILE`,
 `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
 
+`--timeout` (default 30s) is one overall deadline for collecting from the
+cluster, all resource kinds together, so a hung API server costs about that
+long in total. Kinds not collected by then are reported as unavailable
+(`timed out after <timeout>`). It applies to `inspect`, `check`, `snapshot
+capture` and `report` alike.
+
 - Tables are the default; `-o json` prints a versioned envelope
   (`schemaVersion`, `results[]` with `check`, `status`, `subject`, `details`).
 - Every result is `pass`, `warn`, `fail`, `unavailable` or `error`. Exit codes:

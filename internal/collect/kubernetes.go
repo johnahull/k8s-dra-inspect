@@ -4,7 +4,10 @@ package collect
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
+	"strings"
 	"time"
 
 	corev1 "k8s.io/api/core/v1"
@@ -34,6 +37,8 @@ type Live struct {
 	Discovery discovery.DiscoveryInterface
 	Now       func() time.Time
 	Scope     Scope
+	// Timeout is the overall deadline for Collect; 0 means none.
+	Timeout time.Duration
 }
 
 var _ model.Source = (*Live)(nil)
@@ -57,7 +62,7 @@ func NewClients(kubeconfig, kubeContext string, timeout time.Duration) (*Live, e
 	if err != nil {
 		return nil, err
 	}
-	return &Live{Client: cs, Dynamic: dyn, Discovery: cs.Discovery(), Now: time.Now}, nil
+	return &Live{Client: cs, Dynamic: dyn, Discovery: cs.Discovery(), Now: time.Now, Timeout: timeout}, nil
 }
 
 // Snapshot implements model.Source using the configured Scope.
@@ -68,6 +73,11 @@ func (l *Live) Snapshot(ctx context.Context) (model.Snapshot, error) {
 // Collect lists every resource type. A failing resource never aborts the run:
 // it stays empty and Collection records why.
 func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error) {
+	if l.Timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, l.Timeout)
+		defer cancel()
+	}
 	snap := model.Snapshot{
 		SchemaVersion: model.SchemaVersion,
 		GeneratedAt:   l.Now(),
@@ -80,23 +90,23 @@ func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error)
 
 	snap.Namespace = ns
 
-	if items, err := listAll(ctx, rc.ResourceSlices().List, func(l *resourcev1.ResourceSliceList) []resourcev1.ResourceSlice { return l.Items }); record(&snap, "resourceslices", err) {
+	if items, err := listAll(ctx, rc.ResourceSlices().List, func(l *resourcev1.ResourceSliceList) []resourcev1.ResourceSlice { return l.Items }); l.record(&snap, "resourceslices", err) {
 		snap.ResourceSlices = items
 	}
-	if items, err := listAll(ctx, rc.DeviceClasses().List, func(l *resourcev1.DeviceClassList) []resourcev1.DeviceClass { return l.Items }); record(&snap, "deviceclasses", err) {
+	if items, err := listAll(ctx, rc.DeviceClasses().List, func(l *resourcev1.DeviceClassList) []resourcev1.DeviceClass { return l.Items }); l.record(&snap, "deviceclasses", err) {
 		snap.DeviceClasses = items
 	}
-	if items, err := listAll(ctx, rc.ResourceClaims(ns).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); record(&snap, "resourceclaims", err) {
+	if items, err := listAll(ctx, rc.ResourceClaims(ns).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); l.record(&snap, "resourceclaims", err) {
 		snap.ResourceClaims = items
 		scoped(&snap, "resourceclaims", ns)
 	}
-	if items, err := listAll(ctx, l.Client.CoreV1().Pods(ns).List, func(l *corev1.PodList) []corev1.Pod { return l.Items }); record(&snap, "pods", err) {
+	if items, err := listAll(ctx, l.Client.CoreV1().Pods(ns).List, func(l *corev1.PodList) []corev1.Pod { return l.Items }); l.record(&snap, "pods", err) {
 		for i := range items {
 			snap.Pods = append(snap.Pods, model.NewPodRef(items[i]))
 		}
 		scoped(&snap, "pods", ns)
 	}
-	if items, err := listAll(ctx, l.Client.CoreV1().Nodes().List, func(l *corev1.NodeList) []corev1.Node { return l.Items }); record(&snap, "nodes", err) {
+	if items, err := listAll(ctx, l.Client.CoreV1().Nodes().List, func(l *corev1.NodeList) []corev1.Node { return l.Items }); l.record(&snap, "nodes", err) {
 		snap.Nodes = items
 	}
 	l.collectVMIs(ctx, &snap, ns)
@@ -112,11 +122,11 @@ func (l *Live) collectVMIs(ctx context.Context, snap *model.Snapshot, ns string)
 		snap.Collection[key] = model.CollectionStatus{State: model.StateNotFound, Reason: "kubevirt.io/v1 not served"}
 		return
 	}
-	if !record(snap, key, err) {
+	if !l.record(snap, key, err) {
 		return
 	}
 	list, err := l.Dynamic.Resource(vmiGVR).Namespace(ns).List(ctx, metav1.ListOptions{})
-	if record(snap, key, err) {
+	if l.record(snap, key, err) {
 		snap.VMIs = list.Items
 		scoped(snap, key, ns)
 	}
@@ -143,7 +153,7 @@ func scoped(snap *model.Snapshot, key, ns string) {
 }
 
 // record stores the outcome for key and reports whether the list succeeded.
-func record(snap *model.Snapshot, key string, err error) bool {
+func (l *Live) record(snap *model.Snapshot, key string, err error) bool {
 	st := model.CollectionStatus{State: model.StateOK}
 	switch {
 	case err == nil:
@@ -151,9 +161,22 @@ func record(snap *model.Snapshot, key string, err error) bool {
 		st = model.CollectionStatus{State: model.StateForbidden, Reason: err.Error()}
 	case apierrors.IsNotFound(err):
 		st = model.CollectionStatus{State: model.StateNotFound, Reason: err.Error()}
+	case isTimeout(err):
+		// Fixed text: the raw error would echo the request URL.
+		reason := "timed out"
+		if l.Timeout > 0 {
+			reason += " after " + l.Timeout.String()
+		}
+		st = model.CollectionStatus{State: model.StateError, Reason: reason}
 	default:
 		st = model.CollectionStatus{State: model.StateError, Reason: err.Error()}
 	}
 	snap.Collection[key] = st
 	return err == nil
+}
+
+func isTimeout(err error) bool {
+	var ne net.Error
+	return errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &ne) && ne.Timeout()) ||
+		strings.Contains(err.Error(), "Client.Timeout exceeded")
 }

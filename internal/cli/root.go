@@ -35,7 +35,7 @@ func NewRootCommand(opts *Options, version string, deps Deps) *cobra.Command {
 	f.StringVarP(&opts.Namespace, "namespace", "n", "", "namespace filter")
 	f.StringVarP(&opts.Output, "output", "o", "table", "output format: table or json")
 	f.BoolVar(&opts.NoColor, "no-color", false, "disable colored output")
-	f.DurationVar(&opts.Timeout, "timeout", 30*time.Second, "timeout for cluster requests")
+	f.DurationVar(&opts.Timeout, "timeout", 30*time.Second, "overall deadline for collecting from the cluster (all resource kinds together)")
 	f.StringVar(&opts.From, "from", "", "read from a snapshot file instead of a live cluster")
 	f.BoolVar(&opts.Strict, "strict", false, "exit 3 when any result is unavailable")
 
