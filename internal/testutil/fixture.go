@@ -12,6 +12,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"sigs.k8s.io/yaml"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
@@ -117,6 +118,10 @@ func add(t testing.TB, snap *model.Snapshot, raw json.RawMessage, file string) {
 		var o corev1.Node
 		err = json.Unmarshal(raw, &o)
 		snap.Nodes = append(snap.Nodes, o)
+	case "VirtualMachineInstance":
+		var o unstructured.Unstructured
+		err = json.Unmarshal(raw, &o)
+		snap.VMIs = append(snap.VMIs, o)
 	default:
 		t.Fatalf("%s: unsupported kind %q", file, tm.Kind)
 	}

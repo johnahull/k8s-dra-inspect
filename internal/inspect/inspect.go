@@ -29,13 +29,18 @@ type Inspector struct {
 // unavailable returns the single result for a snapshot whose ResourceSlices
 // were not collected, so a failed collection never looks like an empty pass.
 func unavailable(snap model.Snapshot, check string) ([]model.Result, bool) {
-	st := snap.Collection["resourceslices"]
+	return unavailableOf(snap, check, "resourceslices")
+}
+
+// unavailableOf is unavailable for any collection key.
+func unavailableOf(snap model.Snapshot, check, key string) ([]model.Result, bool) {
+	st := snap.Collection[key]
 	if st.State == model.StateOK {
 		return nil, false
 	}
 	reason := st.Reason
 	if reason == "" {
-		reason = "resourceslices collection state: " + cmpState(st.State)
+		reason = key + " collection state: " + cmpState(st.State)
 	}
 	return []model.Result{{Check: check, Status: model.StatusUnavailable, Details: map[string]any{"reason": reason}}}, true
 }

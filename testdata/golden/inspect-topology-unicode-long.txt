@@ -1,0 +1,4 @@
+NODE                NUMA  PCIE ROOT              DRIVERS                   DEVICES
+node-a.example.com  0     -                      gpu.accelerators.extrem…  dev-b
+node-a.example.com  1     pci0000:00,pci0000:80  gpu.accelerators.extrem…  device-with-an-extremely…
+node-b.example.com  -     -                      other.example.com=1       nic0
