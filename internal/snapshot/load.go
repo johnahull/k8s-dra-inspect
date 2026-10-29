@@ -8,16 +8,35 @@ import (
 	"io"
 	"maps"
 	"os"
+	"slices"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
+
+// maxBytes caps the snapshot size Read accepts.
+var maxBytes int64 = 256 << 20
 
 // Read decodes and validates a snapshot. The result is normalized and marked
 // as replayed (Source = SourceSnapshot).
 func Read(r io.Reader) (model.Snapshot, error) {
 	var s model.Snapshot
-	if err := json.NewDecoder(r).Decode(&s); err != nil {
+	lr := &io.LimitedReader{R: r, N: maxBytes + 1}
+	tooBig := errors.New("snapshot larger than 256 MiB")
+	dec := json.NewDecoder(lr)
+	if err := dec.Decode(&s); err != nil {
+		if lr.N <= 0 {
+			return model.Snapshot{}, tooBig
+		}
 		return model.Snapshot{}, err
+	}
+	if err := dec.Decode(&struct{}{}); err != io.EOF {
+		if lr.N <= 0 {
+			return model.Snapshot{}, tooBig
+		}
+		return model.Snapshot{}, errors.New("unexpected data after snapshot")
+	}
+	if lr.N <= 0 {
+		return model.Snapshot{}, tooBig
 	}
 	switch s.SchemaVersion {
 	case model.SchemaVersion:
@@ -26,6 +45,13 @@ func Read(r io.Reader) (model.Snapshot, error) {
 	default:
 		return model.Snapshot{}, fmt.Errorf("snapshot schemaVersion %q is not supported (this dra-inspect supports %q); re-capture with this dra-inspect version",
 			s.SchemaVersion, model.SchemaVersion)
+	}
+	for _, k := range slices.Sorted(maps.Keys(s.Collection)) {
+		switch st := s.Collection[k].State; st {
+		case model.StateOK, model.StateForbidden, model.StateNotFound, model.StateError:
+		default:
+			return model.Snapshot{}, fmt.Errorf("collection %q has invalid state %q (want ok|forbidden|notFound|error)", k, st)
+		}
 	}
 	s.Source = model.SourceSnapshot
 	s.Normalize()

@@ -80,6 +80,9 @@ func notOK(c map[string]model.CollectionStatus) string {
 	return strings.Join(parts, "; ")
 }
 
+// syncFile flushes the temp file to disk; a variable so tests can fail it.
+var syncFile = func(f *os.File) error { return f.Sync() }
+
 // writeSnapshot writes to stdout, or atomically to path via a 0600 temp file
 // in the same directory.
 func writeSnapshot(stdout io.Writer, path string, snap model.Snapshot) (err error) {
@@ -96,6 +99,10 @@ func writeSnapshot(stdout io.Writer, path string, snap model.Snapshot) (err erro
 		}
 	}()
 	if err = snapshot.Capture(tmp, snap); err != nil {
+		_ = tmp.Close()
+		return err
+	}
+	if err = syncFile(tmp); err != nil {
 		_ = tmp.Close()
 		return err
 	}

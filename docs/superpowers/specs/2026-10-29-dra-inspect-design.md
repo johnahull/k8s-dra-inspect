@@ -142,6 +142,26 @@ the file may contain sensitive data.
   `networkDataBase64`) from `spec.volumes[]` and delete `spec.accessCredentials`
   (the same under `spec.template.spec` when present). Secret references
   (names only) stay.
+- Nodes are reduced to an allow-list: `metadata.name`, `metadata.labels` and
+  `status.allocatable`. Everything else is dropped: all annotations, UID and
+  resourceVersion, `status.addresses` (IPs and hostnames), `status.nodeInfo`
+  (machineID, systemUUID, bootID), `status.images`, `status.volumesInUse`,
+  `status.volumesAttached`, `status.daemonEndpoints`, conditions, capacity,
+  taints, `spec.providerID`, `spec.podCIDR` and `spec.podCIDRs`.
+- VirtualMachineInstances additionally lose `status.interfaces`,
+  `status.guestOSInfo`, `status.volumeStatus`, and
+  `spec.domain.firmware.uuid` and `.serial` (also under `spec.template.spec`).
+  `status.nodeName` stays.
+- Intentionally kept, because replay needs it and it is not secret on its own:
+  DeviceClass and ResourceClaim CEL selector text (user-facing inspect output
+  hides selector text, but the snapshot file contains it), `reservedFor` pod
+  names, Node labels, and VMI spec devices (GPUs, host devices). Review a
+  snapshot before sharing it outside the team that owns the cluster.
+- `Read` accepts at most 256 MiB (larger input fails with
+  `snapshot larger than 256 MiB`), rejects any data after the snapshot object
+  (`unexpected data after snapshot`; trailing whitespace is fine), and rejects
+  a `collection` entry whose `state` is not `ok`, `forbidden`, `notFound` or
+  `error`. An absent or null `collection` is allowed.
 - `evidence` is not touched by redaction: adapter producers must redact their
   own evidence before storing it in the snapshot.
 - A namespace-scoped run records `namespace` in the snapshot and marks the

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"strings"
@@ -240,6 +241,14 @@ func TestReplayEquivalence(t *testing.T) {
 		}
 		return string(env.Results)
 	}
+	nonEmpty := map[string]bool{}
+	defer func() {
+		for _, c := range cmds {
+			if !nonEmpty[strings.Join(c, " ")] {
+				t.Errorf("%v yields empty results[] for every fixture: equivalence is vacuous", c)
+			}
+		}
+	}()
 	for _, fx := range []string{"xe9785l", "xe9680", "classes-claims"} {
 		deps := snapDeps(t, testutil.LoadFixture(t, "testdata/fixtures/"+fx))
 		p := tmpFile(t)
@@ -252,6 +261,36 @@ func TestReplayEquivalence(t *testing.T) {
 			if liveCode != replayCode || errOut != "" || results(live) != results(replay) {
 				t.Errorf("%s %v: codes %d/%d err=%q\nlive:   %.300s\nreplay: %.300s", fx, c, liveCode, replayCode, errOut, results(live), results(replay))
 			}
+			if r := results(live); r != "[]" && r != "null" {
+				nonEmpty[strings.Join(c, " ")] = true
+			}
+		}
+	}
+}
+
+func TestCaptureSyncFailureRemovesTempFile(t *testing.T) {
+	old := syncFile
+	defer func() { syncFile = old }()
+	syncFile = func(*os.File) error { return errors.New("sync boom") }
+	p := tmpFile(t)
+	_, errOut, code := runSnap(t, snapDeps(t, claimsFixture(t)), "snapshot", "capture", "-f", p)
+	if code != 2 || !strings.Contains(errOut, "sync boom") {
+		t.Fatalf("code=%d err=%q", code, errOut)
+	}
+	if ents, _ := os.ReadDir(filepath.Dir(p)); len(ents) != 0 {
+		t.Fatalf("file or temp left behind: %v", ents)
+	}
+}
+
+func TestReplayUnavailableForEachNonOKState(t *testing.T) {
+	for _, st := range []string{model.StateForbidden, model.StateNotFound, model.StateError} {
+		snap := claimsFixture(t)
+		snap.Collection["resourceslices"] = model.CollectionStatus{State: st, Reason: "why-" + st}
+		deps, p := snapDeps(t, snap), tmpFile(t)
+		runSnap(t, deps, "snapshot", "capture", "-f", p)
+		out, errOut, code := runSnap(t, deps, "--from", p, "-o", "json", "inspect", "slices")
+		if code != 0 || strings.Count(out, `"status": "unavailable"`) != 1 || !strings.Contains(out, "why-"+st) {
+			t.Errorf("%s: code=%d err=%q out=%s", st, code, errOut, out)
 		}
 	}
 }

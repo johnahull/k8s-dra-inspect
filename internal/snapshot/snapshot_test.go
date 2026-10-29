@@ -198,3 +198,91 @@ func TestGoldenSnapshot(t *testing.T) {
 		t.Fatalf("err=%v slices=%d", err, len(loaded.ResourceSlices))
 	}
 }
+
+func TestReadRejectsTrailingDataAndOversize(t *testing.T) {
+	good := string(capture(t, fixture(t)))
+	for _, c := range []struct{ name, in, want string }{
+		{"trailing object", good + `{"x":1}`, "unexpected data after snapshot"},
+		{"trailing garbage", good + `xyz`, "unexpected data after snapshot"},
+		{"trailing whitespace", good + " \n\t\n", ""},
+	} {
+		_, err := snapshot.Read(strings.NewReader(c.in))
+		if (c.want == "") != (err == nil) || (err != nil && !strings.Contains(err.Error(), c.want)) {
+			t.Errorf("%s: err=%v want %q", c.name, err, c.want)
+		}
+	}
+	defer snapshot.SetMaxBytes(int64(len(good)))()
+	if _, err := snapshot.Read(strings.NewReader(good)); err != nil {
+		t.Errorf("input exactly at the cap must load: %v", err)
+	}
+	if _, err := snapshot.Read(strings.NewReader(good + " ")); err == nil || !strings.Contains(err.Error(), "snapshot larger than 256 MiB") {
+		t.Errorf("oversize: err=%v", err)
+	}
+	if _, err := snapshot.Read(strings.NewReader(good[:len(good)/2] + strings.Repeat(" ", len(good)))); err == nil || !strings.Contains(err.Error(), "larger than") {
+		t.Errorf("oversize truncated: err=%v", err)
+	}
+}
+
+func TestReadValidatesCollectionStates(t *testing.T) {
+	mk := func(coll string) string {
+		return `{"schemaVersion":"` + model.SchemaVersion + `","collection":` + coll + `}`
+	}
+	for _, in := range []string{`null`, `{}`, `{"pods":{"state":"ok"},"nodes":{"state":"notFound"}}`} {
+		if _, err := snapshot.Read(strings.NewReader(mk(in))); err != nil {
+			t.Errorf("%s: %v", in, err)
+		}
+	}
+	if _, err := snapshot.Read(strings.NewReader(`{"schemaVersion":"` + model.SchemaVersion + `"}`)); err != nil {
+		t.Errorf("absent collection: %v", err)
+	}
+	for _, in := range []string{`{"pods":{"state":"bogus"}}`, `{"pods":{}}`} {
+		_, err := snapshot.Read(strings.NewReader(mk(in)))
+		if err == nil || !strings.Contains(err.Error(), `collection "pods"`) || !strings.Contains(err.Error(), "invalid state") {
+			t.Errorf("%s: err=%v", in, err)
+		}
+	}
+}
+
+func TestRoundTripCollectionStatesAndEvidence(t *testing.T) {
+	orig := fixture(t)
+	orig.Evidence = map[string]json.RawMessage{"adapter": json.RawMessage(`{"note":"x"}`), "other": json.RawMessage(`[1,2]`)}
+	for i, st := range []string{model.StateOK, model.StateForbidden, model.StateNotFound, model.StateError} {
+		orig.Collection["c"+string(rune('a'+i))] = model.CollectionStatus{State: st, Reason: "why " + st}
+	}
+	got, err := snapshot.Read(bytes.NewReader(capture(t, orig)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(orig.Collection, got.Collection) {
+		t.Errorf("collection: %v != %v", orig.Collection, got.Collection)
+	}
+	// MarshalIndent re-indents RawMessage, so compare compacted.
+	compact := func(m json.RawMessage) string {
+		var b bytes.Buffer
+		if err := json.Compact(&b, m); err != nil {
+			t.Fatal(err)
+		}
+		return b.String()
+	}
+	if len(got.Evidence) != 2 || compact(got.Evidence["adapter"]) != `{"note":"x"}` || compact(got.Evidence["other"]) != `[1,2]` {
+		t.Errorf("evidence: %s", got.Evidence)
+	}
+}
+
+func TestScopeDoesNotMutateInput(t *testing.T) {
+	s := fixture(t)
+	s.Collection["resourceclaims"] = model.CollectionStatus{State: model.StateOK}
+	s.ResourceClaims[0].Namespace = "other"
+	s.Pods[0].Namespace = "other"
+	before := capture(t, s)
+	claims, pods, coll := slices.Clone(s.ResourceClaims), slices.Clone(s.Pods), s.Collection["resourceclaims"]
+	if _, err := snapshot.Scope(s, s.ResourceClaims[1].Namespace); err != nil {
+		t.Fatal(err)
+	}
+	if st := s.Collection["resourceclaims"]; st != coll {
+		t.Errorf("input collection mutated: %+v", st)
+	}
+	if len(s.ResourceClaims) != len(claims) || len(s.Pods) != len(pods) || !bytes.Equal(before, capture(t, s)) {
+		t.Error("input slices mutated")
+	}
+}

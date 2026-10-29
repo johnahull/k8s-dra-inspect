@@ -5,6 +5,7 @@ import (
 	"maps"
 	"slices"
 
+	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -29,7 +30,9 @@ func deepCopy[T any, P interface {
 
 // Redact returns a deep copy of s without opaque driver parameters, device
 // status data, last-applied annotations, managedFields, or inline VMI
-// cloud-init data and access credentials. Evidence is left as is. It is idempotent.
+// cloud-init data and access credentials. Nodes keep only name, labels and
+// status.allocatable; VMIs also lose status interfaces, guest OS info, volume
+// status and firmware uuid/serial. Evidence is left as is. It is idempotent.
 func Redact(s Snapshot) Snapshot {
 	out := s
 	out.Redacted = true
@@ -55,10 +58,19 @@ func Redact(s Snapshot) Snapshot {
 		scrubMeta(&out.ResourceSlices[i])
 	}
 	for i := range out.Nodes {
-		scrubMeta(&out.Nodes[i])
+		n := &out.Nodes[i]
+		// Allow-list: addresses, machine IDs, images, volumes and annotations never survive.
+		*n = corev1.Node{
+			TypeMeta:   n.TypeMeta,
+			ObjectMeta: metav1.ObjectMeta{Name: n.Name, Labels: n.Labels},
+			Status:     corev1.NodeStatus{Allocatable: n.Status.Allocatable},
+		}
 	}
 	for i := range out.VMIs {
 		scrubMeta(&out.VMIs[i])
+		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "interfaces")
+		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "guestOSInfo")
+		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "volumeStatus")
 		for _, base := range [][]string{{"spec"}, {"spec", "template", "spec"}} {
 			scrubVMISpec(out.VMIs[i].Object, base)
 		}
@@ -97,6 +109,9 @@ func scrubVMISpec(obj map[string]any, path []string) {
 		return
 	}
 	delete(m, "accessCredentials")
+	for _, f := range []string{"uuid", "serial"} {
+		unstructured.RemoveNestedField(m, "domain", "firmware", f)
+	}
 	vols, _ := m["volumes"].([]any)
 	for _, v := range vols {
 		vm, _ := v.(map[string]any)
