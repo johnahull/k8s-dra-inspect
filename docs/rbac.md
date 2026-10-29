@@ -69,4 +69,7 @@ Run with `-n <namespace>` so claims and pods are listed in that namespace only.
 The client libraries are client-go v0.37. They read the `resource.k8s.io/v1`
 API, so the target cluster must serve it (Kubernetes 1.34 or newer). Fields a
 server does not know about, such as newer attribute list types or consumable
-capacity, simply come back empty.
+capacity, simply come back empty when reading. Writing is stricter: objects that
+use list-valued attributes can only exist on servers that support them (a 1.34
+apiserver rejects them), so the synthetic fixtures with such attributes are used
+by the parity and golden tests, not loaded into a 1.34 cluster.

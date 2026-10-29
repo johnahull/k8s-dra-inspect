@@ -346,8 +346,8 @@ misbehaves, retry with `kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd5
 
 ## API-server-level live verification (no kubelet)
 
-**Status: RUN 2026-10-29** with `hack/live-apiserver.sh` (final run: 190 PASS, 0 FAIL,
-3 XFAIL known findings, exit 0).
+**Status: RUN 2026-10-29** with `hack/live-apiserver.sh` (final run after the F1/F2 fixes: 196 PASS, 0 FAIL,
+no XFAIL, exit 0).
 It starts `etcd` and `kube-apiserver` as plain host processes on `127.0.0.1`
 (high random ports, own uid, no sudo). The two binaries are not downloaded: the
 script `podman create`s (never starts) a container from the already-cached
@@ -408,16 +408,16 @@ the image it built, and prints the cleanup proof below.
 | E read-only proof | n/a | `auth can-i` get/list `yes` and create/update/patch/delete/deletecollection `no` on slices, deviceclasses, claims, pods, nodes; `pods/exec` and `secrets` `no`; `can-i --list` has only get/list rows (selfsubject* and non-resource URL rows excluded); create/delete/exec/patch as the SA (impersonated and with its real token) are `Forbidden`; the target object survived |
 | F Pod Security `restricted` | 0 | the chart's Job pod template is admitted in both namespaces by server dry run and real create with no warning; applying the Job objects prints no warning; a pod with `hostNetwork` and privilege escalation is rejected in the same namespaces (`violates PodSecurity "restricted:latest": host namespaces (hostNetwork=true), ...`) and is not created |
 | G In-cluster auth under podman | cluster SA 1, namespace SA 0 / `--strict` 3 | `podman run --network host --read-only --user 65532:65532 --cap-drop=ALL --security-opt no-new-privileges` with the token, CA and namespace files mounted and `KUBERNETES_SERVICE_HOST/PORT` set: client-go's in-cluster path works with no kubeconfig; exit codes and `results[]` equal the workstation run as the same SA; the README's `sed -n '/^{$/,/^}$/p' | jq` extraction yields the JSON |
-| H SIGSTOP the apiserver, `--timeout 3s` | 0 (`--strict` 3) | `UNAVAILABLE: inspect.slices: timed out after 3s`, no URL in the text, but **6.02 s** elapsed, see F1; the server recovers after SIGCONT |
-| H closed port, bad CA, bad token | 0 (`--strict` 3 each) | `connection refused`, `x509: certificate signed by unknown authority`, `Unauthorized`; the first two echo the raw URL, see F2 |
+| H SIGSTOP the apiserver, `--timeout 3s` | 0 (`--strict` 3) | `UNAVAILABLE: inspect.slices: timed out after 3s`, no URL in the text; **6.02 s** elapsed before the F1 fix, **3.02 s** after (`inspect slices`, `--strict` and `report cluster` alike); the server recovers after SIGCONT |
+| H closed port, bad CA, bad token | 0 (`--strict` 3 each) | `connection refused`, `x509: certificate signed by unknown authority`, `unauthorized`; before the F2 fix the first two echoed the raw URL, now none of the reasons contain a URL or `?limit` |
 
 ### Findings
 
 | ID | Severity | Finding | Minimal repro |
 |---|---|---|---|
-| F1 | medium (product) | `--timeout` is not the total on a hung server: a 3 s deadline costs 6.02 s. `Collect` binds the five list calls to the context, but `collectVMIs` calls `Discovery.ServerResourcesForGroupVersion` without it, so after the deadline fires it still waits for the client-go HTTP timeout (`cfg.Timeout`, the same 3 s). README and `--help` say "overall deadline". The `xfail` in the script flips to `XPASS` (a failure) once fixed. | `kill -STOP <kube-apiserver pid>; time dra-inspect --kubeconfig K --timeout 3s inspect slices` prints `UNAVAILABLE: inspect.slices: timed out after 3s` after 6.02 s |
-| F2 | low-medium (product) | Only the timeout reason is sanitized. Connection and TLS errors still print the raw client-go URL including `?limit=500`. | `dra-inspect --kubeconfig <closed port> inspect slices` prints `UNAVAILABLE: inspect.slices: Get "https://127.0.0.1:PORT/apis/resource.k8s.io/v1/resourceslices?limit=500": dial tcp ...: connect: connection refused`; same with a wrong CA (`tls: failed to verify certificate: x509: ...`) |
-| F3 | medium (fixture validity) | The fixtures with list-valued attributes (`ints`, `strings`: `multinode` and `xe9785l` slices) are not valid for a 1.34.11 apiserver: 6 ResourceSlices are rejected (`spec.devices[0].attributes[resource.kubernetes.io/numaNode]: Required value: exactly one value must be specified`; kubectl strict validation says `unknown field "ints" in io.k8s.api.resource.v1.DeviceAttribute`). The code builds against `k8s.io/api` v0.37 so it parses them, but the 1.34 node image the kind plan pins cannot publish them, so xe9785l topology and alignment cannot be reproduced live on 1.34 and no golden comparison exists for xe9785l or multinode. A server new enough to serve list attributes is needed (not available offline here). `docs/rbac.md` says unknown fields "come back empty"; that is right for reading (a 1.34 server never holds them) and does not cover this write-side rejection. | `kubectl create -f testdata/fixtures/multinode/resourceslices.yaml` (after stripping server fields) against 1.34.11 |
+| F1 | medium (product), **FIXED in e5dc4a7** | `--timeout` is not the total on a hung server: a 3 s deadline costs 6.02 s. `Collect` binds the five list calls to the context, but `collectVMIs` calls `Discovery.ServerResourcesForGroupVersion` without it, so after the deadline fires it still waits for the client-go HTTP timeout (`cfg.Timeout`, the same 3 s). README and `--help` say "overall deadline". Fix: the probe now uses the discovery REST client with the context; unit tests `TestCollectOverallDeadline` and `TestCollectDeadlineCoversDiscovery` assert < 1.5 x timeout, and the script asserts `--timeout 3s` finishes in < 4.5 s (measured 3.02 s). | `kill -STOP <kube-apiserver pid>; time dra-inspect --kubeconfig K --timeout 3s inspect slices` prints `UNAVAILABLE: inspect.slices: timed out after 3s` after 6.02 s |
+| F2 | low-medium (product), **FIXED in e5dc4a7** | Only the timeout reason was sanitized. Connection and TLS errors still print the raw client-go URL including `?limit=500`. | `dra-inspect --kubeconfig <closed port> inspect slices` prints `UNAVAILABLE: inspect.slices: Get "https://127.0.0.1:PORT/apis/resource.k8s.io/v1/resourceslices?limit=500": dial tcp ...: connect: connection refused`; same with a wrong CA (`tls: failed to verify certificate: x509: ...`). Now: reasons are `<resource>: <cause>` (`resourceslices: dial tcp 127.0.0.1:PORT: connect: connection refused`), with fixed text for forbidden, unauthorized and not found; no method, URL, query or token. |
+| F3 | medium (fixture validity), documented, not a product bug | The fixtures with list-valued attributes (`ints`, `strings`: `multinode` and `xe9785l` slices) cannot be written to a 1.34.11 apiserver: 6 ResourceSlices are rejected (`spec.devices[0].attributes[resource.kubernetes.io/numaNode]: Required value: exactly one value must be specified`; kubectl strict validation says `unknown field "ints" in io.k8s.api.resource.v1.DeviceAttribute`). List-valued attributes are an alpha feature of a newer API, so such objects can only exist on servers that support them; the fixtures are synthetic and the parity and golden tests use them for those servers. The code builds against `k8s.io/api` v0.37 and parses them, but xe9785l topology and alignment cannot be reproduced live on 1.34 and no live golden comparison exists for xe9785l or multinode (a server new enough to serve list attributes is not available offline here). Reading is tolerant: a 1.34 server never holds such fields, so they come back empty (see `docs/rbac.md`). Writing is not: the server rejects them. | `kubectl create -f testdata/fixtures/multinode/resourceslices.yaml` (after stripping server fields) against 1.34.11 |
 | F4 | low (fixture hygiene) | 5 DeviceClass names (`dra.cpu`, `dra.hugepages-2m`, `dra.memory`, `gpu.amd.com`, `sriovnetwork.k8snetworkplumbingwg.io`) exist in both the `xe9680` and `xe9785l` fixtures, so the sets cannot coexist in one cluster (`AlreadyExists`). The xe9785l DeviceClass `opaque.parameters.alignments: null` makes kubectl's client-side check say `unknown object type "nil"`; the apiserver accepts it. | create both sets in one cluster |
 | F5 | info | The golden `inspect claims` for `classes-claims` carries `vmi: vm1` from a KubeVirt fixture; live without the CRD says `vmi: unavailable: kubevirt.io/v1 not served`. Expected; the script compares with that field removed and asserts the live text. | |
 | F6 | info (harness lesson) | Without controllers: namespaces need a hand-made `default` ServiceAccount or any Pod is refused; `--allow-privileged` is false by default so a `privileged: true` negative control is rejected by validation, not by Pod Security (use `hostNetwork` and privilege escalation); kubectl writes its discovery cache under `~/.kube` unless `KUBECACHEDIR` is set (`hack/live-kind.sh` now sets it too). | |
@@ -445,8 +445,8 @@ All of the following stay **NOT RUN** (they are the kind plan's job):
 
 ### Assertion red-first
 
-`--red` makes `check()` compare against `RED-WRONG-<expected>`: all 190 assertions of
-a full end-to-end run failed (190 `FAIL`, 0 `PASS`, exit 0 meaning "every assertion
+`--red` makes `check()` compare against `RED-WRONG-<expected>`: all 196 assertions of
+a full end-to-end run failed (196 `FAIL`, 0 `PASS`, exit 0 meaning "every assertion
 can fail"). Some assertions also failed for real while the script was written (also
 verbatim): the privileged-pod negative control (`The Pod "psa-bad-dic" is invalid:
 spec.containers[0].securityContext.privileged: Forbidden: disallowed by cluster
@@ -480,10 +480,7 @@ absence assertions can fail on different data is proven offline by
 | closed port / bad CA / bad token | `FAIL  bad CA: x509 unknown authority: want [RED-WRONG-true] got [true]` | PASS |
 | `~/.kube` untouched | `FAIL  ~/.kube untouched: want [RED-WRONG-1763065414] got [1763065414]` | PASS |
 
-The three known findings are `XFAIL` lines in the real run, not assertions:
-`XFAIL F1 hang: --timeout 3s should take about 3 s in total: want [true] got [false]`,
-`XFAIL F2 closed: reason should not echo the request URL: want [0] got [1]`, and the
-same for `badca`.
+F1 and F2 were `XFAIL` lines (`XFAIL F1 hang: --timeout 3s should take about 3 s in total: want [true] got [false]`, `XFAIL F2 closed: reason should not echo the request URL: want [0] got [1]`, same for `badca`) until fixed in e5dc4a7; they are now normal assertions (`hang: --timeout 3s finishes in < 4.5 s in total`, `closed`/`badca: reason does not echo a URL` and `... a query`). Final run: 196 PASS, 0 FAIL; `--red`: 196 FAIL, 0 PASS, exit 0.
 
 ### Cleanup proof
 
