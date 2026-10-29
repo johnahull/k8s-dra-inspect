@@ -13,7 +13,7 @@ whether topology, host integrations, and KubeVirt expectations are correct.
 In scope:
 
 - ResourceSlice, DeviceClass, ResourceClaim, Pod, Node, and optional VMI inspection.
-- NUMA, PCIe-root, socket, capacity, and allocation checks.
+- NUMA, PCIe-root, capacity, and allocation checks.
 - Offline snapshot capture and replay.
 - Optional VFIO, CDI, CPU-pinning, KubeVirt, and shared-counter adapters.
 - Human-readable tables and versioned JSON output.
@@ -24,6 +24,8 @@ Out of scope:
 - Scheduling, admission, or DRA driver control-plane behavior.
 - Resource mutation, repair, or automatic remediation.
 - Composite-device inspection in v1.
+- Commands that need `pods/exec`, SSH, or `kubectl debug` (`inspect metadata`
+  and `inspect guest` are dropped in v1).
 - A long-running API server or UI.
 
 ## Decisions
@@ -32,6 +34,8 @@ Out of scope:
 - Binary: `dra-inspect`.
 - Implementation language: Go 1.25 or newer.
 - CLI framework: Cobra.
+- API target: `resource.k8s.io/v1` only, Kubernetes 1.34 or newer, client-go
+  v0.34 or newer. Older API versions are not supported.
 - Default output: terminal tables; automation output: versioned JSON.
 - Deployment: standalone binary or OCI image; optional read-only Kubernetes Job.
 - RBAC: cluster read-only profile plus a namespace-scoped workload profile.
@@ -40,3 +44,87 @@ Out of scope:
   are migration references, not compatibility requirements.
 - Host and KubeVirt checks are optional adapters and are never required for
   ordinary cluster inspection.
+
+## Execution Model
+
+Core commands use only the Kubernetes API.
+
+Host adapters (`check cpupinning`, `check vfio`, CDI discovery) read node files
+below `--host-root` (default `/`) and are meaningful only when the binary runs
+on the node itself. Anywhere else they return `unavailable` with the reason
+"run on node". v1 does not use `kubectl debug`, `kubectl exec`, or SSH.
+
+A global `--from FILE` replaces the live Kubernetes source with a loaded
+snapshot for every `inspect`, `check`, and `report` command.
+
+## Topology Attributes
+
+Attribute keys are resolved in this order; the first key present on a device
+wins.
+
+| Meaning | Standard key | Vendor fallbacks |
+|---|---|---|
+| NUMA node | `resource.kubernetes.io/numaNode` | `numaNode`, `numa`, `numaNodeID` |
+| PCIe root | `resource.kubernetes.io/pcieRoot` | `pcieRoot` |
+
+A list-valued attribute is a set. Two devices align when their sets intersect.
+`cpuSocketID` is not a standard attribute and is not interpreted by v1.
+
+## Results, Status, and Exit Codes
+
+Every inspector and check returns `[]Result`. A `Result` has a status of `pass`,
+`warn`, `fail`, `unavailable`, or `error`.
+
+| Condition | Status |
+|---|---|
+| A claim `matchAttribute` constraint is violated | `fail` |
+| Devices span NUMA nodes | `warn` |
+| Devices span PCIe roots | informational; `fail` only if the claim has a `matchAttribute` constraint on pcieRoot |
+| Required permission or adapter data is missing | `unavailable` |
+| Collection or internal failure | `error` |
+
+| Exit code | Meaning |
+|---|---|
+| 0 | all results `pass` or `warn` |
+| 1 | at least one `fail` |
+| 2 | at least one `error` |
+| 3 | at least one `unavailable`, only with `--strict` |
+
+## JSON Output
+
+Every JSON document is an envelope:
+
+```json
+{"schemaVersion": "dra-inspect/v1alpha1", "generatedAt": "...", "source": "live|snapshot", "results": []}
+```
+
+Within one `schemaVersion`, changes are additive only. Resource names are exact
+(never abbreviated). Golden files live in `testdata/golden/`.
+
+## Snapshots and Redaction
+
+Redaction is on by default; `--no-redact` opts out.
+
+- Drop `config[].opaque.parameters` from DeviceClasses and ResourceClaims.
+- Keep Pods only as name, namespace, uid, nodeName, and resourceClaims. Never
+  capture env, annotations, or managedFields.
+- Never capture kubeconfig contents.
+
+## Terminal Output
+
+Color is disabled by `--no-color`, by the `NO_COLOR` environment variable, and
+when stdout is not a terminal.
+
+## RBAC
+
+| API group | Resource | Verbs | Cluster profile | Namespace profile |
+|---|---|---|---|---|
+| `resource.k8s.io` | resourceslices | get, list | yes | no (reported `unavailable`) |
+| `resource.k8s.io` | deviceclasses | get, list | yes | no (reported `unavailable`) |
+| `resource.k8s.io` | resourceclaims | get, list | yes | yes |
+| core | pods | get, list | yes | yes |
+| core | nodes | get, list | yes | no (reported `unavailable`) |
+| `apps` | daemonsets | get, list | yes | no |
+| `kubevirt.io` | virtualmachineinstances | get, list | optional | optional |
+
+No profile grants a mutating verb or `pods/exec`.
