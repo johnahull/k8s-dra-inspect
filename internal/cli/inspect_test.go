@@ -182,3 +182,22 @@ func TestLiveSourceRejectsFrom(t *testing.T) {
 		t.Fatalf("code=%d stderr=%q", code, stderr.String())
 	}
 }
+
+// Middle truncation must keep the distinguishing tail of device identifiers.
+func TestAttributesSubjectsDistinctAfterTruncation(t *testing.T) {
+	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")
+	out, _ := inspectRun(t, snap, "attributes")
+	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")[1:]
+	seen := map[string]string{}
+	for _, l := range lines {
+		// DEVICE is the first column; cells are separated by two spaces.
+		cell, _, _ := strings.Cut(l, "  ")
+		if prev, dup := seen[cell]; dup {
+			t.Errorf("subject %q truncated ambiguously:\n%s\n%s", cell, prev, l)
+		}
+		seen[cell] = l
+	}
+	if len(seen) < 2 {
+		t.Fatalf("too few rows:\n%s", out)
+	}
+}

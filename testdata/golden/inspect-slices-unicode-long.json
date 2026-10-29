@@ -13,7 +13,9 @@
         "generation": 2,
         "node": "node-a.example.com",
         "pool": "pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     },
     {
@@ -26,7 +28,9 @@
         "generation": 1,
         "node": "node-b.example.com",
         "pool": "node-b.example.com",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     }
   ]

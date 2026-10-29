@@ -1,6 +1,7 @@
 package inspect
 
 import (
+	"maps"
 	"slices"
 	"strings"
 
@@ -36,17 +37,27 @@ func Drivers(attributes bool) Inspector {
 				pools, nodes map[string]bool
 				devices      int
 				attrs        map[string]bool
+				placeholders map[string]bool // (all nodes)/(selector): never counted as nodes
+				incomplete   []string
 			}
 			byDriver := map[string]*agg{}
-			for _, s := range current(snap) {
+			cur, sel := current(snap)
+			for _, s := range cur {
 				a := byDriver[s.Spec.Driver]
 				if a == nil {
-					a = &agg{map[string]bool{}, map[string]bool{}, 0, map[string]bool{}}
+					a = &agg{pools: map[string]bool{}, nodes: map[string]bool{}, attrs: map[string]bool{}, placeholders: map[string]bool{}}
 					byDriver[s.Spec.Driver] = a
 				}
+				if !a.pools[s.Spec.Pool.Name] && sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].incomplete {
+					a.incomplete = append(a.incomplete, s.Spec.Pool.Name)
+				}
 				a.pools[s.Spec.Pool.Name] = true
-				if n := sliceNode(s); n != "" {
-					a.nodes[n] = true
+				for _, r := range sliceNodes(s) {
+					if r.name != "" {
+						a.nodes[r.name] = true
+					} else {
+						a.placeholders[r.label] = true
+					}
 				}
 				a.devices += len(s.Spec.Devices)
 				for _, d := range s.Spec.Devices {
@@ -64,6 +75,16 @@ func Drivers(attributes bool) Inspector {
 			for _, n := range names {
 				a := byDriver[n]
 				d := map[string]any{"pools": len(a.pools), "nodes": len(a.nodes), "devices": a.devices}
+				status := model.StatusPass
+				if len(a.incomplete) > 0 {
+					slices.Sort(a.incomplete)
+					status = model.StatusWarn
+					d["incompletePools"] = a.incomplete
+					d["reason"] = incompleteReason(a.incomplete...)
+				}
+				if len(a.placeholders) > 0 {
+					d["nodeSelection"] = slices.Sorted(maps.Keys(a.placeholders))
+				}
 				if attributes {
 					keys := make([]string, 0, len(a.attrs))
 					for k := range a.attrs {
@@ -72,7 +93,7 @@ func Drivers(attributes bool) Inspector {
 					slices.Sort(keys)
 					d["attributes"] = keys
 				}
-				out = append(out, model.Result{Check: check, Status: model.StatusPass, Subject: n, Details: d})
+				out = append(out, model.Result{Check: check, Status: status, Subject: n, Details: d})
 			}
 			return out
 		},

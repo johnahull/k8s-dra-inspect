@@ -108,3 +108,43 @@ func TestJSONEnvelope(t *testing.T) {
 		t.Fatalf("results must be [] not null: %s", buf.String())
 	}
 }
+
+func TestFitMiddle(t *testing.T) {
+	cases := []struct {
+		name, in string
+		w        int
+		want     string
+	}{
+		{"fits", "abcdef", 6, "abcdef"},
+		{"even split", "abcdefghij", 6, "abc…ij"},
+		{"cjk at boundary", "ab示例cd示例ef", 8, "ab示…ef"},
+		{"cjk straddles head", "a示例示例bcd", 4, "a…d"},
+		{"combining kept with base", "e\u0301bcdefgh", 5, "e\u0301b…gh"},
+		{"combining not orphaned in tail", "abcdefg\u0301h", 4, "ab…h"},
+	}
+	for _, c := range cases {
+		got := fit(c.in, c.w, TruncateMiddle)
+		if strings.TrimRight(got, " ") != c.want || cond.StringWidth(got) != c.w {
+			t.Errorf("%s: got %q want %q (width %d)", c.name, got, c.want, cond.StringWidth(got))
+		}
+	}
+}
+
+func TestTableMiddleColumn(t *testing.T) {
+	var buf bytes.Buffer
+	rows := [][]string{{"driver/pool/" + strings.Repeat("a", 30) + "-gpu-0"}, {"driver/pool/" + strings.Repeat("a", 30) + "-gpu-1"}}
+	_ = Table(&buf, []Column{{Header: "D", Min: 5, Truncate: TruncateMiddle}}, rows, TableOptions{Width: 20})
+	l := strings.Split(buf.String(), "\n")
+	if l[1] == l[2] || !strings.HasSuffix(l[1], "gpu-0") || !strings.HasPrefix(l[1], "driver") {
+		t.Fatalf("middle truncation lost distinguishing tail:\n%s", buf.String())
+	}
+}
+
+func TestTableReplacesFormatChars(t *testing.T) {
+	var buf bytes.Buffer
+	_ = Table(&buf, []Column{{Header: "A"}}, [][]string{{"a\u202eb\u2028c\u2029d\u200be"}}, TableOptions{})
+	want := "a�b�c�d�e\n"
+	if !strings.HasSuffix(buf.String(), want) || strings.Count(buf.String(), "\n") != 2 {
+		t.Fatalf("%q", buf.String())
+	}
+}

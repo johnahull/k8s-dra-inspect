@@ -10,5 +10,8 @@ go test ./...
 go vet ./...
 ```
 
+Golden files under `testdata/golden/` are regenerated with
+`go test ./... -update`; review the resulting diff before committing.
+
 Keep the default tool behavior read-only. New checks should include fixture
 tests and stable JSON output where automation may consume the result.

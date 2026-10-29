@@ -11,10 +11,19 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
+// Truncation selects where an over-wide cell loses text.
+type Truncation int
+
+const (
+	TruncateTail   Truncation = iota // "head…"
+	TruncateMiddle                   // "head…tail", for identifiers whose unique part is last
+)
+
 // Column describes one table column. Max 0 means unbounded.
 type Column struct {
 	Header   string
 	Min, Max int
+	Truncate Truncation
 }
 
 // TableOptions controls layout. Width 0 means 120.
@@ -33,21 +42,58 @@ const (
 var cond = &runewidth.Condition{}
 
 // clean replaces control characters (including ESC, so ANSI sequences
-// become inert text) with a visible placeholder.
+// become inert text), format characters (Cf: bidi overrides, zero-width
+// space, ...) and the line/paragraph separators with a visible placeholder.
+// Cf includes ZWJ (U+200D), so emoji ZWJ sequences render split; spoofing
+// resistance wins over emoji fidelity in a diagnostic tool.
 func clean(s string) string {
 	return strings.Map(func(r rune) rune {
-		if unicode.IsControl(r) {
+		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == '\u2028' || r == '\u2029' {
 			return '�'
 		}
 		return r
 	}, s)
 }
 
-func fit(s string, w int) string {
+func fit(s string, w int, mode Truncation) string {
 	if cond.StringWidth(s) > w {
-		s = cond.Truncate(s, w, ellipsis)
+		if mode == TruncateMiddle && w > 1 {
+			s = middle(s, w)
+		} else {
+			s = cond.Truncate(s, w, ellipsis)
+		}
 	}
-	return s + strings.Repeat(" ", w-cond.StringWidth(s))
+	return s + strings.Repeat(" ", max(w-cond.StringWidth(s), 0))
+}
+
+// middle returns head+"…"+tail within width w (w > 1), cutting only on rune
+// boundaries; combining marks stay with their base and are never orphaned.
+func middle(s string, w int) string {
+	rs := []rune(s)
+	avail := w - cond.StringWidth(ellipsis)
+	headW, tailW := (avail+1)/2, avail/2
+	i, hw := 0, 0
+	for i < len(rs) {
+		rw := cond.RuneWidth(rs[i])
+		if hw+rw > headW {
+			break
+		}
+		hw += rw
+		i++
+	}
+	j, tw := len(rs), 0
+	for j > i {
+		rw := cond.RuneWidth(rs[j-1])
+		if tw+rw > tailW {
+			break
+		}
+		tw += rw
+		j--
+	}
+	for j < len(rs) && cond.RuneWidth(rs[j]) == 0 { // tail must not start with an orphan mark
+		j++
+	}
+	return string(rs[:i]) + ellipsis + string(rs[j:])
 }
 
 // Table prints rows under cols, shrinking the widest columns (down to their
@@ -104,7 +150,7 @@ func Table(w io.Writer, cols []Column, rows [][]string, opt TableOptions) error 
 	for n, r := range cells {
 		parts := make([]string, len(cols))
 		for i := range parts {
-			parts[i] = fit(r[i], widths[i])
+			parts[i] = fit(r[i], widths[i], cols[i].Truncate)
 		}
 		line := strings.TrimRight(strings.Join(parts, gap), " ")
 		if n == 0 && opt.Color {

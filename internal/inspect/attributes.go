@@ -31,7 +31,7 @@ func attrDisplay(a resourcev1.DeviceAttribute) string {
 
 // Attributes lists attributes (and optionally capacity) of every device.
 func Attributes(all, capacity bool) Inspector {
-	cols := []render.Column{{Header: "DEVICE", Min: 12}, {Header: "NODE", Min: 8}, {Header: "ATTRIBUTES", Min: 12}}
+	cols := []render.Column{{Header: "DEVICE", Min: 12, Truncate: render.TruncateMiddle}, {Header: "NODE", Min: 8}, {Header: "ATTRIBUTES", Min: 12}}
 	if capacity {
 		cols = append(cols, render.Column{Header: "CAPACITY", Min: 8})
 	}
@@ -54,7 +54,9 @@ func Attributes(all, capacity bool) Inspector {
 				return res
 			}
 			var out []model.Result
-			for _, s := range current(snap) {
+			cur, sel := current(snap)
+			for _, s := range cur {
+				incomplete := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].incomplete
 				for _, d := range s.Spec.Devices {
 					attrs := map[string]string{}
 					for k, v := range d.Attributes {
@@ -62,7 +64,13 @@ func Attributes(all, capacity bool) Inspector {
 							attrs[string(k)] = attrDisplay(v)
 						}
 					}
-					det := map[string]any{"node": sliceNode(s), "attributes": attrs}
+					det := map[string]any{"node": deviceNode(s, d).String(), "attributes": attrs}
+					status := model.StatusPass
+					if incomplete {
+						status = model.StatusWarn
+						det["incomplete"] = true
+						det["reason"] = incompleteReason(s.Spec.Pool.Name)
+					}
 					if capacity {
 						caps := map[string]string{}
 						for k, v := range d.Capacity {
@@ -70,7 +78,7 @@ func Attributes(all, capacity bool) Inspector {
 						}
 						det["capacity"] = caps
 					}
-					out = append(out, model.Result{Check: check, Status: model.StatusPass,
+					out = append(out, model.Result{Check: check, Status: status,
 						Subject: s.Spec.Driver + "/" + s.Spec.Pool.Name + "/" + d.Name, Details: det})
 				}
 			}

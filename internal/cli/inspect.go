@@ -62,7 +62,7 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 		parent.AddCommand(c)
 		return c
 	}
-	add("slices", "List ResourceSlices", inspect.Slices)
+	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", inspect.Slices)
 	add("drivers", "Summarize DRA drivers", func() inspect.Inspector { return inspect.Drivers(attrs) }).
 		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
 	a := add("attributes", "Show device attributes", func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) })

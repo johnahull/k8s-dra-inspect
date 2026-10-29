@@ -13,7 +13,9 @@
         "generation": 1,
         "node": "node-a.example.com",
         "pool": "node-a.example.com",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     },
     {
@@ -26,7 +28,9 @@
         "generation": 1,
         "node": "node-a.example.com",
         "pool": "node-a.example.com",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     },
     {
@@ -39,7 +43,9 @@
         "generation": 1,
         "node": "node-a.example.com",
         "pool": "node-a.example.com",
-        "sharedCounterSets": 8
+        "sharedCounterSets": 8,
+        "stale": false,
+        "state": "current"
       }
     },
     {
@@ -52,7 +58,9 @@
         "generation": 1,
         "node": "node-a.example.com",
         "pool": "node-a.example.com",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     },
     {
@@ -65,7 +73,9 @@
         "generation": 1,
         "node": "node-a.example.com",
         "pool": "node-a.example.com",
-        "sharedCounterSets": 0
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
       }
     }
   ]
