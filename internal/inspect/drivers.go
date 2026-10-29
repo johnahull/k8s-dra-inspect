@@ -53,10 +53,10 @@ func Drivers(attributes bool) Inspector {
 				}
 				a.pools[s.Spec.Pool.Name] = true
 				for _, r := range sliceNodes(s) {
-					if r.name != "" {
-						a.nodes[r.name] = true
+					if r.Name != "" {
+						a.nodes[r.Name] = true
 					} else {
-						a.placeholders[r.label] = true
+						a.placeholders[r.Label] = true
 					}
 				}
 				a.devices += len(s.Spec.Devices)

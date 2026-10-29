@@ -7,7 +7,6 @@ import (
 	"slices"
 	"strings"
 
-	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
@@ -52,55 +51,21 @@ func cmpState(s string) string {
 	return s
 }
 
-const (
-	allNodesLabel = "(all nodes)"
-	selectorLabel = "(selector)"
-)
-
-// nodeRef is a real node name or, when name is empty, a placeholder label.
-type nodeRef struct{ name, label string }
-
-func (n nodeRef) String() string { return n.name + n.label }
-
-func refOf(name *string, selector *corev1.NodeSelector, all *bool) (nodeRef, bool) {
-	switch {
-	case name != nil:
-		return nodeRef{name: *name}, true
-	case all != nil && *all:
-		return nodeRef{label: allNodesLabel}, true
-	case selector != nil:
-		return nodeRef{label: selectorLabel}, true
-	}
-	return nodeRef{}, false
-}
-
-// deviceNode resolves where one device is available, honouring
-// PerDeviceNodeSelection.
-func deviceNode(s resourcev1.ResourceSlice, d resourcev1.Device) nodeRef {
-	var r nodeRef
-	if s.Spec.PerDeviceNodeSelection != nil && *s.Spec.PerDeviceNodeSelection {
-		r, _ = refOf(d.NodeName, d.NodeSelector, d.AllNodes)
-	} else {
-		r, _ = refOf(s.Spec.NodeName, s.Spec.NodeSelector, s.Spec.AllNodes)
-	}
-	return r
-}
-
 // sliceNodes lists the distinct node refs of a slice: names first (sorted),
 // then placeholders.
-func sliceNodes(s resourcev1.ResourceSlice) []nodeRef {
-	var refs []nodeRef
+func sliceNodes(s resourcev1.ResourceSlice) []model.NodeRef {
+	var refs []model.NodeRef
 	if s.Spec.PerDeviceNodeSelection != nil && *s.Spec.PerDeviceNodeSelection {
 		for _, d := range s.Spec.Devices {
-			if r := deviceNode(s, d); r != (nodeRef{}) {
+			if r := model.DeviceNode(s, d); r != (model.NodeRef{}) {
 				refs = append(refs, r)
 			}
 		}
-	} else if r, ok := refOf(s.Spec.NodeName, s.Spec.NodeSelector, s.Spec.AllNodes); ok {
+	} else if r, ok := model.NodeRefOf(s.Spec.NodeName, s.Spec.NodeSelector, s.Spec.AllNodes); ok {
 		refs = append(refs, r)
 	}
-	slices.SortFunc(refs, func(a, b nodeRef) int {
-		return cmp.Or(cmp.Compare(a.label, b.label), cmp.Compare(a.name, b.name))
+	slices.SortFunc(refs, func(a, b model.NodeRef) int {
+		return cmp.Or(cmp.Compare(a.Label, b.Label), cmp.Compare(a.Name, b.Name))
 	})
 	return slices.Compact(refs)
 }

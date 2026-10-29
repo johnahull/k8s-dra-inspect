@@ -40,3 +40,11 @@ func TestTimeoutIsOverallDeadline(t *testing.T) {
 		}
 	}
 }
+
+func TestNegativeTimeoutIsUsageError(t *testing.T) {
+	var out, errb bytes.Buffer
+	deps := Deps{NewSource: func(*Options) (model.Source, error) { t.Fatal("source built"); return nil, nil }, Now: time.Now}
+	if code := run([]string{"--timeout", "-1s", "inspect", "slices"}, &out, &errb, "v", deps); code != 2 || !strings.Contains(errb.String(), "--timeout") {
+		t.Errorf("code=%d err=%q", code, errb.String())
+	}
+}

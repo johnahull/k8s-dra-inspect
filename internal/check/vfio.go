@@ -40,7 +40,7 @@ func VFIO() Check {
 		seen, off := map[string]bool{}, map[string]int{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {
-				d, sl, found := model.FindDevice(snap.ResourceSlices, r.Driver, r.Pool, r.Device)
+				d, _, found := model.FindDevice(snap.ResourceSlices, r.Driver, r.Pool, r.Device)
 				if !found || seen[devName(r)] {
 					continue
 				}
@@ -49,11 +49,12 @@ func VFIO() Check {
 					continue
 				}
 				seen[devName(r)] = true
+				node, tied := deviceNode(snap, r)
 				switch {
-				case sl.Spec.NodeName == nil:
+				case !tied:
 					out = append(out, single(NameVFIO, model.StatusUnavailable, devName(r), "device is not tied to a node; cannot match host evidence")...)
-				case *sl.Spec.NodeName != ev.NodeName:
-					off[*sl.Spec.NodeName]++
+				case node != ev.NodeName:
+					off[node]++
 				default:
 					out = append(out, vfioDevice(ev, r.Device, devName(r), bdf))
 				}

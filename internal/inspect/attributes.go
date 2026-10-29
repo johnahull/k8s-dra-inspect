@@ -64,7 +64,7 @@ func Attributes(all, capacity bool) Inspector {
 							attrs[string(k)] = attrDisplay(v)
 						}
 					}
-					det := map[string]any{"node": deviceNode(s, d).String(), "attributes": attrs}
+					det := map[string]any{"node": model.DeviceNode(s, d).String(), "attributes": attrs}
 					status := model.StatusPass
 					if incomplete {
 						status = model.StatusWarn

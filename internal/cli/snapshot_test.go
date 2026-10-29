@@ -294,3 +294,34 @@ func TestReplayUnavailableForEachNonOKState(t *testing.T) {
 		}
 	}
 }
+
+// A file that appears after the pre-check must not be overwritten without --force.
+func TestWriteSnapshotNeverOverwritesWithoutForce(t *testing.T) {
+	p := tmpFile(t)
+	if err := os.WriteFile(p, []byte("precious"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	err := writeSnapshot(nil, p, false, model.Snapshot{})
+	if err == nil || !strings.Contains(err.Error(), "already exists; use --force") {
+		t.Fatalf("err=%v", err)
+	}
+	if b, _ := os.ReadFile(p); string(b) != "precious" {
+		t.Errorf("file overwritten: %q", b)
+	}
+	if m, _ := filepath.Glob(filepath.Join(filepath.Dir(p), ".dra-inspect-snapshot-*")); len(m) != 0 {
+		t.Errorf("temp file left: %v", m)
+	}
+	if err := writeSnapshot(nil, p, true, model.Snapshot{}); err != nil {
+		t.Fatal(err)
+	}
+	if b, _ := os.ReadFile(p); string(b) == "precious" {
+		t.Error("--force did not overwrite")
+	}
+	q := tmpFile(t)
+	if err := writeSnapshot(nil, q, false, model.Snapshot{}); err != nil {
+		t.Fatal(err)
+	}
+	if fi, err := os.Stat(q); err != nil || fi.Mode().Perm() != 0o600 {
+		t.Errorf("new file: %v %v", fi, err)
+	}
+}

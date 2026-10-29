@@ -24,7 +24,7 @@ func nodeSelectorNames(ns *corev1.NodeSelector) []string {
 		}
 	}
 	if len(names) == 0 {
-		return []string{selectorLabel}
+		return []string{model.SelectorLabel}
 	}
 	return names
 }
@@ -164,7 +164,7 @@ func Claims() Inspector {
 							missing = append(missing, fmt.Sprintf("%s/%s/%s", r.Driver, r.Pool, r.Device))
 							continue
 						}
-						nodes = append(nodes, deviceNode(*s, d).String())
+						nodes = append(nodes, model.DeviceNode(*s, d).String())
 					}
 					// An allocation nodeSelector overrides device-derived nodes; selectors without a
 					// node name render as "(selector)".

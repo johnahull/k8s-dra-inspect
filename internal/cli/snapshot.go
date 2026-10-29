@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"maps"
 	"os"
 	"path/filepath"
@@ -66,7 +68,7 @@ evidence is redacted by its producer and is kept even with --no-redact.`,
 			} else {
 				snap = model.Redact(snap)
 			}
-			if err := writeSnapshot(cmd.OutOrStdout(), file, snap); err != nil {
+			if err := writeSnapshot(cmd.OutOrStdout(), file, force, snap); err != nil {
 				return err
 			}
 			bad := notOK(snap.Collection)
@@ -108,7 +110,7 @@ var syncFile = func(f *os.File) error { return f.Sync() }
 
 // writeSnapshot writes to stdout, or atomically to path via a 0600 temp file
 // in the same directory.
-func writeSnapshot(stdout io.Writer, path string, snap model.Snapshot) (err error) {
+func writeSnapshot(stdout io.Writer, path string, force bool, snap model.Snapshot) (err error) {
 	if path == "" {
 		return snapshot.Capture(stdout, snap)
 	}
@@ -132,5 +134,18 @@ func writeSnapshot(stdout io.Writer, path string, snap model.Snapshot) (err erro
 	if err = tmp.Close(); err != nil {
 		return err
 	}
-	return os.Rename(tmp.Name(), path)
+	if force {
+		return os.Rename(tmp.Name(), path)
+	}
+	// Link fails with EEXIST if the file appeared after the pre-check; rename would clobber it.
+	switch lerr := os.Link(tmp.Name(), path); {
+	case lerr == nil:
+		_ = os.Remove(tmp.Name())
+		return nil
+	case errors.Is(lerr, fs.ErrExist):
+		return fmt.Errorf("%s already exists; use --force to overwrite", path)
+	default:
+		// shortcut: filesystems without hard links fall back to the racy rename.
+		return os.Rename(tmp.Name(), path)
+	}
 }

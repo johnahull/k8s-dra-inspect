@@ -23,6 +23,9 @@ func (o *Options) Validate() error {
 	if o.Output != "table" && o.Output != "json" {
 		return fmt.Errorf("invalid output format %q: must be table or json", o.Output)
 	}
+	if o.Timeout < 0 {
+		return fmt.Errorf("invalid --timeout %v: must be >= 0 (0 means no deadline)", o.Timeout)
+	}
 	if o.From != "" && (o.Kubeconfig != "" || o.Context != "") {
 		return errors.New("--from cannot be combined with --kubeconfig or --context")
 	}

@@ -204,11 +204,12 @@ func kubevirtClaim(snap model.Snapshot, v kubevirt.VMI, hd kubevirt.HostDevice) 
 	return resourcev1.ResourceClaim{}, false
 }
 
-// deviceNode returns the node of the slice that publishes the allocated device.
+// deviceNode returns the named node the allocated device is bound to.
 func deviceNode(snap model.Snapshot, r resourcev1.DeviceRequestAllocationResult) (string, bool) {
-	_, sl, found := model.FindDevice(snap.ResourceSlices, r.Driver, r.Pool, r.Device)
-	if !found || sl.Spec.NodeName == nil {
+	d, sl, found := model.FindDevice(snap.ResourceSlices, r.Driver, r.Pool, r.Device)
+	if !found {
 		return "", false
 	}
-	return *sl.Spec.NodeName, true
+	n := model.DeviceNode(*sl, d).Name
+	return n, n != ""
 }

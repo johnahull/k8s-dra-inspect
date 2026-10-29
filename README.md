@@ -45,7 +45,7 @@ dra-inspect version
 Global flags: `-n/--namespace`, `-o/--output table|json`, `--from FILE`,
 `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
 
-`--timeout` (default 30s) is one overall deadline for collecting from the
+`--timeout` (default 30s; 0 means no deadline; negative values are a usage error) is one overall deadline for collecting from the
 cluster, all resource kinds together, so a hung API server costs about that
 long in total. Kinds not collected by then are reported as unavailable
 (`timed out after <timeout>`). It applies to `inspect`, `check`, `snapshot

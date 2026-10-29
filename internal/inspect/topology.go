@@ -78,7 +78,7 @@ func Topology(compact bool) Inspector {
 					if sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete {
 						reasons[incompleteReason(s.Spec.Pool.Name)] = true
 					}
-					k := topoKey{deviceNode(s, d).String(), join(top.NUMA.Values), join(top.PCIeRoot.Values)}
+					k := topoKey{model.DeviceNode(s, d).String(), join(top.NUMA.Values), join(top.PCIeRoot.Values)}
 					g := groups[k]
 					if g == nil {
 						g = &topoGroup{numa: top.NUMA.Values, pcie: top.PCIeRoot.Values, numaKeys: map[string]bool{}, pcieKs: map[string]bool{}, drivers: map[string]int{}, reasons: map[string]bool{}}

@@ -276,3 +276,31 @@ func TestKubeVirtFromEvidenceCapsMaps(t *testing.T) {
 		t.Fatalf("%d devices", len(d))
 	}
 }
+
+// perDevice moves every slice's node binding down to its devices
+// (PerDeviceNodeSelection); node, when set, replaces the slice's node.
+func perDevice(snap model.Snapshot, node string) {
+	for i := range snap.ResourceSlices {
+		sp := &snap.ResourceSlices[i].Spec
+		n := node
+		if n == "" && sp.NodeName != nil {
+			n = *sp.NodeName
+		}
+		t := true
+		sp.PerDeviceNodeSelection, sp.NodeName = &t, nil
+		for j := range sp.Devices {
+			sp.Devices[j].NodeName = &n
+		}
+	}
+}
+
+func TestKubeVirtPerDeviceNodeSelection(t *testing.T) {
+	snap := kvSnap(t)
+	perDevice(snap, "")
+	if r := kvOne(t, snap, "vm-ok"); r.Status != model.StatusPass {
+		t.Fatalf("device on the VMI's node must pass: %+v", r)
+	}
+	snap = kvSnap(t)
+	perDevice(snap, "node-z.example.com")
+	wantStatus(t, kvOne(t, snap, "vm-ok"), model.StatusFail, "node node-z.example.com, but the VMI runs on node-a.example.com")
+}
