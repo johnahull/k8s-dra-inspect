@@ -27,7 +27,7 @@ spec:
       restartPolicy: Never
       serviceAccountName: {{ include "dra-inspect.serviceAccountName" . }}
       # The one pod that needs the API. No kubeconfig is mounted: the CLI falls
-      # back to the in-cluster config (verified live in Task 8, not by CI).
+      # back to the in-cluster config (not verified live yet: docs/harness-test-plan.md).
       automountServiceAccountToken: true
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:

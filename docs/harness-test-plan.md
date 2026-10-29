@@ -1,11 +1,15 @@
 # Live verification plan (kind)
 
-**Status: NOT RUN - pending approval.** Nothing in this document has been
-executed. The offline half of the migration work (fixtures, parity tests,
-sample bundle) is covered by `go test ./...`; this plan is the live half and
-needs an explicit go-ahead because it creates a cluster, pulls container
-images and downloads a chart. It fills in the results table at the end; until
-then every cell is empty.
+**Status: RUN 2026-10-29, live cluster part BLOCKED on this environment.**
+`kind create cluster` failed on rootless podman 3.4.4 (CNI error, exact text in
+[Findings](#findings)), so nothing that needs a cluster ran: steps 2 to 10 below
+are unexecuted. What did run: kind, kubectl and the sample-driver chart were
+fetched and pinned, the image was built and passed `hack/check-image.sh`
+(step 1), the chart renders and lints, the workstation CLI was exercised
+against unreachable and hanging API servers, the assertion helpers of
+`hack/live-kind.sh` were proven able to fail, and the script itself was written.
+Re-run everything with `hack/live-kind.sh` on a host with podman 4+ (netavark)
+or Docker.
 
 Related: [README](../README.md), [RBAC reference](rbac.md),
 [migration guide](migration-from-dra-verify.md).
@@ -32,9 +36,9 @@ Related: [README](../README.md), [RBAC reference](rbac.md),
 | Item | Requirement |
 |---|---|
 | Tools | `podman`, `kind`, `kubectl`, `helm`, `jq`, Go toolchain from `go.mod` |
-| kind provider | podman (`KIND_EXPERIMENTAL_PROVIDER=podman`), rootless works with cgroups v2 |
-| Node image | `kindest/node:v1.34.<patch>@sha256:<digest>`, Kubernetes 1.34 or newer so `resource.k8s.io/v1` is served (DRA is GA, no feature gates). Record the exact tag and digest in the results table before running. |
-| Sample driver | `kubernetes-sigs/dra-example-driver` checked out at a pinned **release tag** (record tag and commit). It publishes simulated GPUs without NUMA attributes, so topology findings are `warn`, which is expected. |
+| kind provider | podman 4 or newer with netavark (`KIND_EXPERIMENTAL_PROVIDER=podman`), cgroups v2 with `cpu cpuset memory pids` delegated to the user for rootless; Docker also works. podman 3.4.4 (Ubuntu 22.04) does not: see finding F1. |
+| Node image | `kindest/node:v1.34.11@sha256:44e222ee2132dab25ff87301682f89eb82c7880ea3a1bf543bfe9708fd08d67d` (from the kind v0.33.0 release notes; Kubernetes 1.34 or newer so `resource.k8s.io/v1` is served, DRA is GA, no feature gates; containerd 2.3.4 so CDI is on by default). |
+| Sample driver | `kubernetes-sigs/dra-example-driver` checked out at the pinned release tag `v0.5.0` (commit `93ff610f3c3bfd603c592d1c281a236c1463edb9`; chart `deployments/helm/dra-example-driver`, image `registry.k8s.io/dra-example-driver/dra-example-driver:v0.5.0`). It publishes simulated GPUs without NUMA attributes, so topology findings are `warn`, which is expected. |
 | dra-inspect | Built from the commit under test: `go build -o "$SCRATCH/dra-inspect" ./cmd/dra-inspect` and a local image (below). |
 
 ## Safety rules
@@ -42,11 +46,11 @@ Related: [README](../README.md), [RBAC reference](rbac.md),
 - **Scratch kubeconfig only.** Always `export KUBECONFIG="$SCRATCH/kubeconfig"`
   and pass `--kubeconfig "$SCRATCH/kubeconfig"`. Never read or write
   `~/.kube/config`; run `kubectl config current-context` first and abort unless
-  it is `kind-dra-inspect-harness`.
-- **One cluster name:** `dra-inspect-harness`. Never touch other clusters.
+  it is `kind-dra-inspect-test`.
+- **One cluster name:** `dra-inspect-test`. Never touch other clusters.
 - **No sudo.** Rootless podman only.
 - **Pin and record** every image tag, digest and chart commit used.
-- **Cleanup always:** `kind delete cluster --name dra-inspect-harness`, remove
+- **Cleanup always:** `kind delete cluster --name dra-inspect-test`, remove
   `$SCRATCH`, and `podman rmi localhost/dra-inspect:harness`. Run it even when a
   step fails.
 - Only the commands below are run against the cluster; no `kubectl delete` of
@@ -56,8 +60,8 @@ Related: [README](../README.md), [RBAC reference](rbac.md),
 export SCRATCH=$(mktemp -d)
 export KUBECONFIG="$SCRATCH/kubeconfig"
 export KIND_EXPERIMENTAL_PROVIDER=podman
-export NODE_IMAGE='kindest/node:v1.34.<patch>@sha256:<digest>'   # fill in and record
-export DRIVER_TAG='<release tag of dra-example-driver>'          # fill in and record
+export NODE_IMAGE='kindest/node:v1.34.11@sha256:44e222ee2132dab25ff87301682f89eb82c7880ea3a1bf543bfe9708fd08d67d'
+export DRIVER_TAG='v0.5.0'   # commit 93ff610f3c3bfd603c592d1c281a236c1463edb9
 ```
 
 ## Steps
@@ -70,23 +74,25 @@ failed criterion, record it, and clean up.
 ```bash
 go build -o "$SCRATCH/dra-inspect" ./cmd/dra-inspect
 mkdir -p "$SCRATCH/ctx/linux/amd64"
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o "$SCRATCH/ctx/linux/amd64/dra-inspect" ./cmd/dra-inspect
+hack/check-release.sh        # goreleaser snapshot binary in dist/
+cp "$(find dist -type f -name dra-inspect | head -n1)" "$SCRATCH/ctx/linux/amd64/dra-inspect"
 cp Dockerfile "$SCRATCH/ctx/"
 podman build --platform linux/amd64 --build-arg TARGETPLATFORM=linux/amd64 \
   -t localhost/dra-inspect:harness "$SCRATCH/ctx"
-hack/check-image.sh localhost/dra-inspect:harness "$("$SCRATCH/dra-inspect" version)"
+hack/check-image.sh localhost/dra-inspect:harness     # expects the dist/metadata.json snapshot version
 ```
 
-Accept: `check-image: ok`, non-root user, no shell.
+Accept: `check-image: ok`, non-root user, no shell. **Result: pass**
+(`check-image: ok (0.0.0-SNAPSHOT-4683a0e, user 65532:65532)`, image 32.6 MB).
 
 ### 2. Create the cluster
 
 ```bash
-kind create cluster --name dra-inspect-harness --image "$NODE_IMAGE" --kubeconfig "$KUBECONFIG"
-kubectl config current-context        # must be kind-dra-inspect-harness
+kind create cluster --name dra-inspect-test --image "$NODE_IMAGE" --kubeconfig "$KUBECONFIG"
+kubectl config current-context        # must be kind-dra-inspect-test
 kubectl api-resources --api-group=resource.k8s.io | grep -E 'resourceslices|deviceclasses|resourceclaims'
 podman save localhost/dra-inspect:harness -o "$SCRATCH/img.tar"
-kind load image-archive "$SCRATCH/img.tar" --name dra-inspect-harness
+kind load image-archive "$SCRATCH/img.tar" --name dra-inspect-test
 ```
 
 Accept: three `resource.k8s.io` resources listed; image loaded.
@@ -221,34 +227,107 @@ Accept: exactly this behavior.
 
 ```bash
 helm uninstall dra-inspect -n team-a || true
-kind delete cluster --name dra-inspect-harness
+kind delete cluster --name dra-inspect-test
 podman rmi localhost/dra-inspect:harness || true
 rm -rf "$SCRATCH"
 ```
 
-Accept: `kind get clusters` no longer lists `dra-inspect-harness`.
+Accept: `kind get clusters` no longer lists `dra-inspect-test`.
 
 ## Results
 
-Fill in after the run; leave empty until then.
+Run 2026-10-29 by the Task 8b agent (operator: John Hull's workstation).
 
 | Field | Value |
 |---|---|
-| Date / operator | |
-| dra-inspect commit | |
-| kindest/node tag and digest | |
-| dra-example-driver tag and commit | |
+| dra-inspect commit | `4683a0e` (branch `feat/dra-inspect-v1`) |
+| kind | v0.33.0 (`go install sigs.k8s.io/kind@v0.33.0`, go1.25.5 build) |
+| kindest/node | `kindest/node:v1.34.11@sha256:44e222ee2132dab25ff87301682f89eb82c7880ea3a1bf543bfe9708fd08d67d` (pulled, 908 MB, left cached) |
+| dra-example-driver | tag `v0.5.0`, commit `93ff610f3c3bfd603c592d1c281a236c1463edb9` (chart read and rendered with `helm template`; not installed) |
+| podman | 3.4.4 (rootless, crun 0.17, cgroup v2, cgroupManager systemd, delegated controllers `memory pids`) |
+| helm | v4.3.1+gc0d08d0 |
+| kubectl | v1.35.10 (downloaded to the scratch dir, sha256 verified) |
+| go | go1.26.10 |
 
-| Step | Result (pass/fail) | Evidence / notes |
+| Step | Result | Evidence / notes |
 |---|---|---|
-| 1 Build and image | | |
-| 2 Cluster | | |
-| 3 Sample driver | | |
-| 4 Workstation CLI | | |
-| 5 Claim and alignment | | |
-| 6 Capture and replay equality | | |
-| 7 Job, PSA restricted, in-cluster auth | | |
-| 8 `auth can-i` read-only proof | | |
-| 9 Namespace profile | | |
-| 10 Adapters from a workstation | | |
-| 11 Cleanup | | |
+| 1 Build and image | pass | `check-release: ok (0.0.0-SNAPSHOT-4683a0e)`, `check-image: ok (0.0.0-SNAPSHOT-4683a0e, user 65532:65532)`; `helm lint` ok for both profiles |
+| 2 Cluster | **BLOCKED (environment)** | `kind create cluster` failed, see F1 |
+| 3 Sample driver | not run | needs a cluster; chart and demo specs read, see `hack/live-kind.sh` |
+| 4 Workstation CLI | not run | needs a cluster |
+| 5 Claim and alignment | not run | needs a cluster |
+| 6 Capture and replay equality | not run | helper assertions proven red-first offline (below) |
+| 7 Job, PSA restricted, in-cluster auth | not run | still unverified; the claim in the Job template comment was reworded |
+| 8 `auth can-i` read-only proof | not run | |
+| 9 Namespace profile | not run | |
+| 10 Adapters from a workstation | not run | |
+| Failure modes (offline subset) | pass | unreachable and hanging API server: see F2, F3 |
+| 11 Cleanup | pass | see below |
+
+### Assertion red-first (helpers in `hack/live-kind.sh`, run against `testdata/snapshots/xe9785l.json`)
+
+| Assertion | Failing output seen | Green |
+|---|---|---|
+| replay==live results[] | `FAIL  replay==live: inspect slices: want [live 4 results] got [replay differs: 3c3 <     "check": "inspect.drivers", --- ]` | `PASS  replay==live: inspect slices` |
+| results non-empty (guards against vacuous equality) | `FAIL  non-empty results: inspect slices: want [true] got [false]` | `PASS  non-empty results: check alignment` |
+| marker absent from snapshot/outputs | `FAIL  no secret marker (marker planted): want [absent] got [present]` | `PASS  no secret marker` |
+| can-i / generic `check` | `FAIL  can-i style compare: want [no] got [yes]` | `PASS  can-i style compare` |
+
+These prove the comparison helpers can fail. The cluster-dependent assertions
+(`can-i` yes/no against a real API server, Job exit codes, impersonated
+`Forbidden` probes) use the same `check` helper but were not executed.
+
+### Commands run (offline subset)
+
+```bash
+S=<scratch>; go build -o $S/dra-inspect ./cmd/dra-inspect
+$S/dra-inspect --kubeconfig closed-port.kubeconfig inspect slices      # exit 0, UNAVAILABLE ... connection refused
+$S/dra-inspect --kubeconfig closed-port.kubeconfig report cluster --strict  # exit 3
+$S/dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices # exit 0 after 18 s, "context deadline exceeded"
+```
+
+`closed-port.kubeconfig` points at `https://127.0.0.1:1`; `hang.kubeconfig` at a
+local socket that accepts and never answers.
+
+### Cleanup proof
+
+After the failed `kind create`, kind itself deleted the half-created node
+container. This run created and removed: the `kind` podman network
+(`podman network rm kind`), the `localhost/dra-inspect:harness` image. Final
+state: `kind get clusters` prints `No kind clusters found.`; `podman ps -a`
+lists only `nginx` and `openclaw-gateway` (both pre-existing, untouched);
+`podman network ls` lists only `podman`; `podman volume ls` is empty. Left
+cached on purpose: `docker.io/kindest/node` (908 MB) and
+`gcr.io/distroless/static-debian12` base (3.19 MB). `~/.kube` was never read
+or written; no cluster ever held a kubeconfig. Scratch dir is under `/tmp`
+(127 MB).
+
+### Findings
+
+| ID | Severity | Finding | Minimal repro |
+|---|---|---|---|
+| F1 | environment (blocks live phase) | kind v0.33.0 cannot create a cluster on rootless podman 3.4.4: the `kind` CNI network conflist uses config version 1.0.0 which the installed `firewall` plugin rejects. Also only `memory pids` cgroup controllers are delegated to the user (kind rootless docs need `cpu cpuset` too), so a CNI fix alone would probably not suffice. No workaround attempted (would need system config changes). | `KIND_EXPERIMENTAL_PROVIDER=podman kind create cluster --name dra-inspect-test --kubeconfig $S/kind.kubeconfig --image kindest/node:v1.34.11@sha256:44e2...d67d` fails with `Error: error configuring network namespace for container ...: CNI network "kind" not found` after `plugin firewall does not support config version "1.0.0"` |
+| F2 | medium | `--timeout` is a per-request timeout and collection is sequential over 6 resource kinds, so wall time against a hung API server is about 6 x timeout (3 s gave 18 s for a single `inspect slices`; the 30 s default gives about 3 min). Neither README nor `--help` says so. | hang listener, `dra-inspect --kubeconfig hang.kubeconfig --timeout 3s inspect slices` takes 18 s |
+| F3 | low | Total API failure exits 0 and prints `UNAVAILABLE: ...` unless `--strict` (documented behavior, but surprising for a single-purpose `inspect slices`; the message carries the raw client-go URL including `?limit=500`). Exit is 3 with `--strict`, as documented. | `dra-inspect --kubeconfig closed-port.kubeconfig inspect slices; echo $?` prints 0 |
+| F4 | low (doc) | Job template comment said the in-cluster fallback was "verified live in Task 8"; it was not. Comment reworded. | `deploy/helm/dra-inspect/templates/job.yaml` |
+| F5 | low (doc) | The plan named the cluster `dra-inspect-harness`, built the image from a plain `go build` binary, and listed "rootless works" as the only podman prerequisite. Corrected in this document. | |
+
+Observation for the next live run: the `v0.5.0` example driver targets
+Kubernetes 1.37 in its own demo (kind config with feature gates and a 1.37 node
+image). The chart declares `kubeVersion >=1.33.0-0`, so the 1.34.11 node image
+is expected to work but that is untested; if the plugin or admission policy
+misbehaves, retry with `kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5`.
+
+## Re-running
+
+```bash
+go install sigs.k8s.io/kind@v0.33.0   # plus podman 4+/Docker, kubectl, helm, jq, goreleaser
+hack/live-kind.sh            # creates dra-inspect-test, runs steps 1-7, always cleans up
+hack/live-kind.sh --keep     # keep the cluster for poking around
+```
+
+The script refuses to run when `KUBECONFIG` is set or the cluster name is
+taken, only ever uses its scratch kubeconfig, and sources cleanly
+(`source hack/live-kind.sh`) so the assertion helpers can be tested. It was
+syntax-checked (`bash -n`) but could not be run end to end here (F1);
+`shellcheck` is not installed on this machine.

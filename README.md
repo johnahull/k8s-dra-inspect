@@ -103,7 +103,7 @@ current directory, so the container filesystem can stay read-only.
 ## Run as a Kubernetes Job
 
 The Helm chart in `deploy/helm/dra-inspect` installs read-only RBAC (`get` and
-`list` only, see [docs/rbac.md](docs/rbac.md); the live Job check is planned in
+`list` only, see [docs/rbac.md](docs/rbac.md); the live Job check is still to be run, see
 [docs/harness-test-plan.md](docs/harness-test-plan.md)) and, optionally, a one-shot Job.
 The chart is not published to a registry yet; install from the repository path.
 
