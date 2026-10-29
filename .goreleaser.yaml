@@ -1,0 +1,44 @@
+version: 2
+project_name: dra-inspect
+
+builds:
+  - id: dra-inspect
+    binary: dra-inspect
+    main: ./cmd/dra-inspect
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - id: default
+    formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  use: git
+  sort: asc
+
+# Images are only pushed by `goreleaser release`; `check`, `build` and
+# `release --snapshot` never push.
+dockers_v2:
+  - images:
+      - ghcr.io/johnahull/k8s-dra-inspect
+    tags:
+      - "{{ .Version }}"
+      - latest
+    dockerfile: Dockerfile
+    platforms: [linux/amd64, linux/arm64]
+    labels:
+      org.opencontainers.image.version: "{{ .Version }}"
+      org.opencontainers.image.revision: "{{ .FullCommit }}"

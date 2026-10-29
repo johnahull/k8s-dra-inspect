@@ -267,12 +267,12 @@ Design: the KubeVirt adapter makes no API calls. It derives versioned evidence (
 ### Task 7a: Release packaging
 
 **Files:**
-- Create: `.goreleaser.yaml`, `Dockerfile`
+- Create: `.goreleaser.yaml`, `Dockerfile`, `hack/check-release.sh`, `hack/check-image.sh`
 - Modify: `.github/workflows/ci.yaml`
 
 - [ ] Add GoReleaser configuration for binaries and an OCI image build definition.
-- [ ] Add CI jobs for tests, vet, lint, and snapshot fixtures.
-- [ ] Commit: `build: add release packaging`.
+- [ ] Add CI jobs: test, vet, lint, fixtures, tidy, vuln, and release-check (no publish workflow yet).
+- [ ] Commit: `build: add release packaging and CI jobs`.
 
 ### Task 7b: Helm Job and deployment docs
 
