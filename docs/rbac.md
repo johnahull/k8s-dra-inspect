@@ -3,6 +3,10 @@
 dra-inspect is read-only: every rule below grants only `get` and `list`. No
 profile grants a mutating verb or `pods/exec`.
 
+The Helm chart in `deploy/helm/dra-inspect` renders exactly the rules in the
+YAML blocks below (the KubeVirt rule only with `rbac.kubevirt=true`), and CI
+(`hack/check-chart.sh`) fails if they drift.
+
 ## Resources
 
 | API group | Resource | Verbs | Cluster profile | Namespace profile |

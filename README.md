@@ -64,6 +64,46 @@ also add `--userns=keep-id`, or the container UID does not map to the file
 owner. The kubeconfig is mounted read-only; snapshots go to the mounted
 current directory, so the container filesystem can stay read-only.
 
+## Run as a Kubernetes Job
+
+The Helm chart in `deploy/helm/dra-inspect` installs read-only RBAC (`get` and
+`list` only, see [docs/rbac.md](docs/rbac.md)) and, optionally, a one-shot Job.
+The chart is not published to a registry yet; install from the repository path.
+
+```bash
+# RBAC + ServiceAccount only (default): run the CLI yourself with this identity.
+helm install dra-inspect deploy/helm/dra-inspect -n dra-inspect --create-namespace
+
+# Cluster profile plus a one-shot report Job.
+helm install dra-inspect deploy/helm/dra-inspect -n dra-inspect --create-namespace \
+  --set job.enabled=true
+
+# Namespace profile: Role+RoleBinding in one namespace (default: the release
+# namespace). The Job then runs with -n <namespace>; slices, DeviceClasses and
+# nodes are reported unavailable. A Job covers one namespace, so install one
+# release per namespace; without the Job, rbac.namespaces={a,b} is accepted.
+helm install dra-inspect deploy/helm/dra-inspect -n team-a \
+  --set rbac.profile=namespace --set job.enabled=true
+
+kubectl -n dra-inspect wait --for=condition=complete job/dra-inspect --timeout=120s
+kubectl -n dra-inspect logs job/dra-inspect > report.json
+helm uninstall dra-inspect -n dra-inspect
+```
+
+The Job name is `<release>-dra-inspect` (just the release name when it already
+contains `dra-inspect`). The report is JSON on the pod log. The Job is deleted
+`job.ttlSecondsAfterFinished` (default 3600) seconds after it finishes; use
+`helm uninstall` to remove the RBAC. After `helm upgrade` with changed Job
+settings, delete the finished Job first, because Job specs are immutable.
+
+The Job pod meets Pod Security `restricted`: non-root UID 65532, RuntimeDefault
+seccomp, no privilege escalation, all capabilities dropped, read-only root
+filesystem, no host mounts or host namespaces. Only that pod mounts a service
+account token. The host adapter and host checks (`check cpupinning`,
+`check vfio`, `report support`) are not part of the Job; run them explicitly
+on the node with the workstation binary or the container image. Set
+`rbac.kubevirt=true` to also allow reading VirtualMachineInstances.
+
 ## Development
 
 Requirements:

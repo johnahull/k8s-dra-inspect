@@ -1,0 +1,55 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "repository": {"type": "string", "minLength": 1},
+        "tag": {"type": "string"},
+        "digest": {"type": "string", "pattern": "^(sha256:[0-9a-f]{64})?$"},
+        "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": {"type": "object", "additionalProperties": false, "properties": {"name": {"type": "string"}}}
+    },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {"create": {"type": "boolean"}, "name": {"type": "string"}}
+    },
+    "rbac": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "profile": {"enum": ["cluster", "namespace"]},
+        "namespaces": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", "maxLength": 63}
+        },
+        "kubevirt": {"type": "boolean"}
+      },
+      "if": {"properties": {"profile": {"const": "cluster"}}},
+      "then": {"properties": {"namespaces": {"maxItems": 0}}}
+    },
+    "job": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "args": {"type": "array", "items": {"type": "string"}},
+        "ttlSecondsAfterFinished": {"type": "integer", "minimum": 0},
+        "activeDeadlineSeconds": {"type": "integer", "minimum": 1},
+        "runAsUser": {"type": "integer", "minimum": 1000, "maximum": 65535},
+        "resources": {"type": "object"},
+        "podAnnotations": {"type": "object", "additionalProperties": {"type": "string"}},
+        "podLabels": {"type": "object", "additionalProperties": {"type": "string"}}
+      }
+    }
+  }
+}

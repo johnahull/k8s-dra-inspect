@@ -285,7 +285,7 @@ Design: the KubeVirt adapter makes no API calls. It derives versioned evidence (
 - [ ] Add a chart validation CI job.
 - [ ] Document workstation, container, Job, and explicit host-adapter execution.
 - [ ] Verify the chart renders without a long-running Deployment or CRD.
-- [ ] Commit: `build: add read-only Helm Job`.
+- [ ] Commit: `build: add read-only Helm Job and RBAC profiles`.
 
 ### Task 8: Migrate the lab script and validate against a live cluster
 

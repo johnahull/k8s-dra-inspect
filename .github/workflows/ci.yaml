@@ -100,3 +100,21 @@ jobs:
           args: --version
       - run: goreleaser check
       - run: hack/check-release.sh
+
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      # helm is preinstalled on ubuntu-latest.
+      - run: helm lint deploy/helm/dra-inspect
+      - run: helm lint deploy/helm/dra-inspect --set rbac.profile=namespace --set 'rbac.namespaces={ns1,ns2}'
+      - name: Render each profile
+        run: |
+          helm template r deploy/helm/dra-inspect --set job.enabled=true > /dev/null
+          helm template r deploy/helm/dra-inspect --set job.enabled=true --set rbac.profile=namespace > /dev/null
+      - name: Chart invariants (needs python3 + PyYAML)
+        run: |
+          pip install pyyaml==6.0.3
+          hack/check-chart.sh
