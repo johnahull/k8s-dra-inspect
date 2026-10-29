@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.cpupinning",
+      "status": "warn",
+      "subject": "demo/app",
+      "details": {
+        "cpuset": "8-11",
+        "deviceNuma": [
+          0
+        ],
+        "nodeName": "node-a.example.com",
+        "numaOfCpus": [
+          1
+        ],
+        "pinned": true,
+        "reason": "pinned CPUs are on NUMA node(s) 1 not in the devices' NUMA node(s) 0"
+      }
+    }
+  ]
+}

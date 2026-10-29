@@ -51,8 +51,20 @@ Core commands use only the Kubernetes API.
 
 Host adapters (`check cpupinning`, `check vfio`, CDI discovery) read node files
 below `--host-root` (default `/`) and are meaningful only when the binary runs
-on the node itself. Anywhere else they return `unavailable` with the reason
-"run on node". v1 does not use `kubectl debug`, `kubectl exec`, or SSH.
+on the node itself. They are read-only: no writes, no external commands, no
+sudo, no `/proc`, and symlinks are never followed out of the tree. Both checks
+take `--host-root` and `--node-name` (default `$NODE_NAME`, then the hostname);
+no other command has these flags. The adapter stores the resolved node name in
+the evidence, never a raw hostname, and a check returns `unavailable` when the
+evidence is from a different node than the pod or device.
+
+A live host check collects evidence in memory and attaches it to the snapshot
+as `Evidence["host"]` before running the pure check. Evidence is redacted by
+the producer: CDI specs keep only kind, device names and counts (never env,
+mounts, annotations or hooks). `--from` uses the evidence the snapshot carries;
+without any, the result is `unavailable` ("run on the node"). `snapshot
+capture` does not collect host evidence; `report support` does. v1 does not use
+`kubectl debug`, `kubectl exec`, or SSH.
 
 A global `--from FILE` replaces the live Kubernetes source with a loaded
 snapshot for every `inspect`, `check`, and `report` command.

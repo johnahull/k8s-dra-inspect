@@ -68,4 +68,5 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 	add("counters", "Check shared-counter capacity against allocated claims", "", cobra.NoArgs, func([]string) check.Check { return check.Counters() })
 	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
 	add("topology", "Validate published NUMA and PCIe-root attributes", "", cobra.NoArgs, func([]string) check.Check { return check.Topology() })
+	addHostChecks(parent, opts, d)
 }

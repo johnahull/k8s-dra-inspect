@@ -1,0 +1,2 @@
+SUBJECT       STATUS  DETAIL
+demo/app      warn    pinned CPUs are on NUMA node(s) 1 not in the devices' NUMA node(s) 0

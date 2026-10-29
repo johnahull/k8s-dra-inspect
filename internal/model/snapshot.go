@@ -98,3 +98,6 @@ func (s *Snapshot) Normalize() {
 		return cmp.Or(cmp.Compare(a.Namespace, b.Namespace), cmp.Compare(a.Name, b.Name))
 	})
 }
+
+// Evidence is one adapter's output, stored under Snapshot.Evidence[adapter name].
+type Evidence = json.RawMessage

@@ -1,0 +1,2 @@
+SUBJECT                                   STATUS  DETAIL
+gpu.example.com/node-a.example.com/gpu-0  pass    0000:3b:00.0 bound to vfio-pci in IOMMU group 7

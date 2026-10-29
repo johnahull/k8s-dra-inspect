@@ -10,6 +10,8 @@ import (
 	"golang.org/x/term"
 	"k8s.io/apimachinery/pkg/labels"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/adapters"
+	"github.com/johnahull/k8s-dra-inspect/internal/adapters/host"
 	"github.com/johnahull/k8s-dra-inspect/internal/collect"
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
@@ -20,6 +22,7 @@ import (
 // Deps are the environment pieces tests replace.
 type Deps struct {
 	NewSource func(*Options) (model.Source, error)
+	NewHost   NewHostFunc // host adapter factory; only the host checks call it
 	Now       func() time.Time
 	IsTTY     bool
 	Width     int // table width; 0 means the renderer default
@@ -33,7 +36,11 @@ func (e *ExitError) Error() string { return fmt.Sprintf("exit status %d", e.Code
 
 // DefaultDeps wires the live cluster and the real terminal.
 func DefaultDeps() Deps {
-	d := Deps{NewSource: func(o *Options) (model.Source, error) { return newSource(o, liveSource) }, Now: time.Now}
+	d := Deps{
+		NewSource: func(o *Options) (model.Source, error) { return newSource(o, liveSource) },
+		NewHost:   func(c host.Config) adapters.Adapter { return host.New(c) },
+		Now:       time.Now,
+	}
 	fd := int(os.Stdout.Fd())
 	if term.IsTerminal(fd) {
 		d.IsTTY = true

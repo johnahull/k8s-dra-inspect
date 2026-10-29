@@ -228,20 +228,21 @@ commands for each installation method.
 ### Task 6a: Add the host adapter
 
 **Files:**
-- Create: `internal/adapters/host/`
-- Modify: `internal/cli/check.go`
-- Test: adapter fixtures using a temp-dir fake sysfs/CDI tree passed as `--host-root`
+- Create: `internal/adapters/adapter.go`, `internal/adapters/host/`, `internal/check/{cpupinning,vfio,hostevidence}.go`, `internal/cli/hostcmd.go`, `internal/testutil/fakehost.go`
+- Modify: `internal/cli/{check,inspect}.go` (`Deps.NewHost`)
+- Test: adapter and check tests over a temp-dir fake sysfs/CDI/cgroup tree (`testutil.FakeHost`)
 
 **Interfaces:**
-- `Adapter.Available(ctx context.Context) (bool, error)` reports capability without failing core inspection.
-- `Adapter.Collect(ctx context.Context) (model.Evidence, error)` returns evidence only when explicitly requested; `model.Evidence` is `json.RawMessage` stored under `Snapshot.Evidence["host"]`.
-- Off-node, or when `--host-root` is missing the expected files, adapters return `unavailable` with the reason "run on node".
+- `Adapter.Available(ctx) (bool, string, error)` returns `(false, reason, nil)` for absent prerequisites; absence is never an error.
+- `Adapter.Collect(ctx) (model.Evidence, error)`; `model.Evidence` is `json.RawMessage`, stored under `Snapshot.Evidence["host"]`. The host adapter only reads files under `--host-root`: no writes, no exec, no sudo, no `/proc`, no symlink following out of the tree (Readlink for `driver`/`iommu_group`, regular files only, 64 KiB cap per file, 1 MiB per CDI spec).
+- Evidence (`version: 1`): `nodeName` (the resolved cluster node name, never a raw hostname), `numa`, `pci`, `iommuGroups`, `vfioDevNodes`, `cdi` (producer-redacted: kind, device names, counts only; parse errors recorded as `{file, error}`), `cgroups` (pod UID to pod-level `cpuset.cpus.effective`, systemd and cgroupfs layouts, cgroup v2).
+- `check cpupinning POD [-n NS] [--host-root PATH] [--node-name NAME]` and `check vfio [--host-root PATH] [--node-name NAME]`. Node name: `--node-name`, else `$NODE_NAME`, else the hostname. The flags exist only on these two commands. A live run collects host evidence in memory, then runs the pure check; with `--from` the snapshot's evidence is used and without it the result is `unavailable` (`no host evidence in snapshot; run on the node`). Evidence from another node than the pod or device is `unavailable`. `snapshot capture` does not collect host evidence (that is `report support`, Task 6b).
 
-- [ ] Add fake-sysfs tests for CPU pinning, NUMA mapping, VFIO/IOMMU, and CDI discovery.
-- [ ] Test absent host files and unreadable `/proc`.
-- [ ] Implement `check cpupinning` and `check vfio`.
-- [ ] Verify core commands never require host privileges.
-- [ ] Commit: `feat: add optional host adapter`.
+- [x] Add fake-sysfs tests for CPU pinning, NUMA mapping, VFIO/IOMMU, and CDI discovery.
+- [x] Test absent host files and unreadable files.
+- [x] Implement `check cpupinning` and `check vfio`.
+- [x] Verify core commands never construct the host adapter.
+- [x] Commit: `feat: add optional host adapter`.
 
 ### Task 6b: Add the KubeVirt adapter and support report
 
