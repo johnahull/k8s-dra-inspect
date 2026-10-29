@@ -2,6 +2,7 @@ package check
 
 import (
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -12,9 +13,9 @@ import (
 )
 
 // pinSnap: pod demo/app (uid A) on node-a holding claim c1 -> gpu-0 on NUMA 0.
-func pinSnap(ev host.Evidence, cpus string) model.Snapshot {
+func pinSnap(ev host.Evidence, cpus string, containers ...string) model.Snapshot {
 	if cpus != "" {
-		ev.Cgroups[uidA] = host.Cgroup{Path: "p", CPUs: cpus}
+		ev.Cgroups[uidA] = host.Cgroup{Path: "p", CPUs: cpus, Containers: containers}
 	}
 	s := snapOf([]resourcev1.ResourceSlice{slice("s", "p", 1, 1, dev("gpu-0", attrs{numa: ints(0)}), dev("plain", nil))},
 		claim("demo", "c1", nil, res("r", "gpu-0")))
@@ -56,6 +57,66 @@ func TestCPUPinningMatrix(t *testing.T) {
 			if !reflect.DeepEqual(r.Details["numaOfCpus"], tc.cpuNuma) || !reflect.DeepEqual(r.Details["deviceNuma"], tc.deviceNuma) ||
 				r.Details["pinned"] != tc.pinned || r.Details["cpuset"] != tc.cpus || r.Details["nodeName"] != "node-a" {
 				t.Errorf("details = %+v", r.Details)
+			}
+		})
+	}
+}
+
+func TestCPUPinningUsesContainerCpusets(t *testing.T) {
+	devOn1 := func(s *model.Snapshot) {
+		s.ResourceSlices[0].Spec.Devices[0].Attributes[numa] = ints(1)
+	}
+	for _, tc := range []struct {
+		name       string
+		podCPUs    string
+		containers []string
+		version    int
+		modify     func(*model.Snapshot)
+		want       model.Status
+		reasonHas  string
+		cpuset     string
+		pinned     bool
+	}{
+		{"container pinned on the device NUMA", "0-15", []string{"4-7"}, host.Version, nil, model.StatusPass, "", "4-7", true},
+		{"container pinned on another NUMA", "0-15", []string{"4-7"}, host.Version, devOn1, model.StatusWarn, "NUMA node(s) 0 not in", "4-7", true},
+		{"union of containers", "0-15", []string{"2-3", "4-5"}, host.Version, nil, model.StatusPass, "", "2-5", true},
+		{"every container holds all cpus", "0-15", []string{"0-15", "0-15"}, host.Version, nil, model.StatusWarn, "not CPU-pinned", "0-15", false},
+		{"one pinned and one shared container is not pinned", "0-15", []string{"4-7", "0-15"}, host.Version, nil, model.StatusWarn, "not CPU-pinned", "0-15", false},
+		{"version 1 evidence falls back to the pod cpuset", "2-5", nil, 1, nil, model.StatusPass, "", "2-5", true},
+		{"version 1 evidence all cpus", "0-15", nil, 1, nil, model.StatusWarn, "not CPU-pinned", "0-15", false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			ev := hostEv()
+			ev.Version = tc.version
+			s := pinSnap(ev, tc.podCPUs, tc.containers...)
+			if tc.modify != nil {
+				tc.modify(&s)
+			}
+			r := one(t, CPUPinning("app", "demo"), s)
+			if got, _ := r.Details["reason"].(string); r.Status != tc.want || !strings.Contains(got, tc.reasonHas) ||
+				r.Details["cpuset"] != tc.cpuset || r.Details["pinned"] != tc.pinned {
+				t.Fatalf("%+v", r)
+			}
+		})
+	}
+}
+
+func TestCPUPinningHostileCPULists(t *testing.T) {
+	hostile := strings.Repeat("0-65536,", 1500) + "1"
+	for name, s := range map[string]model.Snapshot{
+		"pod cpuset":       pinSnap(hostEv(), hostile),
+		"container cpuset": pinSnap(hostEv(), "0-15", hostile),
+		"numa cpulist":     pinSnap(func() host.Evidence { e := hostEv(); e.NUMA["0"] = hostile; return e }(), "2-5"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			var before, after runtime.MemStats
+			runtime.GC()
+			runtime.ReadMemStats(&before)
+			r := one(t, CPUPinning("app", ""), s)
+			runtime.ReadMemStats(&after)
+			wantStatus(t, r, model.StatusError, "invalid cpulist")
+			if d := after.TotalAlloc - before.TotalAlloc; d > 64<<20 {
+				t.Fatalf("allocated %d MiB", d>>20)
 			}
 		})
 	}

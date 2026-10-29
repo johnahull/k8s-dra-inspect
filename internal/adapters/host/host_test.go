@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"slices"
 	"strings"
 	"testing"
@@ -71,7 +72,7 @@ func TestAvailable(t *testing.T) {
 
 func TestCollectEmptyRootIsNotFatal(t *testing.T) {
 	ev := collect(t, testutil.NewFakeHost(t), "node-a")
-	if ev.Version != 1 || ev.NodeName != "node-a" {
+	if ev.Version != 2 || ev.NodeName != "node-a" {
 		t.Fatalf("%+v", ev)
 	}
 	if ev.NUMA == nil || ev.PCI == nil || ev.IOMMUGroups == nil || ev.VFIODevNodes == nil || ev.CDI == nil || ev.Cgroups == nil {
@@ -327,5 +328,236 @@ func TestCgroupScanIgnoresSymlinksAndForeignNames(t *testing.T) {
 	h.File("sys/fs/cgroup/kubepods.slice/system.slice/cpuset.cpus.effective", "1")
 	if ev := collect(t, h, "n"); len(ev.Cgroups) != 0 {
 		t.Fatalf("cgroups = %+v", ev.Cgroups)
+	}
+}
+
+func TestCollectCgroupContainers(t *testing.T) {
+	sd := testutil.NewFakeHost(t)
+	sd.CgroupSystemd(uidA, "guaranteed", "0-15", "4-7", "0-3", "8", "9") // all three runtime prefixes
+	sd.File("sys/fs/cgroup/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/cri-containerd-nofile.scope/memory.max", "max")
+	sd.Symlink("sys/fs/cgroup/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/crio-link.scope", t.TempDir())
+	ev := collect(t, sd, "n")
+	want := []string{"0-3", "4-7", "8", "9"}
+	if g := ev.Cgroups[uidA]; g.CPUs != "0-15" || !slices.Equal(g.Containers, want) {
+		t.Fatalf("systemd = %+v, want containers %v", g, want)
+	}
+	if raw, _ := json.Marshal(ev.Cgroups); strings.Contains(string(raw), "scope") || strings.Contains(string(raw), "0000000000000001") {
+		t.Errorf("container ids stored: %s", raw)
+	}
+
+	fs := testutil.NewFakeHost(t)
+	fs.CgroupFS(uidA, "guaranteed", "0-15", "6-7", "2-3")
+	fs.CgroupFS(uidB, "burstable", "0-15")
+	ev = collect(t, fs, "n")
+	if g := ev.Cgroups[uidA]; !slices.Equal(g.Containers, []string{"2-3", "6-7"}) {
+		t.Fatalf("cgroupfs = %+v", g)
+	}
+	if g := ev.Cgroups[uidB]; len(g.Containers) != 0 {
+		t.Fatalf("no containers = %+v", g)
+	}
+}
+
+func TestParseCPUListHostileIsBoundedAndRejected(t *testing.T) {
+	hostile := strings.TrimSuffix(strings.Repeat("0-65536,", 1500), ",")
+	var before, after runtime.MemStats
+	runtime.GC()
+	runtime.ReadMemStats(&before)
+	_, err := ParseCPUList(hostile)
+	runtime.ReadMemStats(&after)
+	if err == nil {
+		t.Fatal("hostile list accepted")
+	}
+	if d := after.TotalAlloc - before.TotalAlloc; d > 64<<20 {
+		t.Fatalf("allocated %d MiB", d>>20)
+	}
+	// Many in-range, overlapping ranges stay bounded too.
+	before = after
+	got, err := ParseCPUList(strings.TrimSuffix(strings.Repeat("0-16384,", 1500), ","))
+	runtime.ReadMemStats(&after)
+	if err != nil || len(got) != 16385 || after.TotalAlloc-before.TotalAlloc > 64<<20 {
+		t.Fatalf("len %d err %v alloc %d", len(got), err, after.TotalAlloc-before.TotalAlloc)
+	}
+	if _, err := ParseCPUList("16385"); err == nil {
+		t.Error("cpu above the bound accepted")
+	}
+}
+
+// outsideTree is a directory outside any root holding data for every scan.
+func outsideTree(t *testing.T) string {
+	t.Helper()
+	o := t.TempDir()
+	w := func(rel, c string) {
+		if err := os.MkdirAll(filepath.Dir(filepath.Join(o, rel)), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(o, rel), []byte(c), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	w("cdi/x.json", `{"kind":"a.example.com/b","devices":[{"name":"d"}]}`)
+	w("node/node0/cpulist", "0-3")
+	w("groups/7/devices/0000:3b:00.0/x", "")
+	w("cg/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/cpuset.cpus.effective", "1")
+	w("cg/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/cri-containerd-a.scope/cpuset.cpus.effective", "1")
+	w("vfio/7", "")
+	return o
+}
+
+func TestScannedDirectorySymlinksOutOfRootAreNotFollowed(t *testing.T) {
+	for _, tc := range []struct {
+		name, link, target string
+		got                func(Evidence) int
+	}{
+		{"etc/cdi", "etc/cdi", "cdi", func(e Evidence) int { return len(e.CDI) }},
+		{"run/cdi", "run/cdi", "cdi", func(e Evidence) int { return len(e.CDI) }},
+		{"node", "sys/devices/system/node", "node", func(e Evidence) int { return len(e.NUMA) }},
+		{"node0", "sys/devices/system/node/node0", "node/node0", func(e Evidence) int { return len(e.NUMA) }},
+		{"iommu_groups", "sys/kernel/iommu_groups", "groups", func(e Evidence) int { return len(e.IOMMUGroups) }},
+		{"iommu devices", "sys/kernel/iommu_groups/7/devices", "groups/7/devices", func(e Evidence) int { return len(e.IOMMUGroups) }},
+		{"cgroup root", "sys/fs/cgroup", "cg", func(e Evidence) int { return len(e.Cgroups) }},
+		{"kubepods.slice", "sys/fs/cgroup/kubepods.slice", "cg/kubepods.slice", func(e Evidence) int { return len(e.Cgroups) }},
+		{"dev/vfio", "dev/vfio", "vfio", func(e Evidence) int { return len(e.VFIODevNodes) }},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			out := outsideTree(t)
+			h := testutil.NewFakeHost(t)
+			h.Symlink(tc.link, filepath.Join(out, tc.target))
+			ev := collect(t, h, "n")
+			if n := tc.got(ev); n != 0 {
+				t.Fatalf("followed %s out of the root: %+v", tc.link, ev)
+			}
+		})
+	}
+	// A pod's container scope that is a symlink is ignored (pod itself is real).
+	out := outsideTree(t)
+	h := testutil.NewFakeHost(t)
+	h.CgroupSystemd(uidA, "guaranteed", "0-15")
+	h.Symlink("sys/fs/cgroup/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/crio-x.scope",
+		filepath.Join(out, "cg/kubepods.slice/kubepods-pod00000000_0000_4000_8000_000000000001.slice/cri-containerd-a.scope"))
+	if g := collect(t, h, "n").Cgroups[uidA]; len(g.Containers) != 0 {
+		t.Fatalf("symlinked container followed: %+v", g)
+	}
+}
+
+func TestRootThatIsASymlinkOrHasDotDotStillWorks(t *testing.T) {
+	real := testutil.NewFakeHost(t)
+	real.NUMA("0", "0-3")
+	real.File("etc/cdi/a.json", `{"kind":"a.example.com/b"}`)
+	real.CgroupSystemd(uidA, "guaranteed", "0-3", "1")
+	real.VFIONode("7")
+	link := filepath.Join(t.TempDir(), "rootlink")
+	if err := os.Symlink(real.Root, link); err != nil {
+		t.Fatal(err)
+	}
+	for name, root := range map[string]string{"symlink": link, "dotdot": real.Root + "/etc/.."} {
+		t.Run(name, func(t *testing.T) {
+			raw, err := New(Config{Root: root, NodeName: "n"}).Collect(context.Background())
+			if err != nil {
+				t.Fatal(err)
+			}
+			var ev Evidence
+			_ = json.Unmarshal(raw, &ev)
+			if len(ev.NUMA) != 1 || len(ev.CDI) != 1 || !slices.Equal(ev.Cgroups[uidA].Containers, []string{"1"}) || !slices.Equal(ev.VFIODevNodes, []string{"7"}) {
+				t.Fatalf("%+v", ev)
+			}
+		})
+	}
+}
+
+func TestCDIDirsAndDuplicates(t *testing.T) {
+	spec := `{"kind":"a.example.com/b","devices":[{"name":"d"}]}`
+	names := func(ev Evidence) []string {
+		var n []string
+		for _, s := range ev.CDI {
+			n = append(n, s.File)
+		}
+		return n
+	}
+	t.Run("etc and run", func(t *testing.T) {
+		h := testutil.NewFakeHost(t)
+		h.File("etc/cdi/e.json", spec)
+		h.File("run/cdi/r.json", spec)
+		if got := names(collect(t, h, "n")); !slices.Equal(got, []string{"e.json", "r.json"}) {
+			t.Fatalf("%v", got)
+		}
+	})
+	t.Run("var/run symlinked to run is read once", func(t *testing.T) {
+		h := testutil.NewFakeHost(t)
+		h.File("run/cdi/r.json", spec)
+		h.Symlink("var/run", "../run")
+		if got := names(collect(t, h, "n")); !slices.Equal(got, []string{"r.json"}) {
+			t.Fatalf("%v", got)
+		}
+	})
+	t.Run("var/run real dir is read", func(t *testing.T) {
+		h := testutil.NewFakeHost(t)
+		h.File("var/run/cdi/v.json", spec)
+		if got := names(collect(t, h, "n")); !slices.Equal(got, []string{"v.json"}) {
+			t.Fatalf("%v", got)
+		}
+	})
+	t.Run("var/run outside the root is skipped", func(t *testing.T) {
+		out := t.TempDir()
+		if err := os.MkdirAll(out+"/cdi", 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(out+"/cdi/o.json", []byte(spec), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		h := testutil.NewFakeHost(t)
+		h.Symlink("var/run", out)
+		if got := names(collect(t, h, "n")); len(got) != 0 {
+			t.Fatalf("%v", got)
+		}
+	})
+}
+
+func TestCollectPCIClass(t *testing.T) {
+	h := testutil.NewFakeHost(t)
+	h.PCI("0000:3b:00.0", "0", "0x1", "0x2", "", "")
+	h.PCIClass("0000:3b:00.0", "030000")
+	h.PCI("0000:3b:00.1", "0", "0x1", "0x2", "", "")
+	h.File("sys/devices/pci0000:3a/0000:3b:00.1/class", "0x0403zz\n")
+	h.PCI("0000:3b:00.2", "0", "0x1", "0x2", "", "")
+	ev := collect(t, h, "n")
+	if ev.PCI["0000:3b:00.0"].Class != "030000" || ev.PCI["0000:3b:00.1"].Class != "" || ev.PCI["0000:3b:00.2"].Class != "" {
+		t.Fatalf("%+v", ev.PCI)
+	}
+}
+
+func TestCDIParseErrorTextNeverReachesEvidenceOrErrors(t *testing.T) {
+	h := testutil.NewFakeHost(t)
+	h.File("etc/cdi/a.yaml", "? {SECRET-MARK: 1}\n: x\n")                // parser error quotes the key
+	h.File("etc/cdi/b.yaml", "a: &SECRET-OTHER x\nb: *SECRET-MISSING\n") // parser error quotes the anchor
+	h.File("etc/cdi/c.json", `{"kind":"SECRET-KIND","devices":"SECRET-DEVS"}`)
+	raw, err := New(Config{Root: h.Root}).Collect(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(raw), "SECRET") {
+		t.Fatalf("evidence leaks spec text: %s", raw)
+	}
+	var ev Evidence
+	_ = json.Unmarshal(raw, &ev)
+	if len(ev.CDI) != 3 {
+		t.Fatalf("cdi = %+v", ev.CDI)
+	}
+	for _, s := range ev.CDI {
+		if s.Error != "invalid JSON/YAML" {
+			t.Errorf("%s error = %q", s.File, s.Error)
+		}
+	}
+}
+
+func TestConfineWithRootSlashAllowsLegitimateSymlinks(t *testing.T) {
+	target, base := t.TempDir(), t.TempDir()
+	link := filepath.Join(base, "run")
+	if err := os.Symlink(target, link); err != nil { // like /var/run -> /run
+		t.Fatal(err)
+	}
+	got, ok := New(Config{Root: "/"}).confine(link)
+	want, _ := filepath.EvalSymlinks(target)
+	if !ok || got != want {
+		t.Fatalf("confine(%q) = %q, %v", link, got, ok)
 	}
 }

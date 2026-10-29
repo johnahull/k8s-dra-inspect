@@ -13,9 +13,9 @@
         "driver": "nvidia",
         "iommuGroup": "7",
         "nonVfioPeers": [
-          "0000:3b:00.1 (driver snd_hda_intel)"
+          "0000:3b:00.1 (driver snd_hda_intel, GPU audio function sharing the group)"
         ],
-        "reason": "bound to driver nvidia, want vfio-pci; IOMMU group 7 also holds 0000:3b:00.1 (driver snd_hda_intel)"
+        "reason": "bound to driver nvidia, want vfio-pci; IOMMU group 7 also holds 0000:3b:00.1 (driver snd_hda_intel, GPU audio function sharing the group)"
       }
     }
   ]

@@ -20,7 +20,7 @@ func loadHost(snap model.Snapshot, check string) (host.Evidence, []model.Result,
 		return ev, single(check, model.StatusUnavailable, "", "invalid host evidence in snapshot"), false
 	}
 	switch {
-	case ev.Version != host.Version:
+	case ev.Version < host.MinVersion || ev.Version > host.Version:
 		return ev, single(check, model.StatusUnavailable, "", fmt.Sprintf("unsupported host evidence version %d", ev.Version)), false
 	case ev.Error != "":
 		return ev, single(check, model.StatusUnavailable, "", ev.Error), false

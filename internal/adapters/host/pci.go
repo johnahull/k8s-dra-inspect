@@ -23,17 +23,14 @@ func linkBase(path string) string {
 // real dirs, so a device dir is resolved once and skipped unless it stays
 // inside the root; its files are then read without following symlinks.
 func (a *Adapter) collectPCI(ev *Evidence) {
-	root, err := filepath.EvalSymlinks(a.root())
-	if err != nil {
-		return
-	}
-	base := filepath.Join(a.root(), "sys/bus/pci/devices")
-	for _, bdf := range readDirNames(base) {
+	base, ents := a.scan(filepath.Join(a.root(), "sys/bus/pci/devices"))
+	for _, e := range ents {
+		bdf := e.Name()
 		if !bdfRE.MatchString(bdf) {
 			continue
 		}
-		dir, err := filepath.EvalSymlinks(filepath.Join(base, bdf))
-		if err != nil || (root != "/" && dir != root && !strings.HasPrefix(dir, root+string(filepath.Separator))) {
+		dir, ok := a.confine(filepath.Join(base, bdf))
+		if !ok {
 			continue
 		}
 		d := PCIDevice{NUMANode: -1, Driver: linkBase(filepath.Join(dir, "driver")), IOMMUGroup: linkBase(filepath.Join(dir, "iommu_group"))}
@@ -44,6 +41,12 @@ func (a *Adapter) collectPCI(ev *Evidence) {
 		}
 		d.Vendor, _ = readSmall(filepath.Join(dir, "vendor"))
 		d.Device, _ = readSmall(filepath.Join(dir, "device"))
+		if s, err := readSmall(filepath.Join(dir, "class")); err == nil {
+			d.Class = classRE.FindString(strings.ToLower(strings.TrimPrefix(s, "0x")))
+		}
 		ev.PCI[bdf] = d
 	}
 }
+
+// classRE keeps the 6-hex-digit class code (base, sub, interface).
+var classRE = regexp.MustCompile(`^[0-9a-f]{6}`)

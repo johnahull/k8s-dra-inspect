@@ -22,7 +22,8 @@ const (
 
 // hostFixture builds a fake root. good: pod pinned to NUMA 0 with the GPU
 // bound to vfio-pci alone. bad: pod pinned to NUMA 1, GPU on nvidia, with a
-// non-vfio IOMMU peer.
+// non-vfio GPU audio function and a bridge in its IOMMU group. Both pods are
+// pinned on container cgroups; the pod cgroup holds every CPU.
 func hostFixture(t *testing.T, good bool) *testutil.FakeHost {
 	t.Helper()
 	h := testutil.NewFakeHost(t)
@@ -31,12 +32,15 @@ func hostFixture(t *testing.T, good bool) *testutil.FakeHost {
 	h.VFIONode("vfio")
 	h.VFIONode("7")
 	if good {
-		h.CgroupSystemd(hostUID, "guaranteed", "2-5")
+		h.CgroupSystemd(hostUID, "guaranteed", "0-15", "2-5") // pinned on the container cgroup only
 		h.PCI("0000:3b:00.0", "0", "0x1234", "0x5678", "vfio-pci", "7")
 	} else {
-		h.CgroupFS(hostUID, "guaranteed", "8-11")
+		h.CgroupFS(hostUID, "guaranteed", "0-15", "8-11")
 		h.PCI("0000:3b:00.0", "0", "0x1234", "0x5678", "nvidia", "7")
 		h.PCI("0000:3b:00.1", "0", "0x1234", "0x9abc", "snd_hda_intel", "7")
+		h.PCIClass("0000:3b:00.1", "040300")
+		h.PCI("0000:3a:00.0", "0", "0x1234", "0x1111", "pcieport", "7") // bridge peer: ignored
+		h.PCIClass("0000:3a:00.0", "060400")
 	}
 	return h
 }
@@ -235,6 +239,35 @@ func TestCoreCommandsNeverTouchHostAdapter(t *testing.T) {
 	} {
 		if _, errOut, code := runHost(t, snap, noHost(t), args...); code > 1 {
 			t.Errorf("%v: exit %d stderr %q", args, code, errOut)
+		}
+	}
+}
+
+func TestHostFlagsWithFromAreUsageErrors(t *testing.T) {
+	snap := hostSnap(t, hostFixture(t, true))
+	for _, flag := range [][]string{{"--host-root", "/x"}, {"--node-name", "n"}, {"--host-root", "/", "--node-name", "n"}} {
+		for _, base := range [][]string{{"check", "vfio"}, {"check", "cpupinning", "app", "-n", "demo"}} {
+			args := append(append(append([]string{}, base...), "--from", "x.json"), flag...)
+			out, errOut, code := runHost(t, snap, noHost(t), args...)
+			if code != 2 || out != "" || !strings.Contains(errOut, flag[0]+" cannot be used with --from (host evidence comes from the snapshot)") {
+				t.Errorf("%v: exit %d stdout %q stderr %q", args, code, out, errOut)
+			}
+		}
+	}
+	// Without the flags, --from still replays the snapshot.
+	if _, errOut, code := runHost(t, snap, noHost(t), "check", "vfio", "--from", "x.json"); code != 0 || errOut != "" {
+		t.Errorf("exit %d stderr %q", code, errOut)
+	}
+}
+
+func TestHostHelpText(t *testing.T) {
+	out, _, code := runHost(t, hostSnap(t, nil), noHost(t), "check", "vfio", "--help")
+	if code != 0 {
+		t.Fatal(code)
+	}
+	for _, want := range []string{"cdiPresent is informational", "--node-name or $NODE_NAME", "downward API"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("help lacks %q:\n%s", want, out)
 		}
 	}
 }

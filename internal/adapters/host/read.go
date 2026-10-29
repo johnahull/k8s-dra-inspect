@@ -4,7 +4,7 @@ import (
 	"errors"
 	"io"
 	"os"
-	"slices"
+	"path/filepath"
 	"strings"
 	"syscall"
 )
@@ -36,16 +36,40 @@ func readCapped(path string, limit int64) (string, error) {
 	return strings.TrimSpace(string(b)), nil
 }
 
-// readDirNames lists a directory's entry names, sorted; errors yield nil.
-func readDirNames(dir string) []string {
+// confine resolves path and reports whether the result stays inside the
+// resolved root, so a symlinked directory cannot lead outside it. For root "/"
+// every resolved path qualifies. It returns the resolved path.
+func (a *Adapter) confine(path string) (string, bool) {
+	root, err := filepath.EvalSymlinks(a.root())
+	if err != nil {
+		return "", false
+	}
+	p, err := filepath.EvalSymlinks(path)
+	if err != nil || (root != "/" && p != root && !strings.HasPrefix(p, root+string(filepath.Separator))) {
+		return "", false
+	}
+	return p, true
+}
+
+// scan lists a directory confined to the root; it returns the resolved
+// directory and its entries sorted by name, or nothing when it is absent,
+// unreadable or outside the root.
+func (a *Adapter) scan(path string) (string, []os.DirEntry) {
+	dir, ok := a.confine(path)
+	if !ok {
+		return "", nil
+	}
 	ents, err := os.ReadDir(dir)
 	if err != nil {
-		return nil
+		return "", nil
 	}
+	return dir, ents
+}
+
+func names(ents []os.DirEntry) []string {
 	out := make([]string, 0, len(ents))
 	for _, e := range ents {
 		out = append(out, e.Name())
 	}
-	slices.Sort(out)
 	return out
 }

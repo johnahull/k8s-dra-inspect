@@ -61,6 +61,35 @@ func TestVFIOMatrix(t *testing.T) {
 			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
 			e.PCI[bdf1] = host.PCIDevice{Driver: "snd_hda_intel", IOMMUGroup: "7"}
 		}, model.StatusWarn, "IOMMU group 7 also holds " + bdf1 + " (driver snd_hda_intel)", false},
+		{"pci bridge peer is ignored", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{Driver: "pcieport", IOMMUGroup: "7", Class: "060400"}
+		}, model.StatusPass, "", false},
+		{"host bridge peer without driver is ignored", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{IOMMUGroup: "7", Class: "060000"}
+		}, model.StatusPass, "", false},
+		{"gpu audio function on a non-vfio driver warns", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{Driver: "snd_hda_intel", IOMMUGroup: "7", Class: "040300"}
+		}, model.StatusWarn, bdf1 + " (driver snd_hda_intel, GPU audio function sharing the group)", false},
+		{"unbound gpu audio function is ignored", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{IOMMUGroup: "7", Class: "040300"}
+		}, model.StatusPass, "", false},
+		{"gpu audio function on vfio-pci is fine", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{Driver: "vfio-pci", IOMMUGroup: "7", Class: "040300"}
+		}, model.StatusPass, "", false},
+		{"non-vfio NIC peer follows the existing rules", func(e *host.Evidence) {
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{Driver: "ixgbe", IOMMUGroup: "7", Class: "020000"}
+		}, model.StatusWarn, "also holds " + bdf1 + " (driver ixgbe)", false},
+		{"version 1 evidence has no classes", func(e *host.Evidence) {
+			e.Version = 1
+			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
+			e.PCI[bdf1] = host.PCIDevice{Driver: "pcieport", IOMMUGroup: "7"}
+		}, model.StatusWarn, bdf1 + " (driver pcieport)", false},
 		{"unbound unknown peer", func(e *host.Evidence) { e.IOMMUGroups["7"] = []string{bdf0, bdf1} }, model.StatusWarn, bdf1 + " (no driver)", false},
 		{"vfio peer is fine", func(e *host.Evidence) {
 			e.IOMMUGroups["7"] = []string{bdf0, bdf1}
@@ -131,13 +160,41 @@ func TestVFIOUnavailable(t *testing.T) {
 		want string
 	}{
 		{"no evidence", noEv, "no host evidence in snapshot; run on the node"},
-		{"other node", vfioSnap(other), "evidence is from node node-x; this claim is on node node-a: run on node node-a"},
+		{"other node", vfioSnap(other), "1 device on node node-a: run on node node-a"},
 		{"slice without node", noNode, "not tied to a node"},
 		{"claims forbidden", forbidden, "forbidden: cannot list resourceclaims"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			wantStatus(t, one(t, VFIO(), tc.snap), model.StatusUnavailable, tc.want)
 		})
+	}
+}
+
+func TestVFIOCollapsesOffNodeDevicesPerNode(t *testing.T) {
+	s := vfioSnap(vfioHost(), res("r", "gpu-0"), res("r", "gpu-1"))
+	remote := func(name, node, bdf string) {
+		sl := slicePool("s-"+name, drv, "pool-"+node, 1, 1, dev(name, attrs{pciKey: str(bdf)}))
+		sl.Spec.NodeName = &node
+		s.ResourceSlices = append(s.ResourceSlices, sl)
+		s.ResourceClaims[0].Status.Allocation.Devices.Results = append(s.ResourceClaims[0].Status.Allocation.Devices.Results,
+			resourcev1.DeviceRequestAllocationResult{Request: "r", Driver: drv, Pool: "pool-" + node, Device: name})
+	}
+	remote("r1", "node-b", "0000:af:00.0")
+	remote("r2", "node-b", "0000:af:00.1")
+	remote("r3", "node-b", "0000:af:00.2")
+	remote("r4", "node-c", "0000:bf:00.0")
+	rs := run(VFIO(), s)
+	var subjects []string
+	by := map[string]model.Result{}
+	for _, r := range rs {
+		subjects = append(subjects, r.Subject)
+		by[r.Subject] = r
+	}
+	if len(rs) != 4 || by["gpu.example.com/p/gpu-0"].Status != model.StatusPass || by["gpu.example.com/p/gpu-1"].Subject == "" {
+		t.Fatalf("want 2 same-node results + 1 per other node, got %v: %+v", subjects, rs)
+	}
+	for node, want := range map[string]string{"node-b": "3 devices on node node-b: run on node node-b", "node-c": "1 device on node node-c: run on node node-c"} {
+		wantStatus(t, by["node/"+node], model.StatusUnavailable, want)
 	}
 }
 
@@ -151,9 +208,8 @@ func TestVFIOMixedNodes(t *testing.T) {
 	for _, r := range run(VFIO(), s) {
 		by[r.Subject] = r
 	}
-	if len(by) != 3 || by["gpu.example.com/p/gpu-0"].Status != model.StatusPass ||
-		by["gpu.example.com/q/remote"].Status != model.StatusUnavailable ||
-		!strings.Contains(by["gpu.example.com/q/remote"].Details["reason"].(string), "this claim is on node node-b") {
+	if len(by) != 3 || by["gpu.example.com/p/gpu-0"].Status != model.StatusPass {
 		t.Fatalf("%+v", by)
 	}
+	wantStatus(t, by["node/node-b"], model.StatusUnavailable, "1 device on node node-b: run on node node-b")
 }

@@ -9,7 +9,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -19,8 +18,12 @@ import (
 // Name is the key under Snapshot.Evidence.
 const Name = "host"
 
-// Version is the evidence schema version.
-const Version = 1
+// Version is the evidence schema version written; MinVersion is the oldest
+// readable one (version 1 has no container cpusets and no PCI classes).
+const (
+	Version    = 2
+	MinVersion = 1
+)
 
 // Config selects the filesystem root and the cluster node name to record.
 type Config struct {
@@ -35,6 +38,7 @@ type PCIDevice struct {
 	IOMMUGroup string `json:"iommuGroup"`
 	Vendor     string `json:"vendor"`
 	Device     string `json:"device"`
+	Class      string `json:"class,omitempty"` // 6 hex digits, e.g. 030000
 }
 
 // CDISpec keeps only kind, device names and counts of one CDI spec file.
@@ -48,9 +52,10 @@ type CDISpec struct {
 
 // Cgroup is a pod-level cpuset.
 type Cgroup struct {
-	Path  string `json:"path,omitempty"`
-	CPUs  string `json:"cpus,omitempty"`
-	Error string `json:"error,omitempty"`
+	Path       string   `json:"path,omitempty"`
+	CPUs       string   `json:"cpus,omitempty"`
+	Containers []string `json:"containers,omitempty"` // each container cgroup's cpuset, sorted, no IDs
+	Error      string   `json:"error,omitempty"`
 }
 
 // Evidence is the producer-redacted host evidence.
@@ -101,24 +106,29 @@ func (a *Adapter) Collect(ctx context.Context) (model.Evidence, error) {
 		VFIODevNodes: []string{}, CDI: []CDISpec{}, Cgroups: map[string]Cgroup{},
 	}
 	r := a.root()
-	for _, d := range readDirNames(filepath.Join(r, "sys/devices/system/node")) {
-		id, ok := strings.CutPrefix(d, "node")
+	nodeDir, ents := a.scan(filepath.Join(r, "sys/devices/system/node"))
+	for _, e := range ents {
+		id, ok := strings.CutPrefix(e.Name(), "node")
 		if _, err := strconv.Atoi(id); !ok || err != nil {
 			continue
 		}
-		if s, err := readSmall(filepath.Join(r, "sys/devices/system/node", d, "cpulist")); err == nil {
-			ev.NUMA[id] = s
+		if d, ok := a.confine(filepath.Join(nodeDir, e.Name())); ok {
+			if s, err := readSmall(filepath.Join(d, "cpulist")); err == nil {
+				ev.NUMA[id] = s
+			}
 		}
 	}
 	a.collectPCI(&ev)
 	a.collectCgroups(&ev)
-	for _, g := range readDirNames(filepath.Join(r, "sys/kernel/iommu_groups")) {
-		if devs := readDirNames(filepath.Join(r, "sys/kernel/iommu_groups", g, "devices")); len(devs) > 0 {
-			ev.IOMMUGroups[g] = devs
+	groups, gents := a.scan(filepath.Join(r, "sys/kernel/iommu_groups"))
+	for _, g := range gents {
+		if _, devs := a.scan(filepath.Join(groups, g.Name(), "devices")); len(devs) > 0 {
+			ev.IOMMUGroups[g.Name()] = names(devs)
 		}
 	}
 	ev.CDI = append(ev.CDI, a.collectCDI()...)
-	ev.VFIODevNodes = append(ev.VFIODevNodes, readDirNames(filepath.Join(r, "dev/vfio"))...)
+	_, vfio := a.scan(filepath.Join(r, "dev/vfio"))
+	ev.VFIODevNodes = append(ev.VFIODevNodes, names(vfio)...)
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -126,13 +136,15 @@ func (a *Adapter) Collect(ctx context.Context) (model.Evidence, error) {
 }
 
 // ParseCPUList parses a kernel cpulist such as "0-3,8,10-11" into a sorted,
-// de-duplicated list.
+// de-duplicated list. CPU ids above maxCPU are rejected and a fixed bitset
+// bounds memory, so a hostile list cannot allocate more than maxCPU+1 flags.
 func ParseCPUList(s string) ([]int, error) {
 	out := []int{}
 	s = strings.TrimSpace(s)
 	if s == "" {
 		return out, nil
 	}
+	var set [maxCPU + 1]bool
 	for _, part := range strings.Split(s, ",") {
 		lo, hi, isRange := strings.Cut(strings.TrimSpace(part), "-")
 		a, err := parseCPU(lo)
@@ -146,11 +158,15 @@ func ParseCPUList(s string) ([]int, error) {
 			}
 		}
 		for i := a; i <= b; i++ {
+			set[i] = true
+		}
+	}
+	for i, ok := range set {
+		if ok {
 			out = append(out, i)
 		}
 	}
-	slices.Sort(out)
-	return slices.Compact(out), nil
+	return out, nil
 }
 
 func parseCPU(s string) (int, error) {
@@ -161,7 +177,8 @@ func parseCPU(s string) (int, error) {
 	return n, err
 }
 
-const maxCPU = 1 << 16
+// maxCPU is the highest CPU id accepted (Linux CONFIG_NR_CPUS tops out near 8192).
+const maxCPU = 16384
 
 // Unavailable is evidence recording why collection was not possible.
 func Unavailable(reason string) model.Evidence {

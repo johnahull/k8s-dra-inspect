@@ -76,7 +76,7 @@ func pinPod(snap model.Snapshot, p model.PodRef) model.Result {
 	case len(ev.NUMA) == 0:
 		return fail(model.StatusUnavailable, "no NUMA topology in host evidence")
 	}
-	cpus, err := host.ParseCPUList(cg.CPUs)
+	cpus, err := pinnedCPUs(cg)
 	if err != nil {
 		return fail(model.StatusError, err.Error())
 	}
@@ -102,8 +102,10 @@ func pinPod(snap model.Snapshot, p model.PodRef) model.Result {
 	if err != nil {
 		return fail(model.StatusError, err.Error())
 	}
-	pinned := !slices.Equal(cpus, all)
-	det := map[string]any{"nodeName": ev.NodeName, "cpuset": cg.CPUs, "numaOfCpus": cpuNuma, "deviceNuma": devNuma, "pinned": pinned}
+	// Pinned: the effective set is a strict subset of the online CPUs.
+	pinned := !slices.Equal(cpus, all) && !slices.ContainsFunc(cpus, func(c int) bool { return !slices.Contains(all, c) })
+	cpuset := formatCPUs(cpus)
+	det := map[string]any{"nodeName": ev.NodeName, "cpuset": cpuset, "numaOfCpus": cpuNuma, "deviceNuma": devNuma, "pinned": pinned}
 	st, reason := model.StatusPass, ""
 	var extra []int
 	for _, n := range cpuNuma {
@@ -122,9 +124,45 @@ func pinPod(snap model.Snapshot, p model.PodRef) model.Result {
 	if reason != "" {
 		det["reason"] = reason
 	} else {
-		det["summary"] = fmt.Sprintf("CPUs %s on NUMA node(s) %s match the devices", cg.CPUs, joinInts(cpuNuma))
+		det["summary"] = fmt.Sprintf("CPUs %s on NUMA node(s) %s match the devices", cpuset, joinInts(cpuNuma))
 	}
 	return model.Result{Check: NameCPUPinning, Status: st, Subject: subject, Details: det}
+}
+
+// pinnedCPUs is the union of the container cpusets, or the pod-level set when
+// the evidence has none (version 1, or a pod without container cgroups).
+func pinnedCPUs(cg host.Cgroup) ([]int, error) {
+	if len(cg.Containers) == 0 {
+		return host.ParseCPUList(cg.CPUs)
+	}
+	var out []int
+	for _, c := range cg.Containers {
+		l, err := host.ParseCPUList(c)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, l...)
+	}
+	slices.Sort(out)
+	return slices.Compact(out), nil
+}
+
+// formatCPUs renders a sorted CPU list as a kernel cpulist ("0-3,8").
+func formatCPUs(v []int) string {
+	var parts []string
+	for i := 0; i < len(v); {
+		j := i
+		for j+1 < len(v) && v[j+1] == v[j]+1 {
+			j++
+		}
+		if j == i {
+			parts = append(parts, strconv.Itoa(v[i]))
+		} else {
+			parts = append(parts, fmt.Sprintf("%d-%d", v[i], v[j]))
+		}
+		i = j + 1
+	}
+	return strings.Join(parts, ",")
 }
 
 func joinInts(v []int) string {

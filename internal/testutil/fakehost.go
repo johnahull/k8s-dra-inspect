@@ -1,6 +1,7 @@
 package testutil
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -68,9 +69,16 @@ func (h *FakeHost) PCI(bdf, numa, vendor, device, driver, group string) {
 // VFIONode adds a /dev/vfio entry.
 func (h *FakeHost) VFIONode(name string) { h.File("dev/vfio/"+name, "") }
 
+// PCIClass sets a PCI function's class file as sysfs prints it ("0x030000").
+func (h *FakeHost) PCIClass(bdf, class string) {
+	h.t.Helper()
+	h.File("sys/devices/pci0000:3a/"+bdf+"/class", "0x"+class+"\n")
+}
+
 // CgroupSystemd adds a pod cgroup in the systemd driver layout. qos is
-// "guaranteed", "burstable" or "besteffort".
-func (h *FakeHost) CgroupSystemd(uid, qos, cpus string) {
+// "guaranteed", "burstable" or "besteffort". Each containers entry adds a
+// container scope below the pod slice holding that cpuset.
+func (h *FakeHost) CgroupSystemd(uid, qos, cpus string, containers ...string) {
 	h.t.Helper()
 	u := strings.ReplaceAll(uid, "-", "_")
 	dir, name := "sys/fs/cgroup/kubepods.slice/", "kubepods-pod"+u+".slice"
@@ -79,14 +87,22 @@ func (h *FakeHost) CgroupSystemd(uid, qos, cpus string) {
 		name = "kubepods-" + qos + "-pod" + u + ".slice"
 	}
 	h.File(dir+name+"/cpuset.cpus.effective", cpus+"\n")
+	runtimes := []string{"cri-containerd", "crio", "docker"}
+	for i, c := range containers {
+		h.File(fmt.Sprintf("%s%s/%s-%064x.scope/cpuset.cpus.effective", dir, name, runtimes[i%len(runtimes)], i+1), c+"\n")
+	}
 }
 
-// CgroupFS adds a pod cgroup in the cgroupfs driver layout.
-func (h *FakeHost) CgroupFS(uid, qos, cpus string) {
+// CgroupFS adds a pod cgroup in the cgroupfs driver layout; containers
+// entries add container-ID directories below it.
+func (h *FakeHost) CgroupFS(uid, qos, cpus string, containers ...string) {
 	h.t.Helper()
 	dir := "sys/fs/cgroup/kubepods/"
 	if qos != "guaranteed" {
 		dir += qos + "/"
 	}
 	h.File(dir+"pod"+uid+"/cpuset.cpus.effective", cpus+"\n")
+	for i, c := range containers {
+		h.File(fmt.Sprintf("%spod%s/%064x/cpuset.cpus.effective", dir, uid, i+1), c+"\n")
+	}
 }

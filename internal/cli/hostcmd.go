@@ -3,6 +3,7 @@ package cli
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"os"
 
@@ -60,9 +61,16 @@ func attachHost(ctx context.Context, newHost NewHostFunc, cfg host.Config, snap 
 
 const hostHelp = `Reads files below --host-root and must run on the node itself; anywhere else
 the result is unavailable. With --from, the snapshot's host evidence is used
-and the node is not read. The check is read-only: it never writes, executes
-commands, or uses sudo. Evidence is redacted by the collector: CDI specs keep
-only kind, device names and counts.`
+and the node is not read; --host-root and --node-name cannot be combined with
+--from. The check is read-only: it never writes, executes commands, or uses
+sudo. Evidence is redacted by the collector: CDI specs keep only kind, device
+names and counts. The only node identity stored is the resolved cluster node
+name: --node-name, else $NODE_NAME, else the OS hostname as a last resort. In a
+Job or Pod, set --node-name or $NODE_NAME from the downward API
+(spec.nodeName); the hostname there is the pod's, not the node's.
+
+cdiPresent is informational: it reports whether a CDI spec lists the device
+and never changes the status.`
 
 func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 	var root, nodeName string
@@ -70,6 +78,13 @@ func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 		cmd := &cobra.Command{
 			Use: use, Short: short, Long: short + "\n\n" + hostHelp, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
+				if opts.From != "" {
+					for _, f := range []string{"host-root", "node-name"} {
+						if cmd.Flags().Changed(f) {
+							return fmt.Errorf("--%s cannot be used with --from (host evidence comes from the snapshot)", f)
+						}
+					}
+				}
 				c := build(args)
 				return runResults(cmd, opts, d,
 					func(ctx context.Context, snap model.Snapshot) []model.Result {
@@ -84,7 +99,7 @@ func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 			},
 		}
 		cmd.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (live runs only)")
-		cmd.Flags().StringVar(&nodeName, "node-name", "", "cluster node name of this host (default $NODE_NAME, then the hostname)")
+		cmd.Flags().StringVar(&nodeName, "node-name", "", "cluster node name of this host (default $NODE_NAME, then the hostname; live runs only)")
 		parent.AddCommand(cmd)
 	}
 	add("cpupinning POD", "Compare a pod's pinned CPUs with its devices' NUMA nodes (host evidence)", cobra.ExactArgs(1),

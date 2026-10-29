@@ -54,9 +54,17 @@ below `--host-root` (default `/`) and are meaningful only when the binary runs
 on the node itself. They are read-only: no writes, no external commands, no
 sudo, no `/proc`, and symlinks are never followed out of the tree. Both checks
 take `--host-root` and `--node-name` (default `$NODE_NAME`, then the hostname);
-no other command has these flags. The adapter stores the resolved node name in
-the evidence, never a raw hostname, and a check returns `unavailable` when the
-evidence is from a different node than the pod or device.
+no other command has these flags, and they cannot be combined with `--from`
+(usage error). `nodeName` in the evidence is the resolved cluster node name:
+`--node-name`, then `$NODE_NAME`, then `os.Hostname()` as a last resort (Jobs
+should set `--node-name` or `$NODE_NAME` from the downward API). That one
+resolved string is the only node identity stored. A check returns `unavailable`
+when the evidence is from a different node than the pod or device; devices on
+other nodes collapse into one result per node. Every scanned directory must
+resolve (symlinks included) to a path inside the root; `cdiPresent` in the vfio
+output is informational. The cpuset a pod is pinned to is the union of its
+container cgroups' `cpuset.cpus.effective` (the pod-level file only inherits the
+parent's CPUs); evidence `version` is 2 and version 1 is still read.
 
 A live host check collects evidence in memory and attaches it to the snapshot
 as `Evidence["host"]` before running the pure check. Evidence is redacted by

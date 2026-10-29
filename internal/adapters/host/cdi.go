@@ -29,9 +29,17 @@ type cdiDoc struct {
 
 func (a *Adapter) collectCDI() []CDISpec {
 	var out []CDISpec
-	for _, d := range []string{"var/run/cdi", "etc/cdi"} {
-		dir := filepath.Join(a.root(), d)
-		for _, name := range readDirNames(dir) {
+	seen := map[string]bool{}
+	// var/run is usually a symlink to run: scan each resolved dir once, and
+	// never one that resolves outside the root.
+	for _, d := range []string{"etc/cdi", "run/cdi", "var/run/cdi"} {
+		dir, ents := a.scan(filepath.Join(a.root(), d))
+		if seen[dir] {
+			continue
+		}
+		seen[dir] = true
+		for _, e := range ents {
+			name := e.Name()
 			switch strings.ToLower(filepath.Ext(name)) {
 			case ".json", ".yaml", ".yml":
 			default:

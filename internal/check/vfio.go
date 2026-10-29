@@ -22,9 +22,11 @@ const (
 
 // VFIO checks every allocated device that publishes a PCI bus ID against host
 // evidence: bound to vfio-pci, IOMMU group peers, and the /dev/vfio group
-// node. A device on another node than the evidence is unavailable. The
-// peer check is deliberately simple: any peer not bound to vfio-pci is
-// listed in a warning, bridges are not told apart (no device class is collected).
+// node. Devices on another node than the evidence are unavailable, one result
+// per other node. A group peer not bound to vfio-pci is listed in a warning;
+// PCI/host bridges (class 0600, 0604) are ignored, and a GPU audio function
+// (class 0403) counts only when bound to a non-vfio driver. Evidence without
+// classes (version 1) treats every peer alike.
 func VFIO() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
 		if r, ok := need(snap, NameVFIO, "resourceslices", "resourceclaims"); ok {
@@ -35,7 +37,7 @@ func VFIO() Check {
 			return un
 		}
 		var out []model.Result
-		seen := map[string]bool{}
+		seen, off := map[string]bool{}, map[string]int{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {
 				d, sl, found := model.FindDevice(snap.ResourceSlices, r.Driver, r.Pool, r.Device)
@@ -51,11 +53,18 @@ func VFIO() Check {
 				case sl.Spec.NodeName == nil:
 					out = append(out, single(NameVFIO, model.StatusUnavailable, devName(r), "device is not tied to a node; cannot match host evidence")...)
 				case *sl.Spec.NodeName != ev.NodeName:
-					out = append(out, single(NameVFIO, model.StatusUnavailable, devName(r), offNodeReason(ev.NodeName, "claim", *sl.Spec.NodeName))...)
+					off[*sl.Spec.NodeName]++
 				default:
 					out = append(out, vfioDevice(ev, r.Device, devName(r), bdf))
 				}
 			}
+		}
+		for node, n := range off {
+			what := "devices"
+			if n == 1 {
+				what = "device"
+			}
+			out = append(out, single(NameVFIO, model.StatusUnavailable, "node/"+node, fmt.Sprintf("%d %s on node %s: run on node %s", n, what, node, node))...)
 		}
 		if len(out) == 0 {
 			return single(NameVFIO, model.StatusPass, "", "no allocated device with a pciBusID on node "+ev.NodeName)
@@ -98,12 +107,17 @@ func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 	} else {
 		var peers []string
 		for _, p := range ev.IOMMUGroups[pci.IOMMUGroup] {
-			if p == bdf || ev.PCI[p].Driver == vfioDriver {
+			pd := ev.PCI[p]
+			audio := strings.HasPrefix(pd.Class, "0403")
+			if p == bdf || pd.Driver == vfioDriver || strings.HasPrefix(pd.Class, "0600") || strings.HasPrefix(pd.Class, "0604") || audio && pd.Driver == "" {
 				continue
 			}
 			drv := "no driver"
-			if d := ev.PCI[p].Driver; d != "" {
-				drv = "driver " + d
+			if pd.Driver != "" {
+				drv = "driver " + pd.Driver
+			}
+			if audio {
+				drv += ", GPU audio function sharing the group"
 			}
 			peers = append(peers, fmt.Sprintf("%s (%s)", p, drv))
 		}
