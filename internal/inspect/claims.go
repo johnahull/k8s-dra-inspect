@@ -102,6 +102,9 @@ func vmiOf(snap model.Snapshot, ns string, pods []string) string {
 			continue
 		}
 		for _, v := range snap.VMIs {
+			// shortcut: a single-segment suffix tells vm1-x-abcde (VMI vm1-x) from vm1-abcde (VMI vm1), but
+			// KubeVirt truncates long generated pod names and a VMI "vm1-abcde" vs a "vm1" pod is ambiguous;
+			// upgrade: match pod label kubevirt.io/created-by=<vmi uid>, which needs the collector to keep labels.
 			if suffix, ok := strings.CutPrefix(rest, v.GetName()+"-"); ok && v.GetNamespace() == ns && suffix != "" && !strings.Contains(suffix, "-") {
 				return v.GetName()
 			}
@@ -129,6 +132,9 @@ func Claims() Inspector {
 				nodes, _ := r.Details["nodes"].([]string)
 				used, _ := r.Details["usedBy"].([]string)
 				usedBy := strings.Join(used, ",")
+				if str(r, "usedByState") != "" {
+					usedBy = "unavailable"
+				}
 				if v := str(r, "vmi"); v != "" && !strings.HasPrefix(v, "unavailable") {
 					usedBy += " [vmi " + v + "]"
 				}
@@ -160,6 +166,8 @@ func Claims() Inspector {
 						}
 						nodes = append(nodes, deviceNode(*s, d).String())
 					}
+					// An allocation nodeSelector overrides device-derived nodes; selectors without a
+					// node name render as "(selector)".
 					if al.NodeSelector != nil {
 						nodes = nodeSelectorNames(al.NodeSelector)
 					}
@@ -175,6 +183,15 @@ func Claims() Inspector {
 				det := map[string]any{
 					"deviceRequests": requestsOf(c), "allocated": al != nil, "results": results, "deviceCount": len(results),
 					"nodes": sortedUnique(nodes), "reservedFor": reserved, "usedBy": used,
+				}
+				// usedBy stays a list in JSON; when pods could not be listed, usedByState carries the
+				// reason so an unknown consumer set is not mistaken for an unused claim.
+				if podSt := snap.Collection["pods"]; podSt.State != model.StateOK {
+					reason := podSt.Reason
+					if reason == "" {
+						reason = "pods collection state: " + cmpState(podSt.State)
+					}
+					det["usedByState"] = "unavailable: " + reason
 				}
 				switch {
 				case vmiSt.State != model.StateOK:

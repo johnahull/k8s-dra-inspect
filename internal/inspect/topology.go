@@ -37,6 +37,7 @@ func Topology(compact bool) Inspector {
 	if !compact {
 		cols = append(cols, render.Column{Header: "DEVICES", Min: 10})
 	}
+	cols = append(cols, render.Column{Header: "NOTE", Min: 4, Truncate: render.TruncateTail})
 	return Inspector{
 		Spec: Spec{
 			Columns: cols,
@@ -46,7 +47,7 @@ func Topology(compact bool) Inspector {
 					names, _ := r.Details["devices"].([]string)
 					row = append(row, strings.Join(names, ","))
 				}
-				return row
+				return append(row, dash(str(r, "reason")))
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {

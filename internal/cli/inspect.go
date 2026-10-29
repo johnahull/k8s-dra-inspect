@@ -56,33 +56,38 @@ func liveSource(o *Options) (model.Source, error) {
 func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	var attrs, allAttrs, capacity, compact bool
 	var selector string
-	add := func(use, short string, build func() inspect.Inspector) *cobra.Command {
+	add := func(use, short string, build func() (inspect.Inspector, error)) *cobra.Command {
 		c := &cobra.Command{
 			Use: use, Short: short, Args: cobra.NoArgs,
-			RunE: func(cmd *cobra.Command, _ []string) error { return runInspector(cmd, opts, d, build()) },
+			RunE: func(cmd *cobra.Command, _ []string) error {
+				in, err := build()
+				if err != nil {
+					return err
+				}
+				return runInspector(cmd, opts, d, in)
+			},
 		}
 		parent.AddCommand(c)
 		return c
 	}
-	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", inspect.Slices)
-	add("drivers", "Summarize DRA drivers", func() inspect.Inspector { return inspect.Drivers(attrs) }).
-		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
-	a := add("attributes", "Show device attributes", func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) })
-	t := add("topology", "Group devices by node, NUMA node and PCIe root", func() inspect.Inspector { return inspect.Topology(compact) })
-	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
-	add("claims", "List ResourceClaims with allocation, node and consumers", inspect.Claims)
-	dc := &cobra.Command{
-		Use: "deviceclasses", Short: "List DeviceClasses (selector expressions and config are never shown)", Args: cobra.NoArgs,
-		RunE: func(cmd *cobra.Command, _ []string) error {
-			sel, err := labels.Parse(selector)
-			if err != nil {
-				return fmt.Errorf("invalid --selector: %w", err)
-			}
-			return runInspector(cmd, opts, d, inspect.DeviceClasses(sel))
-		},
+	plain := func(f func() inspect.Inspector) func() (inspect.Inspector, error) {
+		return func() (inspect.Inspector, error) { return f(), nil }
 	}
+	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", plain(inspect.Slices))
+	add("drivers", "Summarize DRA drivers", plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
+		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
+	a := add("attributes", "Show device attributes", plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
+	t := add("topology", "Group devices by node, NUMA node and PCIe root", plain(func() inspect.Inspector { return inspect.Topology(compact) }))
+	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
+	add("claims", "List ResourceClaims with allocation, node and consumers", plain(inspect.Claims))
+	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", func() (inspect.Inspector, error) {
+		sel, err := labels.Parse(selector)
+		if err != nil {
+			return inspect.Inspector{}, fmt.Errorf("invalid --selector: %w", err)
+		}
+		return inspect.DeviceClasses(sel), nil
+	})
 	dc.Flags().StringVar(&selector, "selector", "", "Kubernetes label selector applied to DeviceClass labels")
-	parent.AddCommand(dc)
 	a.Flags().BoolVar(&allAttrs, "all-attributes", false, "show every attribute, not only the topology set")
 	a.Flags().BoolVar(&capacity, "include-capacity", false, "also show device capacity")
 }

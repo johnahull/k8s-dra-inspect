@@ -10,6 +10,7 @@ import (
 	"k8s.io/utils/ptr"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
+	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
 func numaDev(name string, attrs map[string]int64) resourcev1.Device {
@@ -88,5 +89,18 @@ func TestClaimsWithoutSlicesStillList(t *testing.T) {
 	if r.Status != model.StatusPass || fmt.Sprint(r.Details["nodes"]) != "[unavailable]" ||
 		r.Details["vmi"] != "unavailable: kubevirt.io/v1 not served" {
 		t.Errorf("%+v", r)
+	}
+}
+
+func TestTopologyNoteColumn(t *testing.T) {
+	in := Topology(true)
+	snap := snapOf(mkSlice("s", "p", 1, 1, numaDev("a", map[string]int64{"resource.kubernetes.io/numaNode": 0}), dev("b")))
+	res := in.Run(snap)
+	last := in.Columns[len(in.Columns)-1]
+	if last.Header != "NOTE" || last.Truncate != render.TruncateTail {
+		t.Fatalf("last column %+v", last)
+	}
+	if row := in.Row(res[1]); row[len(row)-1] != "missing attribute: pcieRoot" {
+		t.Errorf("warn row %v", row)
 	}
 }

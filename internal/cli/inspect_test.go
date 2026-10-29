@@ -306,11 +306,11 @@ func TestDRAViewsLayout(t *testing.T) {
 		want []string // exact lines, header first
 	}{
 		{[]string{"topology"}, []string{
-			"NODE                NUMA  PCIE ROOT   DRIVERS            DEVICES",
-			"node-a.example.com  0     pci0000:00  gpu.example.com=1  gpu-0"}},
+			"NODE                NUMA  PCIE ROOT   DRIVERS            DEVICES     NOTE",
+			"node-a.example.com  0     pci0000:00  gpu.example.com=1  gpu-0       -"}},
 		{[]string{"topology", "--compact"}, []string{
-			"NODE                NUMA  PCIE ROOT   DRIVERS",
-			"node-a.example.com  1     pci0000:80  gpu.example.com=1"}},
+			"NODE                NUMA  PCIE ROOT   DRIVERS            NOTE",
+			"node-a.example.com  1     pci0000:80  gpu.example.com=1  -"}},
 		{[]string{"deviceclasses"}, []string{
 			"NAME               LABELS                      SELECTORS  CONFIG",
 			"plain.example.com                              1          -"}},
