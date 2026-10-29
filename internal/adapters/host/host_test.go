@@ -561,3 +561,20 @@ func TestConfineWithRootSlashAllowsLegitimateSymlinks(t *testing.T) {
 		t.Fatalf("confine(%q) = %q, %v", link, got, ok)
 	}
 }
+
+func TestParseCPUListErrorQuoteIsCapped(t *testing.T) {
+	_, err := ParseCPUList(strings.Repeat("x", 1<<20))
+	if err == nil {
+		t.Fatal("want error")
+	}
+	if n := len(err.Error()); n > 200 {
+		t.Fatalf("error is %d bytes, want <= 200", n)
+	}
+	if !strings.Contains(err.Error(), "…") {
+		t.Fatalf("no ellipsis in %q", err)
+	}
+	_, err = ParseCPUList("a,b")
+	if err == nil || err.Error() != `invalid cpulist "a,b"` {
+		t.Fatalf("short input changed: %v", err)
+	}
+}

@@ -149,12 +149,12 @@ func ParseCPUList(s string) ([]int, error) {
 		lo, hi, isRange := strings.Cut(strings.TrimSpace(part), "-")
 		a, err := parseCPU(lo)
 		if err != nil {
-			return nil, fmt.Errorf("invalid cpulist %q", s)
+			return nil, badCPUList(s)
 		}
 		b := a
 		if isRange {
 			if b, err = parseCPU(hi); err != nil || b < a {
-				return nil, fmt.Errorf("invalid cpulist %q", s)
+				return nil, badCPUList(s)
 			}
 		}
 		for i := a; i <= b; i++ {
@@ -188,3 +188,12 @@ func Unavailable(reason string) model.Evidence {
 
 // maxRead caps every file read.
 const maxRead = 64 << 10
+
+// badCPUList quotes at most 64 runes of the input so a hostile file cannot
+// inflate the error.
+func badCPUList(s string) error {
+	if r := []rune(s); len(r) > 64 {
+		s = string(r[:64]) + "…"
+	}
+	return fmt.Errorf("invalid cpulist %q", s)
+}
