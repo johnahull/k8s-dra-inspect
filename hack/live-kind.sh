@@ -11,6 +11,8 @@
 # Needs: podman, kind, kubectl, helm, jq, go, goreleaser, git.
 # Offline self-test of the helpers below: hack/test-live-helpers.sh
 set -euo pipefail
+# shellcheck source=hack/lib-live.sh
+source "$(dirname "${BASH_SOURCE[0]}")/lib-live.sh"
 
 # ---- pinned versions (change here only) -------------------------------------
 KIND_VERSION=v0.33.0   # go install sigs.k8s.io/kind@v0.33.0
@@ -27,57 +29,8 @@ SECRET_MARKER=SECRET-MARKER-42b9aa
 # -----------------------------------------------------------------------------
 
 FAILS=0
-check() { # NAME WANT GOT -- one assertion; prints a FAIL line instead of aborting
-  if [ "$2" = "$3" ]; then echo "PASS  $1"; else echo "FAIL  $1: want [$2] got [$3]"; FAILS=$((FAILS + 1)); fi
-}
-absent() { # NAME MARKER FILE_OR_DIR... -- every path must exist; a grep error (rc>1) is a FAIL, not "absent"
-  local n=$1 m=$2 p rc=0; shift 2
-  for p in "$@"; do [ -e "$p" ] || { check "$n" "absent" "missing path $p"; return; }; done
-  grep -rqF -- "$m" "$@" 2>/dev/null || rc=$?
-  case $rc in 0) rc=present ;; 1) rc=absent ;; *) rc="grep error" ;; esac
-  check "$n" "absent" "$rc"
-}
-require_eq() { # NAME WANT GOT -- abort the whole run on mismatch (for preconditions)
-  [ "$2" = "$3" ] || { echo "ABORT $1: want [$2] got [$3]" >&2; exit 1; }
-}
-canilist_offenders() { # FILE -- prints problems in `kubectl auth can-i --list` output; empty means good
-  local f=$1 body need
-  [ -s "$f" ] || { echo "can-i list is empty or missing"; return 0; }
-  # Every SA may create selfsubject{reviews,accessreviews,rulesreviews}; they are not ours.
-  body=$(grep -Eiv '^ *selfsubject' "$f" | tail -n +2)
-  for need in pods 'resourceslices\.resource\.k8s\.io'; do
-    grep -Eq "^ *$need[[:space:]]" <<<"$body" || echo "no $need rule listed"
-  done
-  { grep -E '\.k8s\.io|^ *(pods|nodes)[[:space:]]' <<<"$body" | grep -Ev '\[get list\][[:space:]]*$'; } || true
-}
-exit_code() { # NAME -- the exit code recorded by run(), or "unrecorded"
-  awk -v n="$1" '$1==n {sub("exit=", "", $2); print $2; f=1} END {if (!f) print "unrecorded"}' "$OUT/exit-codes.txt"
-}
-host_goarch() { # UNAME_M -- kind nodes follow the host architecture
-  case $1 in
-    x86_64 | amd64) echo amd64 ;;
-    aarch64 | arm64) echo arm64 ;;
-    *) echo "unsupported host architecture: $1" >&2; return 1 ;;
-  esac
-}
 kind_version_ok() { # `kind version` OUTPUT -- must be the pinned KIND_VERSION
   [ "$(awk '{print $2}' <<<"$1")" = "$KIND_VERSION" ] || { echo "kind version [$1] != $KIND_VERSION" >&2; return 1; }
-}
-free_kb() { df -Pk "$1" | awk 'NR==2{print $4}'; }
-wait_gone() { # NS JOB -- wait for the Job's pods to be deleted (after helm uninstall)
-  kubectl -n "$1" wait --for=delete pod -l "job-name=$2" --timeout=60s >/dev/null 2>&1 || true
-}
-same_results() { # ARGS... -- live results[] must equal replay results[] (envelope source/generatedAt ignored)
-  local live replay
-  live=$("$DI" "$@" -o json 2>/dev/null | jq -S '.results' || true)
-  replay=$("$DI" "$@" --from "$SNAP" -o json 2>/dev/null | jq -S '.results' || true)
-  check "non-empty results: $*" "true" "$([ -n "$live" ] && [ "$live" != "[]" ] && echo true || echo false)"
-  if [ "$live" = "$replay" ]; then check "replay==live: $*" ok ok
-  else check "replay==live: $*" "live $(jq length <<<"$live") results" "replay differs: $(diff <(echo "$live") <(echo "$replay") | head -n 3 | tr '\n' ' ')"; fi
-}
-can_i() { # WANT VERB RESOURCE... -- via impersonation of $SA
-  local want=$1; shift
-  check "can-i $* as $SA" "$want" "$(kubectl auth can-i "$@" --as="$SA" 2>/dev/null || true)"
 }
 wait_job() { # NS NAME -- waits for Complete or Failed, prints the outcome
   local i s f
@@ -95,11 +48,6 @@ job_exit() { # NS NAME
 }
 job_json() { # NS NAME -- the README extraction
   kubectl -n "$1" logs "job/$2" | sed -n '/^{$/,/^}$/p'
-}
-run() { # NAME ARGS... -- run the CLI, save stdout+stderr to $OUT/NAME.txt, record exit code
-  local name=$1; shift
-  set +e; "$DI" "$@" >"$OUT/$name.txt" 2>&1; local rc=$?; set -e
-  printf '%-40s exit=%s\n' "$name" "$rc" | tee -a "$OUT/exit-codes.txt"
 }
 
 cleanup() {
@@ -149,6 +97,7 @@ main() {
     echo "refusing to run: KUBECONFIG is set to $KUBECONFIG; unset it" >&2; exit 2
   fi
   export KUBECONFIG=$KUBECONFIG_FILE KIND_EXPERIMENTAL_PROVIDER=podman
+  export KUBECACHEDIR=$SCRATCH/kubecache   # else kubectl writes its discovery cache under ~/.kube
   for t in podman kind kubectl helm jq go goreleaser git; do
     command -v "$t" >/dev/null || { echo "missing tool: $t (kind: go install sigs.k8s.io/kind@$KIND_VERSION)" >&2; exit 2; }
   done
@@ -168,16 +117,7 @@ main() {
   echo "== 1. build binary and image ($GOARCH_HOST)"
   DI=$SCRATCH/dra-inspect
   go build -o "$DI" ./cmd/dra-inspect
-  hack/check-release.sh
-  # kind nodes follow the host architecture; build for it explicitly (not --single-target's guess).
-  VER=$(grep -o '"version":"[^"]*"' dist/metadata.json | cut -d'"' -f4)
-  mkdir -p "$SCRATCH/ctx/linux/$GOARCH_HOST"
-  CGO_ENABLED=0 GOOS=linux GOARCH=$GOARCH_HOST go build -trimpath -ldflags "-s -w -X main.version=$VER" \
-    -o "$SCRATCH/ctx/linux/$GOARCH_HOST/dra-inspect" ./cmd/dra-inspect
-  cp Dockerfile "$SCRATCH/ctx/"
-  BUILT_IMAGE=1
-  podman build --platform "linux/$GOARCH_HOST" --build-arg "TARGETPLATFORM=linux/$GOARCH_HOST" -t "$IMAGE" "$SCRATCH/ctx"
-  hack/check-image.sh "$IMAGE" "$VER"
+  build_image   # kind nodes follow the host architecture
 
   echo "== 2. cluster $CLUSTER ($NODE_IMAGE)"
   CREATED_CLUSTER=1   # set first: a half-created cluster is still deleted

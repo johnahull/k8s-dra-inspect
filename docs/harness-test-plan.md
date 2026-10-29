@@ -1,15 +1,14 @@
 # Live verification plan (kind)
 
-**Status: RUN 2026-10-29, live cluster part BLOCKED on this environment.**
-`kind create cluster` failed on rootless podman 3.4.4 (CNI error, exact text in
-[Findings](#findings)), so nothing that needs a cluster ran: steps 2 to 10 below
-are unexecuted. What did run: kind, kubectl and the sample-driver chart were
-fetched and pinned, the image was built and passed `hack/check-image.sh`
-(step 1), the chart renders and lints, the workstation CLI was exercised
-against unreachable and hanging API servers, the assertion helpers of
-`hack/live-kind.sh` were proven able to fail, and the script itself was written.
-Re-run everything with `hack/live-kind.sh` on a host with podman 4+ (netavark).
-Docker is untested and not supported by the script.
+**Status.** The kind plan below (steps 2 to 10) is still **NOT RUN**: `kind create
+cluster` fails on this host's rootless podman 3.4.4 (finding F1). The substitute
+that did run is [API-server-level live verification](#api-server-level-live-verification-no-kubelet)
+(RUN 2026-10-29): a real kube-apiserver and etcd without kubelet, scheduler or
+controllers. It covers the CLI, replay, chart RBAC, Pod Security admission and the
+in-cluster auth path; it cannot show anything that needs a node (see "What this
+route cannot show"). Keep this kind plan as the full-fidelity path; re-run it with
+`hack/live-kind.sh` on a host with podman 4+ (netavark). Docker is untested and not
+supported by that script.
 
 Related: [README](../README.md), [RBAC reference](rbac.md),
 [migration guide](migration-from-dra-verify.md).
@@ -344,6 +343,166 @@ Kubernetes 1.37 in its own demo (kind config with feature gates and a 1.37 node
 image). The chart declares `kubeVersion >=1.33.0-0`, so the 1.34.11 node image
 is expected to work but that is untested; if the plugin or admission policy
 misbehaves, retry with `kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5`.
+
+## API-server-level live verification (no kubelet)
+
+**Status: RUN 2026-10-29** with `hack/live-apiserver.sh` (final run: 190 PASS, 0 FAIL,
+3 XFAIL known findings, exit 0).
+It starts `etcd` and `kube-apiserver` as plain host processes on `127.0.0.1`
+(high random ports, own uid, no sudo). The two binaries are not downloaded: the
+script `podman create`s (never starts) a container from the already-cached
+`docker.io/kindest/node` image (`sha256:44e222ee...d67d`), `podman export`s it, and
+untars the two content-addressed layer blobs that hold them (the script checks each
+blob's sha256 equals its name). Nothing is pulled; if the image is not cached the
+script stops. All scratch state lives under one directory; `~/.kube` is neither read
+nor written (`KUBECACHEDIR` is redirected because kubectl would otherwise write its
+discovery cache there; the script compares `~/.kube`'s mtime before and after).
+
+### Versions
+
+| Component | Version |
+|---|---|
+| kube-apiserver | v1.34.11 (from the kind node image) |
+| etcd | 3.6.5 (same image) |
+| kubectl | v1.35.10 (one-off download from the earlier run; the script uses `$KUBECTL`, then `PATH`, then the node image's own) |
+| helm | v4.3.1+gc0d08d0 |
+| podman | 3.4.4 (rootless) |
+| go | go1.26.10 |
+| dra-inspect | branch `feat/dra-inspect-v1` at `d911d63` plus this change (image `0.0.0-SNAPSHOT-d911d63`) |
+
+kube-apiserver flags that matter: `--authorization-mode=Node,RBAC`, a static admin
+token in `system:masters`, a generated RSA service-account key pair and issuer (so
+`kubectl create token` works without controllers), default admission plugins
+(PodSecurity included), `--feature-gates=DRAPartitionableDevices=true,DRAConsumableCapacity=true`
+(alpha in 1.34; the fixtures use counters and consumable capacity; the script was not
+run without them), `--endpoint-reconciler-type=none` (the loopback advertise address
+cannot be published as the `kubernetes` Endpoints and only logs an error).
+`resource.k8s.io/v1` is served by default.
+
+### Commands
+
+```bash
+KUBECTL=/path/to/kubectl hack/live-apiserver.sh --scratch DIR      # the real run
+KUBECTL=/path/to/kubectl hack/live-apiserver.sh --red --scratch DIR # every expectation corrupted: must fail everywhere
+hack/test-live-helpers.sh                                           # offline proof the shared helpers can fail
+```
+
+`--keep` leaves the processes and scratch dir. The script refuses an inherited
+`KUBECONFIG`, picks three free ports (collision-checked with `ss`), and its EXIT trap
+CONTs and kills exactly the two PIDs it started, removes the extraction container and
+the image it built, and prints the cleanup proof below.
+
+### Results
+
+| Step | Exit | Result |
+|---|---|---|
+| 0 Extract apiserver, etcd from the cached node image | 0 | pass; versions pinned and checked |
+| A Build binary and goreleaser-checked image | 0 | pass; `check-release: ok`, `check-image: ok (0.0.0-SNAPSHOT-d911d63, user 65532:65532)` |
+| 1 Start etcd and apiserver | 0 | pass; `/readyz` ok; serving cert SAN has `127.0.0.1`; `resource.k8s.io/v1` served; server `v1.34.11` |
+| B Load fixtures as real objects | 0 | classes-claims 10/10 and xe9680 20/20 created (status subresource written for claims and pods); multinode and xe9785l partly rejected, see F3 and F4 |
+| B golden comparison, live vs committed golden `results[]` | 0 | classes-claims topology, deviceclasses (plain and `--selector`), claims (ignoring the KubeVirt `vmi` field) and xe9680 slices, drivers, attributes, drivers `--attributes`, topology, deviceclasses, `check topology`, `report cluster`: **all identical** |
+| C `inspect` (6, table and JSON), `check` (5), `report cluster`, `report support` as admin | inspect 0; `check alignment` 1, `check capacity` 1, `report *` 1, `check counters`/`topology`/`kubevirt` 0 | pass: exit 1 is a genuine `fail` result because the combined dataset has claims whose devices are not published (rejected slices); `check kubevirt` is `unavailable` with exit 0 |
+| D `snapshot capture --with-adapters`, then 14 commands `--from` | 0 | live `results[]` equals replay `results[]` for all (including `report support`); snapshot mode 600; collection `ok ok ok ok` plus `virtualmachineinstances: notFound`; opaque marker present in the cluster, absent from snapshot and every output |
+| I `-n demo` | 0 | live equals replay for `report cluster` and `inspect claims`; only `demo/` subjects |
+| E RBAC (`helm template` piped to `kubectl apply`, both profiles, `job.enabled=true`) | cluster SA 1, namespace SA 0, namespace SA `--strict` 3 | cluster SA results equal the admin's, collections ok; namespace SA (`rbac.namespaces={demo}`, `-n demo`): slices, deviceclasses, nodes `forbidden`, eight slice-based results `unavailable`, claims and pods scoped `namespace demo only`; without `-n`, claims `unavailable` |
+| E read-only proof | n/a | `auth can-i` get/list `yes` and create/update/patch/delete/deletecollection `no` on slices, deviceclasses, claims, pods, nodes; `pods/exec` and `secrets` `no`; `can-i --list` has only get/list rows (selfsubject* and non-resource URL rows excluded); create/delete/exec/patch as the SA (impersonated and with its real token) are `Forbidden`; the target object survived |
+| F Pod Security `restricted` | 0 | the chart's Job pod template is admitted in both namespaces by server dry run and real create with no warning; applying the Job objects prints no warning; a pod with `hostNetwork` and privilege escalation is rejected in the same namespaces (`violates PodSecurity "restricted:latest": host namespaces (hostNetwork=true), ...`) and is not created |
+| G In-cluster auth under podman | cluster SA 1, namespace SA 0 / `--strict` 3 | `podman run --network host --read-only --user 65532:65532 --cap-drop=ALL --security-opt no-new-privileges` with the token, CA and namespace files mounted and `KUBERNETES_SERVICE_HOST/PORT` set: client-go's in-cluster path works with no kubeconfig; exit codes and `results[]` equal the workstation run as the same SA; the README's `sed -n '/^{$/,/^}$/p' | jq` extraction yields the JSON |
+| H SIGSTOP the apiserver, `--timeout 3s` | 0 (`--strict` 3) | `UNAVAILABLE: inspect.slices: timed out after 3s`, no URL in the text, but **6.02 s** elapsed, see F1; the server recovers after SIGCONT |
+| H closed port, bad CA, bad token | 0 (`--strict` 3 each) | `connection refused`, `x509: certificate signed by unknown authority`, `Unauthorized`; the first two echo the raw URL, see F2 |
+
+### Findings
+
+| ID | Severity | Finding | Minimal repro |
+|---|---|---|---|
+| F1 | medium (product) | `--timeout` is not the total on a hung server: a 3 s deadline costs 6.02 s. `Collect` binds the five list calls to the context, but `collectVMIs` calls `Discovery.ServerResourcesForGroupVersion` without it, so after the deadline fires it still waits for the client-go HTTP timeout (`cfg.Timeout`, the same 3 s). README and `--help` say "overall deadline". The `xfail` in the script flips to `XPASS` (a failure) once fixed. | `kill -STOP <kube-apiserver pid>; time dra-inspect --kubeconfig K --timeout 3s inspect slices` prints `UNAVAILABLE: inspect.slices: timed out after 3s` after 6.02 s |
+| F2 | low-medium (product) | Only the timeout reason is sanitized. Connection and TLS errors still print the raw client-go URL including `?limit=500`. | `dra-inspect --kubeconfig <closed port> inspect slices` prints `UNAVAILABLE: inspect.slices: Get "https://127.0.0.1:PORT/apis/resource.k8s.io/v1/resourceslices?limit=500": dial tcp ...: connect: connection refused`; same with a wrong CA (`tls: failed to verify certificate: x509: ...`) |
+| F3 | medium (fixture validity) | The fixtures with list-valued attributes (`ints`, `strings`: `multinode` and `xe9785l` slices) are not valid for a 1.34.11 apiserver: 6 ResourceSlices are rejected (`spec.devices[0].attributes[resource.kubernetes.io/numaNode]: Required value: exactly one value must be specified`; kubectl strict validation says `unknown field "ints" in io.k8s.api.resource.v1.DeviceAttribute`). The code builds against `k8s.io/api` v0.37 so it parses them, but the 1.34 node image the kind plan pins cannot publish them, so xe9785l topology and alignment cannot be reproduced live on 1.34 and no golden comparison exists for xe9785l or multinode. A server new enough to serve list attributes is needed (not available offline here). `docs/rbac.md` says unknown fields "come back empty"; that is right for reading (a 1.34 server never holds them) and does not cover this write-side rejection. | `kubectl create -f testdata/fixtures/multinode/resourceslices.yaml` (after stripping server fields) against 1.34.11 |
+| F4 | low (fixture hygiene) | 5 DeviceClass names (`dra.cpu`, `dra.hugepages-2m`, `dra.memory`, `gpu.amd.com`, `sriovnetwork.k8snetworkplumbingwg.io`) exist in both the `xe9680` and `xe9785l` fixtures, so the sets cannot coexist in one cluster (`AlreadyExists`). The xe9785l DeviceClass `opaque.parameters.alignments: null` makes kubectl's client-side check say `unknown object type "nil"`; the apiserver accepts it. | create both sets in one cluster |
+| F5 | info | The golden `inspect claims` for `classes-claims` carries `vmi: vm1` from a KubeVirt fixture; live without the CRD says `vmi: unavailable: kubevirt.io/v1 not served`. Expected; the script compares with that field removed and asserts the live text. | |
+| F6 | info (harness lesson) | Without controllers: namespaces need a hand-made `default` ServiceAccount or any Pod is refused; `--allow-privileged` is false by default so a `privileged: true` negative control is rejected by validation, not by Pod Security (use `hostNetwork` and privilege escalation); kubectl writes its discovery cache under `~/.kube` unless `KUBECACHEDIR` is set (`hack/live-kind.sh` now sets it too). | |
+| F7 | info | `report cluster`, `check alignment` and `check capacity` exit 1 on the combined dataset: genuine `fail` results, not tool errors. `can-i --list` also prints the discovery/health non-resource URL rows every authenticated user gets; they are not ours and the helpers skip them. | |
+
+### What this route cannot show
+
+All of the following stay **NOT RUN** (they are the kind plan's job):
+
+- Pods created by a kubelet or run by it: the Job objects were created and the
+  Pod spec admitted, but no controller creates a Job's Pod and no kubelet starts
+  one. The podman run in step G emulates only the container side (hardening flags,
+  mounted token and CA, env vars), not a real service-account projected volume or
+  the pod network.
+- Job controller behavior: completion, `backoffLimit`, `ttlSecondsAfterFinished`,
+  `activeDeadlineSeconds`, the Job pod's exit code as `kubectl` reports it.
+- A real DRA driver publishing slices, the kubelet plugin, CDI injection, claim
+  allocation by the scheduler (allocations here are written by hand through the
+  status subresource), and real Node objects.
+- The kind node's containerd/CNI environment, arm64 and darwin hosts, and
+  Kubernetes versions other than 1.34.11 (F3 needs a newer server).
+- KubeVirt: the CRD was absent, so only the `notFound`/`unavailable` path ran.
+- The host adapter on a real node (it ran on this workstation and its output was
+  compared live against replay only).
+
+### Assertion red-first
+
+`--red` makes `check()` compare against `RED-WRONG-<expected>`: all 190 assertions of
+a full end-to-end run failed (190 `FAIL`, 0 `PASS`, exit 0 meaning "every assertion
+can fail"). Some assertions also failed for real while the script was written (also
+verbatim): the privileged-pod negative control (`The Pod "psa-bad-dic" is invalid:
+spec.containers[0].securityContext.privileged: Forbidden: disallowed by cluster
+policy`, rejected before Pod Security ran), the configmap probe (`error: failed to
+create configmap: configmaps is forbidden: ...`, lower-case spelling, now matched),
+and the hang timing (F1). Whether the *comparison logic* of the equality and
+absence assertions can fail on different data is proven offline by
+`hack/test-live-helpers.sh` (for example `same_results: one status differs`,
+`golden_results: differing field fails`, `absent: marker in file`,
+`xfail: a fixed finding (equal) fails the run`), run in CI.
+
+| Assertion family | Failing output seen (`--red`) | Green |
+|---|---|---|
+| apiserver ready / SAN / `resource.k8s.io/v1` / version | `FAIL  server version: want [RED-WRONG-v1.34.11] got [v1.34.11]` | PASS |
+| fixture load counts, rejections | `FAIL  rejected ResourceSlices (list-valued attributes need a newer apiserver): want [RED-WRONG-6] got [6]` | PASS |
+| golden equality | `FAIL  golden: inspect topology classes-claims: want [RED-WRONG-ok] got [ok]` | PASS |
+| CLI exit codes (C, E, G, H) | `FAIL  exit closed-strict: want [RED-WRONG-3] got [3]` | PASS |
+| replay equals live | `FAIL  replay==live: inspect slices: want [RED-WRONG-ok] got [ok]` | PASS |
+| results non-empty | `FAIL  non-empty results: inspect slices: want [RED-WRONG-true] got [true]` | PASS |
+| snapshot mode and collection states | `FAIL  snapshot mode: want [RED-WRONG-600] got [600]` | PASS |
+| marker absent | `FAIL  no opaque marker in snapshot: want [RED-WRONG-absent] got [absent]` | PASS |
+| namespace scoping | `FAIL  -n demo claims: only demo/ subjects: want [RED-WRONG-0] got [0]` | PASS |
+| chart applied, no PSA warning | `FAIL  no PodSecurity warnings on applying the Jobs: want [RED-WRONG-0] got [0]` | PASS |
+| SA results equal admin / in-cluster equal workstation | `FAIL  in-cluster: results == workstation results as the same SA: want [RED-WRONG-d6c5cb1d8294a1a741a3b72e669eab14  -] got [d6c5cb1d8294a1a741a3b72e669eab14  -]` | PASS |
+| namespace SA unavailable set | `FAIL  ns SA: claims collected, none unavailable: want [RED-WRONG-true] got [true]` | PASS |
+| can-i matrix and `--list` | `FAIL  can-i create pods as system:serviceaccount:dic:di-c-dra-inspect: want [RED-WRONG-no] got [no]` | PASS |
+| mutations are Forbidden | `FAIL  forbidden as cluster SA: kubectl delete pod web-0 -n demo: want [RED-WRONG-true] got [true]` | PASS |
+| PSA admit / reject | `FAIL  negative control: hostNetwork+privilege-escalation pod rejected in dic (real create): want [RED-WRONG-true] got [true]` | PASS |
+| README `sed` extraction | `FAIL  in-cluster: README sed extraction yields valid JSON: want [RED-WRONG-true] got [true]` | PASS |
+| hang text, no URL, recovery | `FAIL  hang: reason does not echo a URL: want [RED-WRONG-0] got [0]` | PASS |
+| closed port / bad CA / bad token | `FAIL  bad CA: x509 unknown authority: want [RED-WRONG-true] got [true]` | PASS |
+| `~/.kube` untouched | `FAIL  ~/.kube untouched: want [RED-WRONG-1763065414] got [1763065414]` | PASS |
+
+The three known findings are `XFAIL` lines in the real run, not assertions:
+`XFAIL F1 hang: --timeout 3s should take about 3 s in total: want [true] got [false]`,
+`XFAIL F2 closed: reason should not echo the request URL: want [0] got [1]`, and the
+same for `badca`.
+
+### Cleanup proof
+
+Printed by the script's trap after the final run, then re-checked by hand:
+
+```
+pid 1737717 gone
+pid 1737716 gone
+port 27554 free
+port 39409 free
+port 37066 free
+podman ps -a: [nginx openclaw-gateway ]      # both pre-existing, untouched
+image localhost/dra-inspect:harness-1736488: removed
+~/.kube mtime unchanged
+```
+
+`ps` shows no `kube-apiserver` or `etcd`, `ss -ltnp` no listener of ours, and the
+extraction container (`dra-apisrv-extract-*`) was removed right after `podman
+export`. The cached `kindest/node` image was left alone.
 
 ## Re-running
 

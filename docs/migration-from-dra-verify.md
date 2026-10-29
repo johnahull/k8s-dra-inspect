@@ -166,5 +166,5 @@ stores machine-comparable facts under `testdata/parity/`. The Go tests in
 alignment verdicts, DeviceClass selection, counter remaining) and list the
 intentional differences in their header. `slices`, `attributes`, `cpupinning`
 and `vfio` are not covered: the first two only format columns, the last two need
-a node. The live-cluster verification is planned in
-[harness-test-plan.md](harness-test-plan.md) and has not been run.
+a node. Live verification against a real kube-apiserver (no kubelet) has
+been run; the full kind run has not. See [harness-test-plan.md](harness-test-plan.md).

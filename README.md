@@ -17,8 +17,10 @@ does not create or mutate Kubernetes resources.
 ## Status
 
 The v1 command surface is implemented (inspect, check, report, snapshot,
-completion). Live-cluster verification on kind is planned but **not yet run**;
-see [docs/harness-test-plan.md](docs/harness-test-plan.md). Coming from the lab
+completion). Live verification ran at the API-server level only (a real kube-apiserver 1.34.11 and
+etcd, no kubelet; `hack/live-apiserver.sh`); a full kind cluster with a real DRA driver
+and a Job run by the Job controller is **not yet run**. Exactly what was and was not
+exercised: [docs/harness-test-plan.md](docs/harness-test-plan.md). Coming from the lab
 `dra-verify.sh`? See [docs/migration-from-dra-verify.md](docs/migration-from-dra-verify.md).
 
 ## Commands
@@ -121,8 +123,9 @@ current directory, so the container filesystem can stay read-only.
 ## Run as a Kubernetes Job
 
 The Helm chart in `deploy/helm/dra-inspect` installs read-only RBAC (`get` and
-`list` only, see [docs/rbac.md](docs/rbac.md); the live Job check is still to be run, see
-[docs/harness-test-plan.md](docs/harness-test-plan.md)) and, optionally, a one-shot Job.
+`list` only, see [docs/rbac.md](docs/rbac.md); the chart's RBAC, Pod Security `restricted` admission and the
+in-cluster auth path were checked against a real API server, but no Job was run by a
+kubelet, see [docs/harness-test-plan.md](docs/harness-test-plan.md)) and, optionally, a one-shot Job.
 The chart is not published to a registry yet; install from the repository path.
 
 ```bash

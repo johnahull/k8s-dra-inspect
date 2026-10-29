@@ -27,7 +27,14 @@ are not supported.
 supported; both are verified (the script rejects other majors). CI prints the
 helm version in the chart job log.
 
-## Live kind harness
+## Live harnesses
+
+`hack/live-apiserver.sh` runs a real kube-apiserver and etcd as host processes (binaries
+come from the cached kind node image; nothing is pulled) and exercises the CLI, replay,
+chart RBAC, Pod Security and the in-cluster auth path; it needs no kind. Use
+`--red` to prove every assertion can fail. Both scripts share `hack/lib-live.sh`.
+
+### Live kind harness
 
 `hack/live-kind.sh` needs rootless podman and creates a throwaway kind cluster; it
 is run by hand, never in CI. Its pure helpers are tested offline by
