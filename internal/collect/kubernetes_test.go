@@ -403,3 +403,28 @@ func TestRecordReasonsAreSanitized(t *testing.T) {
 		})
 	}
 }
+
+func TestRecordForbiddenKeepsServerDetail(t *testing.T) {
+	forbidden := func(msg string) error {
+		return &apierrors.StatusError{ErrStatus: metav1.Status{Status: metav1.StatusFailure, Code: 403, Reason: metav1.StatusReasonForbidden, Message: msg}}
+	}
+	real := `resourceslices.resource.k8s.io is forbidden: User "system:serviceaccount:ns:sa" cannot list resource "resourceslices" in API group "resource.k8s.io" at the cluster scope`
+	cases := []struct{ name, msg, want string }{
+		{"real shape", real, "resourceslices: forbidden: " + real},
+		{"truncated at 512 runes", strings.Repeat("é", 600), "resourceslices: forbidden: " + strings.Repeat("é", 512)},
+		{"control chars", "a\nb\r\n\tc\x00d\x1b[31me  f", "resourceslices: forbidden: a b c d [31me f"},
+		{"url scrubbed", "bad GET https://x/y?limit=500 end", "resourceslices: forbidden: bad GET end"},
+		{"bearer scrubbed", "hdr Bearer abc123 end", "resourceslices: forbidden: hdr end"},
+		{"both", "https://x/y?limit=500 Bearer abc123", "resourceslices: forbidden"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			snap := &model.Snapshot{Collection: map[string]model.CollectionStatus{}}
+			(&Live{}).record(snap, "resourceslices", forbidden(tc.msg))
+			st := snap.Collection["resourceslices"]
+			if st.Reason != tc.want || st.State != model.StateForbidden {
+				t.Fatalf("got %q (%s)\nwant %q", st.Reason, st.State, tc.want)
+			}
+		})
+	}
+}

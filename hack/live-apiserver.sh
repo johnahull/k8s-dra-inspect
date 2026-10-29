@@ -420,6 +420,10 @@ EOF
     "forbidden forbidden forbidden ok:namespace demo only ok:namespace demo only" \
     "$(jq -r '.collection | [.resourceslices.state, .deviceclasses.state, .nodes.state, (.pods.state+":"+.pods.reason), (.resourceclaims.state+":"+.resourceclaims.reason)] | join(" ")' "$SCRATCH/san.json")"
 
+  check "ns SA snapshot: slices reason carries the API server's RBAC detail" true \
+    "$(jq '.collection.resourceslices.reason | contains("cannot list resource \"resourceslices\"")' "$SCRATCH/san.json")"
+  jq -r '"ns SA reason: " + .collection.resourceslices.reason' "$SCRATCH/san.json"
+
   SA=system:serviceaccount:dic:$SAC
   for r in resourceslices.resource.k8s.io deviceclasses.resource.k8s.io resourceclaims.resource.k8s.io pods nodes; do
     for v in get list; do can_i yes "$v" "$r"; done

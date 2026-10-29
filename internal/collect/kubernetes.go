@@ -8,8 +8,10 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
@@ -164,7 +166,7 @@ func (l *Live) record(snap *model.Snapshot, key string, err error) bool {
 	switch {
 	case err == nil:
 	case apierrors.IsForbidden(err):
-		st = model.CollectionStatus{State: model.StateForbidden, Reason: key + ": forbidden"}
+		st = model.CollectionStatus{State: model.StateForbidden, Reason: forbiddenReason(key, err)}
 	case apierrors.IsNotFound(err):
 		st = model.CollectionStatus{State: model.StateNotFound, Reason: key + ": not found"}
 	case apierrors.IsUnauthorized(err):
@@ -192,4 +194,33 @@ func isTimeout(err error) bool {
 	var ne net.Error
 	return errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &ne) && ne.Timeout()) ||
 		strings.Contains(err.Error(), "Client.Timeout exceeded")
+}
+
+var secretLike = regexp.MustCompile(`https?://\S+|Bearer\s+\S+`)
+
+const maxDetail = 512
+
+// forbiddenReason keeps the API server's message (user, verb, resource, scope:
+// what an operator needs to fix RBAC). It is scrubbed of URLs and bearer
+// tokens, flattened to one line and capped.
+func forbiddenReason(key string, err error) string {
+	msg := ""
+	var se apierrors.APIStatus
+	if errors.As(err, &se) {
+		msg = se.Status().Message
+	}
+	msg = strings.Map(func(r rune) rune {
+		if unicode.IsControl(r) {
+			return ' '
+		}
+		return r
+	}, msg)
+	msg = strings.Join(strings.Fields(secretLike.ReplaceAllString(msg, "")), " ")
+	if r := []rune(msg); len(r) > maxDetail {
+		msg = string(r[:maxDetail])
+	}
+	if msg == "" {
+		return key + ": forbidden"
+	}
+	return key + ": forbidden: " + msg
 }

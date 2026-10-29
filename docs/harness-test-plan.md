@@ -346,7 +346,7 @@ misbehaves, retry with `kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd5
 
 ## API-server-level live verification (no kubelet)
 
-**Status: RUN 2026-10-29** with `hack/live-apiserver.sh` (final run after the F1/F2 fixes: 196 PASS, 0 FAIL,
+**Status: RUN 2026-10-29** with `hack/live-apiserver.sh` (final run after the F1/F2 fixes: 197 PASS, 0 FAIL,
 no XFAIL, exit 0).
 It starts `etcd` and `kube-apiserver` as plain host processes on `127.0.0.1`
 (high random ports, own uid, no sudo). The two binaries are not downloaded: the
@@ -445,8 +445,8 @@ All of the following stay **NOT RUN** (they are the kind plan's job):
 
 ### Assertion red-first
 
-`--red` makes `check()` compare against `RED-WRONG-<expected>`: all 196 assertions of
-a full end-to-end run failed (196 `FAIL`, 0 `PASS`, exit 0 meaning "every assertion
+`--red` makes `check()` compare against `RED-WRONG-<expected>`: all 197 assertions of
+a full end-to-end run failed (197 `FAIL`, 0 `PASS`, exit 0 meaning "every assertion
 can fail"). Some assertions also failed for real while the script was written (also
 verbatim): the privileged-pod negative control (`The Pod "psa-bad-dic" is invalid:
 spec.containers[0].securityContext.privileged: Forbidden: disallowed by cluster
@@ -480,7 +480,7 @@ absence assertions can fail on different data is proven offline by
 | closed port / bad CA / bad token | `FAIL  bad CA: x509 unknown authority: want [RED-WRONG-true] got [true]` | PASS |
 | `~/.kube` untouched | `FAIL  ~/.kube untouched: want [RED-WRONG-1763065414] got [1763065414]` | PASS |
 
-F1 and F2 were `XFAIL` lines (`XFAIL F1 hang: --timeout 3s should take about 3 s in total: want [true] got [false]`, `XFAIL F2 closed: reason should not echo the request URL: want [0] got [1]`, same for `badca`) until fixed in e5dc4a7; they are now normal assertions (`hang: --timeout 3s finishes in < 4.5 s in total`, `closed`/`badca: reason does not echo a URL` and `... a query`). Final run: 196 PASS, 0 FAIL; `--red`: 196 FAIL, 0 PASS, exit 0.
+F1 and F2 were `XFAIL` lines (`XFAIL F1 hang: --timeout 3s should take about 3 s in total: want [true] got [false]`, `XFAIL F2 closed: reason should not echo the request URL: want [0] got [1]`, same for `badca`) until fixed in e5dc4a7; they are now normal assertions (`hang: --timeout 3s finishes in < 4.5 s in total`, `closed`/`badca: reason does not echo a URL` and `... a query`). Final run: 197 PASS, 0 FAIL; `--red`: 197 FAIL, 0 PASS, exit 0.
 
 ### Cleanup proof
 
