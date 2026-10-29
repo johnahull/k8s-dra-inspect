@@ -6,7 +6,7 @@
 
 **Architecture:** A Go/Cobra CLI collects typed Kubernetes DRA objects into normalized models, runs independent inspection/check analyzers, and renders tables or versioned JSON. Optional host and KubeVirt adapters are isolated from the core Kubernetes collector so normal cluster inspection never requires privileged access.
 
-**Tech Stack:** Go 1.26+, Cobra, client-go v0.34+ (`resource.k8s.io/v1` only, Kubernetes 1.34+), typed fixture snapshots, GoReleaser, GitHub Actions, optional Helm Job manifests.
+**Tech Stack:** Go 1.26.10+, Cobra, client-go v0.34+ (`resource.k8s.io/v1` only, Kubernetes 1.34+), typed fixture snapshots, GoReleaser, GitHub Actions, optional Helm Job manifests.
 
 **Spec:** `docs/superpowers/specs/2026-10-29-dra-inspect-design.md`
 

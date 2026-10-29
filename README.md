@@ -45,27 +45,30 @@ offline snapshot replay are design requirements for CI and support workflows.
 
 ## Install
 
-Download the archive for your platform from the GitHub releases page, verify it
+Once a release is published (publishing is a manual maintainer step for now),
+download the archive for your platform from the GitHub releases page, verify it
 against `checksums.txt`, and put `dra-inspect` on your `PATH`. Or run the OCI
 image (distroless, non-root, no shell):
 
 ```bash
-docker run --rm --user 65532:65532 \
+docker run --rm --user "$(id -u):$(id -g)" --read-only \
   -e KUBECONFIG=/kube/config -v "$HOME/.kube/config:/kube/config:ro" \
-  -v "$PWD/out:/out" \
+  -v "$PWD:/out" \
   ghcr.io/johnahull/k8s-dra-inspect:<version> \
   snapshot capture --file /out/snapshot.json
 ```
 
-The kubeconfig is mounted read-only; snapshots go to a mounted directory that
-UID 65532 can write, so the container filesystem can stay read-only
-(`--read-only`).
+Run as your own UID, not the image's default 65532: a kubeconfig is usually
+mode 0600, so only its owner can read the mounted file. With rootless Podman
+also add `--userns=keep-id`, or the container UID does not map to the file
+owner. The kubeconfig is mounted read-only; snapshots go to the mounted
+current directory, so the container filesystem can stay read-only.
 
 ## Development
 
 Requirements:
 
-- Go 1.26 or newer
+- Go 1.26.10 or newer
 
 Run the current checks with:
 

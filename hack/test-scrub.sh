@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Self-test for scrub-fixtures.sh. Needs python3 + PyYAML (CI: pip install pyyaml).
+# Self-test for scrub-fixtures.sh. Needs python3 + PyYAML (CI: pip install pyyaml==6.0.3).
 set -euo pipefail
 cd "$(dirname "$0")/.."
 t=$(mktemp -d); trap 'rm -rf "$t"' EXIT

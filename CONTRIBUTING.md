@@ -23,9 +23,15 @@ Dry-run locally without publishing anything:
 
 ```bash
 goreleaser check
-goreleaser release --snapshot --clean   # image build needs docker buildx
-hack/check-release.sh                   # asserts version injection and static build
+hack/check-release.sh   # snapshot build; asserts version injection and static build
 ```
+
+`goreleaser release --snapshot --clean` also builds the image, which needs
+docker/buildx. Without docker, build the binary with
+`goreleaser build --snapshot --clean --single-target`, build the image with
+podman from the Dockerfile (binary at `<ctx>/linux/amd64/dra-inspect`,
+`--build-arg TARGETPLATFORM=linux/amd64`), and check it with
+`hack/check-image.sh IMAGE`.
 
 CI runs `goreleaser check`, a snapshot build, and `hack/check-release.sh` on
 every push. Tagging and publishing (binaries and the

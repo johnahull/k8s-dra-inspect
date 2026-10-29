@@ -12,7 +12,7 @@ want=$(grep -o '"version":"[^"]*"' dist/metadata.json | cut -d'"' -f4)
 [ -n "$want" ] || fail "no snapshot version in dist/metadata.json"
 got=$("$bin" version)
 [ "$got" != dev ] || fail "version is 'dev': -X main.version ldflag missing"
-case "$got" in *"$want"*) ;; *) fail "version '$got' does not match snapshot '$want'" ;; esac
+[ "$got" = "$want" ] || fail "version '$got' != snapshot '$want'"
 
 info=$(go version -m "$bin")
 echo "$info" | grep -q 'CGO_ENABLED=0' || fail "binary not built with CGO_ENABLED=0"

@@ -32,7 +32,7 @@ Out of scope:
 
 - Repository: `github.com/johnahull/k8s-dra-inspect`.
 - Binary: `dra-inspect`.
-- Implementation language: Go 1.26 or newer.
+- Implementation language: Go 1.26.10 or newer.
 - CLI framework: Cobra.
 - API target: `resource.k8s.io/v1` only, Kubernetes 1.34 or newer, client-go
   v0.34 or newer. Older API versions are not supported.

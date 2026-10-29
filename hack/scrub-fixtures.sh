@@ -5,7 +5,7 @@
 # first-seen order. Also replaces UUID-shaped strings and uuid/shareID/serial*
 # attributes with deterministic fakes (00000000-0000-4000-8000-NNNNNNNNNNNN),
 # and reservedFor[] uid/name with fake UUIDs and pod-1, pod-2... Idempotent.
-# Needs python3 with PyYAML (pip install pyyaml). Refuses src == dest.
+# Needs python3 with PyYAML (pip install pyyaml==6.0.3). Refuses src == dest.
 set -euo pipefail
 [ $# -eq 2 ] || { echo "usage: $0 <srcdir> <destdir>" >&2; exit 2; }
 exec python3 -I - "$1" "$2" <<'PY'
