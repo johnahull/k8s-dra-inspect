@@ -22,6 +22,12 @@ tests and stable JSON output where automation may consume the result.
 supported; both are verified (the script rejects other majors). CI prints the
 helm version in the chart job log.
 
+## Live kind harness
+
+`hack/live-kind.sh` needs rootless podman and creates a throwaway kind cluster; it
+is run by hand, never in CI. Its pure helpers are tested offline by
+`hack/test-live-helpers.sh` (bash only), which CI runs.
+
 ## Releases
 
 Releases are built with [GoReleaser](https://goreleaser.com) (`.goreleaser.yaml`).

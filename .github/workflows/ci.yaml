@@ -55,6 +55,10 @@ jobs:
         with:
           persist-credentials: false
       - run: hack/check-fixtures.sh
+      - name: Live-harness helper self-test (offline; bash and coreutils only)
+        run: |
+          bash -n hack/live-kind.sh
+          hack/test-live-helpers.sh
       - name: Scrub script self-test (needs python3 + PyYAML)
         run: |
           pip install pyyaml==6.0.3

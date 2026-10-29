@@ -1,0 +1,66 @@
+{
+  "alignment": {
+    "demo/pair-pod": {
+      "devices": [
+        "a-gpu-0",
+        "a-gpu-1"
+      ],
+      "numa": "aligned",
+      "pcieRoot": "aligned"
+    }
+  },
+  "claims": {
+    "demo/pair-a": [
+      "a-gpu-0",
+      "a-gpu-1"
+    ]
+  },
+  "deviceclassesQueried": [],
+  "drivers": {
+    "gpu.example.com": {
+      "devices": 4,
+      "nodes": [
+        "node-a.example.com",
+        "node-b.example.com"
+      ]
+    }
+  },
+  "fixture": "multinode",
+  "legacyExit": {
+    "alignment": 0,
+    "claims": 0,
+    "deviceclasses": 1,
+    "drivers": 0,
+    "topology": 0
+  },
+  "legacySha256": {
+    "dra-counters.py": "baa3f764692f992287c35e03d2655c3749871fd737dc93ad20f83f691228155a",
+    "dra-verify.sh": "30843a2cd2dcc23ec61fdcb652e795d371844b10c0bab246eff918afec00047e"
+  },
+  "topology": {
+    "a-gpu-0": {
+      "pcieRoots": [
+        "pci0000:00"
+      ],
+      "primaryNuma": "0"
+    },
+    "a-gpu-1": {
+      "pcieRoots": [
+        "pci0000:00"
+      ],
+      "primaryNuma": "0"
+    },
+    "b-gpu-0": {
+      "pcieRoots": [
+        "pci0000:40"
+      ],
+      "primaryNuma": "2"
+    },
+    "b-gpu-1": {
+      "pcieRoots": [
+        "pci0000:c0"
+      ],
+      "primaryNuma": "2"
+    }
+  }
+}

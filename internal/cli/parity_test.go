@@ -19,7 +19,8 @@ package cli
 //   - cpuSocketID is ignored: it is not a standard attribute, the legacy socket
 //     inference and "cpuSocketID SPLIT" verdict are gone.
 //   - Legacy groups a device under its FIRST listed NUMA node; dra-inspect keeps
-//     the whole sorted NUMA set. The test checks first-NUMA membership.
+//     the whole sorted NUMA set. The test checks first-NUMA membership against
+//     legacy and set EQUALITY against the NUMA values read from the fixture.
 //   - Legacy alignment is per pod (reservedFor), dra-inspect's is per claim and
 //     uses global intersection of the list values, not string equality.
 //   - Legacy ignores allocated claims without reservedFor (counters, alignment);
@@ -39,11 +40,15 @@ package cli
 
 import (
 	"encoding/json"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
+
+	resourcev1 "k8s.io/api/resource/v1"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/testutil"
@@ -64,6 +69,7 @@ type legacyFacts struct {
 		Numa     string   `json:"numa"`
 		PcieRoot string   `json:"pcieRoot"`
 	} `json:"alignment"`
+	LegacyExit           map[string]int      `json:"legacyExit"`
 	Claims               map[string][]string `json:"claims"`
 	DeviceClassesQueried []string            `json:"deviceclassesQueried"`
 	Counters             legacyCounters      `json:"counters"`
@@ -115,7 +121,18 @@ func strs(v any) []string {
 	return out
 }
 
-var surfaceFixtures = []string{"xe9785l", "xe9680", "classes-claims"}
+var surfaceFixtures = []string{"xe9785l", "xe9680", "classes-claims", "multinode"}
+
+// The legacy run itself must have succeeded where it is supposed to.
+func TestParityLegacyExitCodes(t *testing.T) {
+	for _, fx := range surfaceFixtures {
+		for _, c := range []string{"drivers", "topology", "claims", "alignment"} {
+			if code, ok := loadFacts(t, fx).LegacyExit[c]; !ok || code != 0 {
+				t.Errorf("%s: legacy %s exit %d (recorded=%v), want 0", fx, c, code, ok)
+			}
+		}
+	}
+}
 
 func TestParityDrivers(t *testing.T) {
 	for _, fx := range surfaceFixtures {
@@ -140,6 +157,12 @@ func TestParityTopology(t *testing.T) {
 		facts, snap := loadFacts(t, fx), testutil.LoadFixture(t, "testdata/fixtures/"+fx)
 		type place struct{ numa, root []string }
 		got := map[string]place{}
+		wantNUMA := map[string][]string{}
+		for _, sl := range snap.ResourceSlices {
+			for _, d := range sl.Spec.Devices {
+				wantNUMA[d.Name] = fixtureNUMA(d, sl.Spec.Driver)
+			}
+		}
 		for _, r := range newResults(t, snap, "inspect", "topology") {
 			for _, d := range strs(r.Details["devices"]) {
 				got[d] = place{strs(r.Details["numa"]), strs(r.Details["pcieRoot"])}
@@ -157,6 +180,9 @@ func TestParityTopology(t *testing.T) {
 			if !slices.Contains(p.numa, want.PrimaryNuma) {
 				t.Errorf("%s: %s NUMA %v lacks legacy NUMA %s", fx, dev, p.numa, want.PrimaryNuma)
 			}
+			if gn := slices.Sorted(slices.Values(p.numa)); !slices.Equal(gn, wantNUMA[dev]) {
+				t.Errorf("%s: %s NUMA set %v, fixture says %v", fx, dev, gn, wantNUMA[dev])
+			}
 			wr := slices.Clone(want.PcieRoots)
 			slices.Sort(wr)
 			if !slices.Equal(slices.Sorted(slices.Values(p.root)), wr) {
@@ -164,6 +190,45 @@ func TestParityTopology(t *testing.T) {
 			}
 		}
 	}
+}
+
+// fixtureNUMA reads a device's NUMA node set straight from the fixture: the
+// standard key, else <driver>/<name> or bare <name>, else any <vendor>/<name>.
+func fixtureNUMA(d resourcev1.Device, driver string) []string {
+	vals := func(k string) []string {
+		a, ok := d.Attributes[resourcev1.QualifiedName(k)]
+		if !ok {
+			return nil
+		}
+		var out []string
+		if a.IntValue != nil {
+			out = append(out, strconv.FormatInt(*a.IntValue, 10))
+		}
+		for _, v := range a.IntValues {
+			out = append(out, strconv.FormatInt(v, 10))
+		}
+		slices.Sort(out)
+		return out
+	}
+	if v := vals("resource.kubernetes.io/numaNode"); v != nil {
+		return v
+	}
+	names := []string{"numaNode", "numa", "numaNodeID"}
+	for _, n := range names {
+		for _, k := range []string{driver + "/" + n, n} {
+			if v := vals(k); v != nil {
+				return v
+			}
+		}
+	}
+	for _, n := range names {
+		for _, k := range slices.Sorted(maps.Keys(d.Attributes)) {
+			if strings.HasSuffix(string(k), "/"+n) {
+				return vals(string(k))
+			}
+		}
+	}
+	return nil
 }
 
 func TestParityClaims(t *testing.T) {
@@ -245,6 +310,34 @@ func TestParityDeviceClasses(t *testing.T) {
 		if !slices.Equal(got, append([]string{}, facts.DeviceClassesQueried...)) {
 			t.Errorf("%s: classes %d, legacy query served %d", fx, len(got), len(facts.DeviceClassesQueried))
 		}
+	}
+}
+
+// Both recorded variants and the legacy exit codes are pinned: as-is, the
+// legacy script ignores unreserved allocations (full capacity); with a
+// reservedFor injected it reports what the allocation consumed.
+func TestParityCounterVariants(t *testing.T) {
+	want := map[string]struct {
+		exit     int
+		reserved string
+	}{
+		"exactly-full": {0, "0/2"}, "fits": {0, "1/2"}, "overcommit": {0, "-1/2"},
+		"stale-generation": {1, "1/2"}, "unknown-counter": {1, "?/2"}, "unknown-set": {1, "2/2"},
+	}
+	for name, w := range want {
+		f := loadFacts(t, "counters-"+name)
+		if f.Counters.Exit != w.exit || f.CountersReserved.Exit != w.exit {
+			t.Errorf("%s: legacy exit %d/%d, want %d", name, f.Counters.Exit, f.CountersReserved.Exit, w.exit)
+		}
+		if got := f.Counters.Sets["pf-0"]["vf-slots"]; got != "2/2" {
+			t.Errorf("%s: as-is variant %q, want 2/2 (unreserved allocations ignored)", name, got)
+		}
+		if got := f.CountersReserved.Sets["pf-0"]["vf-slots"]; got != w.reserved {
+			t.Errorf("%s: reserved variant %q, want %q", name, got, w.reserved)
+		}
+	}
+	if none := loadFacts(t, "counters-none"); none.Counters.Exit != 0 || len(none.Counters.Sets) != 0 || len(none.CountersReserved.Sets) != 0 {
+		t.Errorf("none: %+v", none)
 	}
 }
 

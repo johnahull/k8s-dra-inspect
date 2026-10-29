@@ -54,11 +54,11 @@
 | `help` | Keep | Cobra help |
 | `completions` | Keep | `completion bash`, `completion zsh`, `completion fish` |
 | `-n`, `--namespace` | Keep | Global namespace filter |
-| `-v`, `--verbose` | Keep | Command-scoped verbosity |
+| `-v`, `--verbose` | Drop | `inspect attributes --all-attributes`; `-o json` always carries full detail |
 | `-a`, `--all` | Drop as global | Explicit command flags such as `--all-attributes` |
-| `-t`, `--simple` | Drop | `inspect topology --compact` |
+| `-t`, `--simple` | Replace | `inspect topology --compact` (`-t` is kept as its short flag) |
 | `-h`, `--help` | Keep | Standard Cobra help |
-| Positional DeviceClass filters | Replace | a generic label `--selector` and `--partition` |
+| Positional DeviceClass filters | Replace | a generic label `--selector` only (no `--partition`) |
 | Positional Pod/VM targets | Keep | Typed command-specific positional arguments |
 | `source dra-verify.sh` | Drop | Standalone binary only |
 | `eval ... completions` | Drop | Cobra completion generation |
@@ -97,7 +97,7 @@ Global flags:
 - `-n`, `--namespace` limits namespaced reads where applicable.
 - `-o`, `--output` accepts `table` or `json`.
 - `--no-color` disables ANSI formatting (also disabled by `NO_COLOR` and non-TTY stdout).
-- `--timeout` bounds API and adapter operations.
+- `--timeout` is one overall deadline for collecting from the cluster (all resource kinds together); kinds not collected by then are reported as unavailable.
 - `--from FILE` replays a snapshot instead of contacting a cluster.
 - `--strict` makes `unavailable` results exit 3.
 

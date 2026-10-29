@@ -87,6 +87,13 @@
     }
   },
   "fixture": "xe9785l",
+  "legacyExit": {
+    "alignment": 0,
+    "claims": 0,
+    "deviceclasses": 1,
+    "drivers": 0,
+    "topology": 0
+  },
   "legacySha256": {
     "dra-counters.py": "baa3f764692f992287c35e03d2655c3749871fd737dc93ad20f83f691228155a",
     "dra-verify.sh": "30843a2cd2dcc23ec61fdcb652e795d371844b10c0bab246eff918afec00047e"

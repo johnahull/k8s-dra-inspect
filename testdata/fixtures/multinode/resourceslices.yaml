@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata: {name: gpu-node-a}
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: a-gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [0, 1, 2, 3]}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:00"}
+    - name: a-gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [0, 1, 2, 3]}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:00"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata: {name: gpu-node-b}
+  spec:
+    driver: gpu.example.com
+    nodeName: node-b.example.com
+    pool: {name: node-b.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: b-gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 2}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:40"}
+    - name: b-gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [2, 3]}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:c0"}

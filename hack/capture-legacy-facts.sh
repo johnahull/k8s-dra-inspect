@@ -19,6 +19,7 @@ LEGACY=${DRA_VERIFY_DIR:-$HOME/redhat/dra-topology-aware-co-placement/testing/sc
 SCRATCH=${PARITY_SCRATCH:-$(mktemp -d)}
 mkdir -p "$SCRATCH/bin" "$SCRATCH/home" "$SCRATCH/raw" "$ROOT/testdata/parity"
 
+: >"$SCRATCH/refusals.txt"
 cat >"$SCRATCH/bin/kubectl" <<'PY'
 #!/usr/bin/env python3
 """Stub kubectl: serves fixture YAML as `get <resource> -o json` lists."""
@@ -26,6 +27,9 @@ import json, os, sys, glob
 import yaml
 
 def die(msg):
+    if os.environ.get("PARITY_REFUSALS"):  # the legacy script may swallow stderr
+        with open(os.environ["PARITY_REFUSALS"], "a") as f:
+            f.write("%s (argv=%s)\n" % (msg, sys.argv[1:]))
     sys.stderr.write("STUB-KUBECTL REFUSED: " + msg + " (argv=%s)\n" % sys.argv[1:])
     sys.exit(97)
 
@@ -54,7 +58,7 @@ while i < len(rest):
     else:
         die("unrecognized argument %r" % a)
     i += 1
-if res in EMPTY_OK:
+if res in EMPTY_OK or (res == "pods" and out == "wide"):  # drivers section lists pods as a table
     if out == "json":
         print(json.dumps({"items": []}))
     sys.exit(0)  # `-o wide` table: empty, like a cluster with none
@@ -89,6 +93,7 @@ declare -A DIRS=(
   [xe9785l]="$ROOT/testdata/fixtures/xe9785l"
   [xe9680]="$ROOT/testdata/fixtures/xe9680"
   [classes-claims]="$ROOT/testdata/fixtures/classes-claims"
+  [multinode]="$ROOT/testdata/fixtures/multinode"
 )
 COUNTERS=(exactly-full fits none overcommit stale-generation unknown-counter unknown-set)
 for c in "${COUNTERS[@]}"; do DIRS[counters-$c]="$ROOT/testdata/fixtures/counters/$c"; done
@@ -98,7 +103,7 @@ legacy() { # fixture name, output file, args...; records exit code in <file>.rc
   set +e
   rm -f "$out.served"
   env -i PATH="$SCRATCH/bin:/usr/bin:/bin" HOME="$SCRATCH/home" KUBECONFIG="$SCRATCH/home/none" \
-    PARITY_FIXTURE_DIRS="${DIRS[$fx]}" PARITY_SERVED="$out.served" NO_COLOR=1 \
+    PARITY_FIXTURE_DIRS="${DIRS[$fx]}" PARITY_SERVED="$out.served" PARITY_REFUSALS="$SCRATCH/refusals.txt" NO_COLOR=1 \
     ${PARITY_INJECT_RESERVED:+PARITY_INJECT_RESERVED=1} \
     bash "$LEGACY/dra-verify.sh" "$@" >"$out" 2>"$out.err"
   echo $? >"$out.rc"
@@ -117,8 +122,8 @@ for fx in "${!DIRS[@]}"; do
     legacy "$fx" "$SCRATCH/raw/$fx/$cmd.txt" "$cmd" "${extra[@]}"
   done
 done
-if grep -l "STUB-KUBECTL REFUSED" "$SCRATCH"/raw/*/*.err 2>/dev/null; then
-  echo "stub kubectl refused a call; see files above" >&2; exit 1
+if [ -s "$SCRATCH/refusals.txt" ] || grep -l "STUB-KUBECTL REFUSED" "$SCRATCH"/raw/*/*.err 2>/dev/null; then
+  echo "stub kubectl refused a call:" >&2; cat "$SCRATCH/refusals.txt" >&2; exit 1
 fi
 
 python3 - "$SCRATCH/raw" "$ROOT" "$LEGACY" <<'PY'
@@ -232,6 +237,7 @@ for fx in sorted(os.listdir(raw)):
         # `deviceclasses` needs Python >= 3.12 (nested f-string quotes), so its
         # table is not scraped: the facts are the names its kubectl query
         # (-l nodepartition.dra.k8s.io/managed=true) was served by the stub.
+        facts["legacyExit"] = {c: read(fx, c)[1] for c in ("drivers", "topology", "claims", "alignment", "deviceclasses")}
         facts["deviceclassesQueried"] = served(fx, "deviceclasses", "deviceclasses")
     with open(os.path.join(outdir, fx + ".facts.json"), "w") as f:
         json.dump(facts, f, indent=2, sort_keys=True); f.write("\n")

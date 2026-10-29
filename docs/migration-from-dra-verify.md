@@ -31,6 +31,22 @@ New commands with no legacy counterpart: `check capacity`, `check topology`,
 `check kubevirt [VMI]`, `snapshot capture`, and the global `--from FILE`
 replay.
 
+### DeviceClass filters
+
+The legacy script always listed only classes labeled
+`nodepartition.dra.k8s.io/managed=true` and then filtered by label. The
+equivalent selectors are:
+
+| Legacy filter | Legacy meaning | Equivalent `--selector` |
+|---|---|---|
+| `deviceclasses pairs` (also `groupings`) | classes with a `nodepartition.dra.k8s.io/grouping` label | `nodepartition.dra.k8s.io/managed=true,nodepartition.dra.k8s.io/grouping` |
+| `deviceclasses partitions` | classes without a grouping label, grouped by profile | `nodepartition.dra.k8s.io/managed=true,!nodepartition.dra.k8s.io/grouping` |
+| `deviceclasses aggregates` (also `aggregate`) | classes without a `nodepartition.dra.k8s.io/numa` label | `nodepartition.dra.k8s.io/managed=true,!nodepartition.dra.k8s.io/numa` |
+| `deviceclasses` (no filter) | all managed classes | `nodepartition.dra.k8s.io/managed=true` |
+
+`inspect deviceclasses` lists the matching classes; the legacy per-profile
+summaries, counts and analysis text are not reproduced.
+
 ### Options
 
 | Legacy option | New |
@@ -39,7 +55,7 @@ replay.
 | `-a`, `--all` | `inspect attributes --all-attributes`; not a global flag any more |
 | `-t`, `--simple` | `inspect topology --compact` / `-t` |
 | `-v`, `--verbose` | dropped; `inspect attributes --all-attributes` shows every attribute, including product names, and `-o json` always carries full detail |
-| positional DeviceClass filter (`pairs`, `partitions`, `aggregates`) | `--selector`, a standard Kubernetes label selector, for example `--selector nodepartition.dra.k8s.io/managed=true` |
+| positional DeviceClass filter (`pairs`, `partitions`, `aggregates`) | `--selector`, a standard Kubernetes label selector; see the table below |
 | positional Pod or VM | typed positional argument of the command that takes it (`check alignment POD`, `check cpupinning POD`, `check kubevirt VMI`) |
 | (none) | `-o table\|json`, `--from FILE`, `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color` |
 | `source dra-verify.sh` | gone; use `dra-inspect completion` |
@@ -52,8 +68,30 @@ replay.
 | `metadata` | Needed `kubectl exec` (`pods/exec`). dra-inspect grants no exec. | None in v1. |
 | `guest` | Needed SSH (with an `sshpass` fallback). dra-inspect never opens a shell into a workload. | None in v1. |
 | `cpuSocketID` handling | Not a standard DRA attribute. The legacy socket column, the NUMA-to-socket inference and the "cpuSocketID SPLIT" verdict are gone. | Group by NUMA node and PCIe root (`inspect topology`). |
-| vendor attribute aliases (`numa`, `dra.cpu/numaNodeID`, `dra.net/numaNode`, ...) | Only the standard `resource.kubernetes.io/numaNode` and `pcieRoot` are interpreted. | A device that only publishes a vendor key reports the attribute as missing (`unavailable`/`warn`, never a guess). |
+| `cpuSocketID`-style vendor keys as a separate concept | Not separate: NUMA and PCIe root are resolved through three tiers, and the first tier with any key wins (see below). | `inspect topology` shows the resolved value. |
 | lab-only parsing (DaemonSet argument scraping, kubelet plugin directory listing, PartitionConfig reconstruction) | Driver-specific and tied to the topology-coordinator project. | `inspect drivers` summarizes drivers from ResourceSlices; `inspect deviceclasses` lists classes and never prints CEL or opaque config. |
+
+## How NUMA and PCIe root are resolved
+
+`dra-inspect` does not interpret only the standard keys. For each device it
+tries, in order, and stops at the first tier that has any matching key:
+
+1. the standard `resource.kubernetes.io/numaNode` / `resource.kubernetes.io/pcieRoot`;
+2. `<driver>/<name>` or the bare `<name>`, where `<name>` is `numaNode`, `numa`
+   or `numaNodeID` (NUMA) and `pcieRoot` (PCIe root);
+3. any `<vendor>/<name>` with the same names (keys taken in lexical order).
+
+If several keys of the winning tier disagree, the result is flagged as a
+conflict instead of being guessed. A device with no key in any tier reports the
+attribute as missing (`unavailable`/`warn`).
+
+How to read the output:
+
+- A NUMA set is a set. `numa=0,1,2,3` means the device lists all four NUMA
+  nodes (the legacy script grouped it under its first node only, `0`).
+- Single-device claims have nothing to align, so `check alignment` omits the
+  `numa` and `pcieRoot` sections for them; read a missing section as trivially
+  aligned.
 
 ## Behavior differences worth knowing
 
