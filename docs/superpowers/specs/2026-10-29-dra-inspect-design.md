@@ -117,7 +117,20 @@ Within one `schemaVersion`, changes are additive only. Resource names are exact
 
 ## Snapshots and Redaction
 
-Redaction is on by default; `--no-redact` opts out.
+Redaction is on by default; `--no-redact` opts out and prints a warning that
+the file may contain sensitive data.
+
+- The snapshot file is the JSON of `model.Snapshot`, with lists sorted so the
+  same cluster state yields identical bytes. `snapshot capture --file FILE`
+  (`-f`; `-o/--output` is the output format) writes it with mode 0600 through a
+  temp file and rename, refuses to overwrite an existing file without
+  `--force`, and writes to stdout when `--file` is omitted. Collections that
+  were not readable are listed on stderr; capture still exits 0 (3 with
+  `--strict`).
+- Replay (`--from FILE`) rejects files without a `schemaVersion` or with an
+  unsupported one, and cannot be combined with `--kubeconfig` or `--context`.
+  With `-n NS` it filters claims, pods and VMIs to NS and fails if the file was
+  captured for a different namespace.
 
 - Drop `config[].opaque.parameters` from DeviceClasses and ResourceClaims.
 - Drop `status.allocation.devices.config[].opaque.parameters` and

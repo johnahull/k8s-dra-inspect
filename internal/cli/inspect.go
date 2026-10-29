@@ -2,7 +2,6 @@ package cli
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"os"
 	"time"
@@ -15,6 +14,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
+	"github.com/johnahull/k8s-dra-inspect/internal/snapshot"
 )
 
 // Deps are the environment pieces tests replace.
@@ -33,7 +33,7 @@ func (e *ExitError) Error() string { return fmt.Sprintf("exit status %d", e.Code
 
 // DefaultDeps wires the live cluster and the real terminal.
 func DefaultDeps() Deps {
-	d := Deps{NewSource: liveSource, Now: time.Now}
+	d := Deps{NewSource: func(o *Options) (model.Source, error) { return newSource(o, liveSource) }, Now: time.Now}
 	fd := int(os.Stdout.Fd())
 	if term.IsTerminal(fd) {
 		d.IsTTY = true
@@ -42,10 +42,30 @@ func DefaultDeps() Deps {
 	return d
 }
 
-func liveSource(o *Options) (model.Source, error) {
-	if o.From != "" {
-		return nil, errors.New("snapshot replay (--from) is not available yet")
+// newSource picks the snapshot file when --from is set (building no live
+// clients) and the live constructor otherwise.
+func newSource(o *Options, live func(*Options) (model.Source, error)) (model.Source, error) {
+	if o.From == "" {
+		return live(o)
 	}
+	return replaySource{snapshot.NewFileSource(o.From), o.Namespace}, nil
+}
+
+// replaySource loads the snapshot file and narrows it to the -n namespace.
+type replaySource struct {
+	file      model.Source
+	namespace string
+}
+
+func (r replaySource) Snapshot(ctx context.Context) (model.Snapshot, error) {
+	s, err := r.file.Snapshot(ctx)
+	if err != nil {
+		return model.Snapshot{}, err
+	}
+	return snapshot.Scope(s, r.namespace)
+}
+
+func liveSource(o *Options) (model.Source, error) {
 	live, err := collect.NewClients(o.Kubeconfig, o.Context, o.Timeout)
 	if err != nil {
 		return nil, err

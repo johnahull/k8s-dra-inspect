@@ -83,7 +83,7 @@ dra-inspect check vfio [--host-root PATH]
 dra-inspect report cluster
 dra-inspect report support
 
-dra-inspect snapshot capture [--output FILE]
+dra-inspect snapshot capture [--file FILE] [--no-redact] [--force]
 dra-inspect completion bash|zsh|fish
 ```
 
@@ -216,6 +216,8 @@ commands for each installation method.
 - `Capture(w io.Writer, s model.Snapshot) error` writes the versioned snapshot with deterministic ordering. The CLI calls `Collect`, then `model.Redact`, then `Capture`.
 - `Load(path string) (model.Snapshot, error)` validates the schema version and returns normalized data.
 - The global `--from FILE` makes every `inspect`, `check`, and `report` command read the loaded snapshot instead of a live client.
+- `snapshot capture` writes to `--file FILE` (`-f`; default stdout). `-o/--output` stays the output format. The file is written 0600 via a temp file and rename, and an existing file is not overwritten without `--force`.
+- `--from` cannot be combined with `--kubeconfig` or `--context`. With `-n NS` it filters claims, pods and VMIs to NS and refuses to widen a snapshot captured for another namespace.
 
 - [ ] Add tests proving capture/load round trips, deterministic ordering, schema validation, and that redacted fields are absent from the file.
 - [ ] Implement `snapshot capture` and the `--from` source switch.
@@ -307,7 +309,7 @@ Run live verification only against an explicitly selected test cluster:
 dra-inspect inspect slices
 dra-inspect inspect deviceclasses -o json
 dra-inspect check alignment
-dra-inspect snapshot capture --output snapshot.json
+dra-inspect snapshot capture --file snapshot.json
 dra-inspect inspect slices --from snapshot.json
 dra-inspect report support --from snapshot.json
 ```

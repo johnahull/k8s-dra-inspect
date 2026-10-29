@@ -175,15 +175,6 @@ func TestInspectUnavailable(t *testing.T) {
 	}
 }
 
-func TestLiveSourceRejectsFrom(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	deps := DefaultDeps()
-	if code := run([]string{"--from", "x.json", "inspect", "slices"}, &stdout, &stderr, "v", deps); code != 2 ||
-		!strings.Contains(stderr.String(), "not available yet") {
-		t.Fatalf("code=%d stderr=%q", code, stderr.String())
-	}
-}
-
 // Middle truncation must keep the distinguishing tail of device identifiers.
 func TestAttributesSubjectsDistinctAfterTruncation(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")

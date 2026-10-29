@@ -67,6 +67,8 @@ func NewRootCommand(opts *Options, version string, deps Deps) *cobra.Command {
 			addCheckCommands(c, opts, deps)
 		case "report":
 			addReportCommands(c, opts, deps)
+		case "snapshot":
+			addSnapshotCommands(c, opts, deps)
 		}
 		root.AddCommand(c)
 	}
