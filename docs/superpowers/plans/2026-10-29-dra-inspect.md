@@ -79,11 +79,12 @@ dra-inspect check counters
 dra-inspect check capacity
 dra-inspect check topology
 dra-inspect check vfio [--host-root PATH]
+dra-inspect check kubevirt [VMI] [--namespace NS]
 
 dra-inspect report cluster
-dra-inspect report support
+dra-inspect report support [--host-root PATH] [--node-name NAME]
 
-dra-inspect snapshot capture [--file FILE] [--no-redact] [--force]
+dra-inspect snapshot capture [--file FILE] [--no-redact] [--force] [--with-adapters [--host-root PATH] [--node-name NAME]]
 dra-inspect completion bash|zsh|fish
 ```
 
@@ -236,7 +237,7 @@ commands for each installation method.
 - `Adapter.Available(ctx) (bool, string, error)` returns `(false, reason, nil)` for absent prerequisites; absence is never an error.
 - `Adapter.Collect(ctx) (model.Evidence, error)`; `model.Evidence` is `json.RawMessage`, stored under `Snapshot.Evidence["host"]`. The host adapter only reads files under `--host-root`: no writes, no exec, no sudo, no `/proc`, no symlink following out of the tree (Readlink for `driver`/`iommu_group`, regular files only, 64 KiB cap per file, 1 MiB per CDI spec).
 - Evidence (`version: 2`, version 1 still read): `nodeName` (the resolved cluster node name: `--node-name`, `$NODE_NAME`, then `os.Hostname()` as a last resort; the only node identity stored), `numa`, `pci`, `iommuGroups`, `vfioDevNodes`, `cdi` (producer-redacted: kind, device names, counts only; parse errors recorded as `{file, error}`), `cgroups` (pod UID to pod-level `cpuset.cpus.effective` plus each container cgroup's, systemd and cgroupfs layouts, cgroup v2).
-- `check cpupinning POD [-n NS] [--host-root PATH] [--node-name NAME]` and `check vfio [--host-root PATH] [--node-name NAME]`. Node name: `--node-name`, else `$NODE_NAME`, else the hostname. The flags exist only on these two commands. A live run collects host evidence in memory, then runs the pure check; with `--from` the snapshot's evidence is used and without it the result is `unavailable` (`no host evidence in snapshot; run on the node`). Evidence from another node than the pod or device is `unavailable`. `snapshot capture` does not collect host evidence (that is `report support`, Task 6b).
+- `check cpupinning POD [-n NS] [--host-root PATH] [--node-name NAME]` and `check vfio [--host-root PATH] [--node-name NAME]`. Node name: `--node-name`, else `$NODE_NAME`, else the hostname. The flags exist only on these two commands. A live run collects host evidence in memory, then runs the pure check; with `--from` the snapshot's evidence is used and without it the result is `unavailable` (`no host evidence in snapshot; run on the node`). Evidence from another node than the pod or device is `unavailable`. `snapshot capture` does not collect host evidence unless `--with-adapters` is given (Task 6b).
 
 - [x] Add fake-sysfs tests for CPU pinning, NUMA mapping, VFIO/IOMMU, and CDI discovery.
 - [x] Test absent host files and unreadable files.
@@ -247,14 +248,21 @@ commands for each installation method.
 ### Task 6b: Add the KubeVirt adapter and support report
 
 **Files:**
-- Create: `internal/adapters/kubevirt/`
-- Modify: `internal/cli/report.go`
+- Create: `internal/adapters/kubevirt/`, `internal/check/kubevirt.go`, `internal/check/adapters.go`, `internal/cli/adapters.go`, `testdata/fixtures/kubevirt/`
+- Modify: `internal/cli/report.go`, `internal/cli/check.go`, `internal/cli/snapshot.go`, `internal/cli/hostcmd.go`
 - Test: adapter fixtures with fake VMI data
 
-- [ ] Add tests for VMI host-device mappings and missing KubeVirt APIs (`unavailable`, core inspection unaffected).
-- [ ] Implement `report support`, which runs the available adapters and includes their evidence.
-- [ ] Keep composite-device inspection out of the adapter set.
-- [ ] Commit: `feat: add KubeVirt adapter and support report`.
+Design: the KubeVirt adapter makes no API calls. It derives versioned evidence (`kubevirt.Evidence{Version:1, VMIs}`) from the VMIs the core collector already put in the snapshot, keeping only namespace, name, node, phase, claim aliases and their claim names, host devices (`name`, `claimAlias`, `claimName`, `requestName`), `guestNUMAPassthrough`, `dedicatedCPUPlacement`, sockets/cores/threads and fixed-text `warnings`. Volumes, cloud-init, credentials, annotations, interfaces and guest info are never copied. `Available` is false (with the collection reason, or `kubevirt.io/v1 not served`) when the VMI collection state is not ok and true otherwise, even with zero VMIs.
+
+`check kubevirt [VMI]` (name or `ns/name`, `-n`) gives one result per VMI: each host device is resolved to its ResourceClaim (same namespace) and to the allocation result whose request equals `requestName` or starts with `requestName/`. `fail` when the claim or its allocation result is missing, the claim alias is undefined, or an allocated device is on another node than the VMI; `unavailable` when the VMI is unscheduled, a device has no node, or the claim comes from a template (the generated name is not in the VMI); `warn` when the devices span two or more NUMA nodes and `guestNUMAPassthrough` is false; `pass` otherwise. It reads `Evidence["kubevirt"]` when present, else derives it from the snapshot's VMIs. A VMI collection that is not ok gives one `unavailable` result; no VMIs gives one `pass`.
+
+`report support` runs the `report cluster` members plus `check.vfio`, `check.kubevirt` and one `adapter.host` / `adapter.kubevirt` result each (`pass` when evidence exists, `unavailable` with the reason otherwise). An unavailable adapter never blocks other results. `check.cpupinning` is not included (it needs a pod). Live runs attach evidence to the in-memory snapshot (host only when `Available`, flags `--host-root` and `--node-name` as on the host checks); `--from` uses the snapshot's evidence. `snapshot capture --with-adapters` stores the same evidence (host evidence, or its unavailable reason, and KubeVirt evidence when VMIs were collected) so `report support --from FILE` reproduces the live result list.
+
+- [x] Add tests for VMI host-device mappings and missing KubeVirt APIs (`unavailable`, core inspection unaffected).
+- [x] Implement `check kubevirt` and `report support`, which run the available adapters and include their evidence.
+- [x] Implement `snapshot capture --with-adapters`.
+- [x] Keep composite-device inspection out of the adapter set.
+- [x] Commit: `feat: add KubeVirt adapter and support report`.
 
 ### Task 7a: Release packaging
 

@@ -1,0 +1,15 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.kubevirt",
+      "status": "unavailable",
+      "subject": "",
+      "details": {
+        "reason": "kubevirt.io/v1 not served"
+      }
+    }
+  ]
+}

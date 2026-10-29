@@ -1,0 +1,518 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "slice-a",
+      "details": {
+        "deviceCount": 3,
+        "driver": "gpu.example.com",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "slice-b",
+      "details": {
+        "deviceCount": 1,
+        "driver": "gpu.example.com",
+        "generation": 1,
+        "node": "node-b.example.com",
+        "pool": "node-b.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "gpu.example.com",
+      "details": {
+        "devices": 4,
+        "nodes": 2,
+        "pools": 2
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=0/pcieRoot=-",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.example.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=1/pcieRoot=-",
+      "details": {
+        "deviceCount": 1,
+        "drivers": {
+          "gpu.example.com": 1
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-b.example.com/numa=0/pcieRoot=-",
+      "details": {
+        "deviceCount": 1,
+        "drivers": {
+          "gpu.example.com": 1
+        },
+        "node": "node-b.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.claims",
+      "status": "pass",
+      "subject": "demo/claim-b",
+      "details": {
+        "allocated": true,
+        "deviceCount": 1,
+        "deviceRequests": [
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu0"
+          }
+        ],
+        "nodes": [
+          "node-b.example.com"
+        ],
+        "reservedFor": [],
+        "results": [
+          {
+            "device": "gpu-b0",
+            "driver": "gpu.example.com",
+            "pool": "node-b.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "usedBy": []
+      }
+    },
+    {
+      "check": "inspect.claims",
+      "status": "pass",
+      "subject": "demo/claim-ok",
+      "details": {
+        "allocated": true,
+        "deviceCount": 3,
+        "deviceRequests": [
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu0"
+          },
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "nic0"
+          },
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu2"
+          }
+        ],
+        "nodes": [
+          "node-a.example.com"
+        ],
+        "reservedFor": [],
+        "results": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          },
+          {
+            "device": "nic-0",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "nic0"
+          },
+          {
+            "device": "gpu-2",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "gpu2/sub"
+          }
+        ],
+        "usedBy": []
+      }
+    },
+    {
+      "check": "check.alignment",
+      "status": "pass",
+      "subject": "demo/claim-b",
+      "details": {
+        "constraints": [],
+        "devices": [
+          "gpu.example.com/node-b.example.com/gpu-b0"
+        ],
+        "summary": "1 devices, 0 constraints"
+      }
+    },
+    {
+      "check": "check.alignment",
+      "status": "warn",
+      "subject": "demo/claim-ok",
+      "details": {
+        "constraints": [],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/nic-0",
+          "gpu.example.com/node-a.example.com/gpu-2"
+        ],
+        "numa": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-2": [
+              "1"
+            ],
+            "gpu.example.com/node-a.example.com/nic-0": [
+              "0"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [],
+          "key": "",
+          "missing": [
+            "gpu.example.com/node-a.example.com/gpu-0",
+            "gpu.example.com/node-a.example.com/nic-0",
+            "gpu.example.com/node-a.example.com/gpu-2"
+          ],
+          "valuesByDevice": {}
+        },
+        "reason": "devices span NUMA nodes (no common NUMA node)",
+        "summary": "3 devices, 0 constraints"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "",
+      "details": {
+        "reason": "no shared counters published"
+      }
+    },
+    {
+      "check": "check.capacity",
+      "status": "pass",
+      "subject": "",
+      "details": {
+        "reason": "no consumable capacity allocated"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "gpu.example.com/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 3,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [
+          "gpu-0",
+          "nic-0",
+          "gpu-2"
+        ],
+        "reason": "PCIe root missing on gpu-0, nic-0, gpu-2",
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "3 devices, 0 missing NUMA, 3 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "gpu.example.com/node-b.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 1,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [
+          "gpu-b0"
+        ],
+        "reason": "PCIe root missing on gpu-b0",
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "1 devices, 0 missing NUMA, 1 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.vfio",
+      "status": "unavailable",
+      "subject": "",
+      "details": {
+        "reason": "no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-garbage",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "summary": "no DRA host devices",
+        "warnings": [
+          "status.nodeName is not a string",
+          "status.phase is not a string",
+          "spec.domain.cpu.sockets is not an integer",
+          "spec.domain.cpu.threads is not an integer",
+          "spec.domain.cpu.dedicatedCpuPlacement is not a boolean",
+          "spec.domain.cpu.numa is not an object",
+          "spec.resourceClaims is not a list",
+          "hostDevices has an entry that is not an object",
+          "hostDevices has a DRA entry with a missing or non-string field"
+        ]
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-missing-claim",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "reason": "claim demo/no-such-claim not found"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-no-allocation",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "reason": "request absent has no allocation result in claim demo/claim-ok"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-ok",
+      "details": {
+        "dedicatedCPUPlacement": true,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          },
+          {
+            "device": "nic-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "nic0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3c:00.0",
+            "pool": "node-a.example.com",
+            "request": "nic0"
+          },
+          {
+            "device": "gpu-2",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu2",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:af:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu2/sub"
+          }
+        ],
+        "guestNUMAPassthrough": true,
+        "numa": [
+          "0",
+          "1"
+        ],
+        "summary": "3 device(s) on node node-a.example.com"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "unavailable",
+      "subject": "demo/vm-pending",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "reason": "VMI is not scheduled to a node"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-secrets",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "summary": "1 device(s) on node node-a.example.com"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "warn",
+      "subject": "demo/vm-split",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          },
+          {
+            "device": "gpu-2",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu2",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:af:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu2/sub"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0",
+          "1"
+        ],
+        "reason": "devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-wrong-node",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-b0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-b.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-b.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "reason": "device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com"
+      }
+    },
+    {
+      "check": "adapter.host",
+      "status": "unavailable",
+      "subject": "",
+      "details": {
+        "reason": "no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)"
+      }
+    },
+    {
+      "check": "adapter.kubevirt",
+      "status": "pass",
+      "subject": "",
+      "details": {
+        "summary": "8 VMIs"
+      }
+    }
+  ]
+}

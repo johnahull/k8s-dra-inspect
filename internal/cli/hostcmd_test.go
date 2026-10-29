@@ -235,7 +235,7 @@ func TestCoreCommandsNeverTouchHostAdapter(t *testing.T) {
 	for _, args := range [][]string{
 		{"inspect", "slices"}, {"inspect", "drivers"}, {"inspect", "attributes"}, {"inspect", "topology"}, {"inspect", "claims"}, {"inspect", "deviceclasses"},
 		{"check", "alignment"}, {"check", "counters"}, {"check", "capacity"}, {"check", "topology"},
-		{"report", "cluster"}, {"snapshot", "capture"}, {"snapshot", "capture", "-f", snapPath}, {"version"},
+		{"check", "kubevirt"}, {"report", "cluster"}, {"report", "support", "--from", "x.json"}, {"snapshot", "capture"}, {"snapshot", "capture", "-f", snapPath}, {"version"},
 	} {
 		if _, errOut, code := runHost(t, snap, noHost(t), args...); code > 1 {
 			t.Errorf("%v: exit %d stderr %q", args, code, errOut)

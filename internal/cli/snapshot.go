@@ -17,7 +17,8 @@ import (
 
 func addSnapshotCommands(parent *cobra.Command, opts *Options, d Deps) {
 	var file string
-	var noRedact, force bool
+	var noRedact, force, withAdapters bool
+	var root, nodeName string
 	c := &cobra.Command{
 		Use:   "capture",
 		Short: "Capture a cluster snapshot for offline replay with --from",
@@ -26,9 +27,22 @@ func addSnapshotCommands(parent *cobra.Command, opts *Options, d Deps) {
 Sensitive fields (opaque driver parameters, last-applied annotations,
 managedFields, VMI cloud-init data) are removed unless --no-redact is given.
 Collections that could not be read are recorded in the file and listed on
-stderr; they do not fail the capture unless --strict is set.`,
+stderr; they do not fail the capture unless --strict is set.
+
+--with-adapters also stores the evidence of the optional adapters in the file
+so that report support --from can replay it: host evidence read below
+--host-root (only when this machine has a node sysfs; otherwise the reason is
+recorded) and KubeVirt evidence derived from the collected VMIs. Adapter
+evidence is redacted by its producer and is kept even with --no-redact.`,
 		Args: cobra.NoArgs,
 		RunE: func(cmd *cobra.Command, _ []string) error {
+			if !withAdapters {
+				for _, f := range []string{"host-root", "node-name"} {
+					if cmd.Flags().Changed(f) {
+						return fmt.Errorf("--%s requires --with-adapters", f)
+					}
+				}
+			}
 			// Check before collecting so a refusal costs no API calls.
 			if _, err := os.Lstat(file); file != "" && !force && err == nil {
 				return fmt.Errorf("%s already exists; use --force to overwrite", file)
@@ -40,6 +54,9 @@ stderr; they do not fail the capture unless --strict is set.`,
 			snap, err := src.Snapshot(cmd.Context())
 			if err != nil {
 				return err
+			}
+			if withAdapters {
+				snap = attachAdapters(cmd.Context(), d, hostConfig(root, nodeName), snap)
 			}
 			if noRedact {
 				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "warning: --no-redact: the snapshot may contain sensitive data; do not share it")
@@ -62,6 +79,9 @@ stderr; they do not fail the capture unless --strict is set.`,
 	c.Flags().StringVarP(&file, "file", "f", "", "write the snapshot to FILE (default: stdout)")
 	c.Flags().BoolVar(&noRedact, "no-redact", false, "keep opaque parameters, cloud-init data and other sensitive fields")
 	c.Flags().BoolVar(&force, "force", false, "overwrite an existing --file")
+	c.Flags().BoolVar(&withAdapters, "with-adapters", false, "also store host and KubeVirt adapter evidence (replay with report support --from)")
+	c.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (with --with-adapters)")
+	c.Flags().StringVar(&nodeName, "node-name", "", "cluster node name of this host (with --with-adapters; default $NODE_NAME, then the hostname)")
 	parent.AddCommand(c)
 }
 

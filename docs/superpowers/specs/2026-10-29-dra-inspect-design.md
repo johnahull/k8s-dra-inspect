@@ -71,8 +71,29 @@ as `Evidence["host"]` before running the pure check. Evidence is redacted by
 the producer: CDI specs keep only kind, device names and counts (never env,
 mounts, annotations or hooks). `--from` uses the evidence the snapshot carries;
 without any, the result is `unavailable` ("run on the node"). `snapshot
-capture` does not collect host evidence; `report support` does. v1 does not use
-`kubectl debug`, `kubectl exec`, or SSH.
+capture` does not collect adapter evidence unless `--with-adapters` is given;
+`report support` always runs the adapters. v1 does not use `kubectl debug`,
+`kubectl exec`, or SSH.
+
+The KubeVirt adapter makes no API calls: it derives evidence
+(`Evidence["kubevirt"]`, version 1) from the VMIs the core collector already put
+in the snapshot, keeping only namespace, name, node, phase, claim aliases and
+names, host devices, guest NUMA passthrough, dedicated CPU placement and CPU
+topology (never volumes, cloud-init, credentials, annotations, interfaces or
+guest info). It is unavailable when the VMI collection is not ok (for example
+`kubevirt.io/v1 not served`). `check kubevirt [VMI]` maps each VMI host device
+to its claim's allocation result and reports a missing claim or allocation, a
+device on another node than the VMI (fail), and devices on two or more NUMA
+nodes without `guestMappingPassthrough` (warn).
+
+`report support` runs the `report cluster` members plus `check.vfio`,
+`check.kubevirt` and one `adapter.<name>` result per adapter (host, kubevirt):
+`pass` when its evidence was collected, `unavailable` with the reason
+otherwise; an unavailable adapter never blocks the other results.
+`check.cpupinning` needs a pod and is not part of it. A live run attaches
+evidence to the in-memory snapshot first (`--host-root`, `--node-name` as on the
+host checks); `--from` replays the evidence stored in the snapshot, and
+`snapshot capture --with-adapters` is what stores it.
 
 A global `--from FILE` replaces the live Kubernetes source with a loaded
 snapshot for every `inspect`, `check`, and `report` command.

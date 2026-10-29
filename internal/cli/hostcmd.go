@@ -31,32 +31,56 @@ func resolveNodeName(flag string, getenv func(string) string, hostname func() (s
 	return h
 }
 
-// attachHost runs the host adapter and returns snap with Evidence["host"] set
-// on a copy of the map. Missing prerequisites or failures become evidence that
-// records the reason, so the check reports unavailable instead of failing.
-func attachHost(ctx context.Context, newHost NewHostFunc, cfg host.Config, snap model.Snapshot) model.Snapshot {
-	var ev model.Evidence
-	if newHost == nil {
-		ev = host.Unavailable("host adapter is not configured")
-	} else {
-		a := newHost(cfg)
-		ok, reason, err := a.Available(ctx)
-		switch {
-		case err != nil:
-			ev = host.Unavailable("host adapter check failed: " + err.Error())
-		case !ok:
-			ev = host.Unavailable(reason)
-		default:
-			if ev, err = a.Collect(ctx); err != nil {
-				ev = host.Unavailable("host evidence collection failed: " + err.Error())
-			}
-		}
+// runAdapter checks availability and collects. ok=false carries the reason
+// the evidence is missing; an absent prerequisite is never an error.
+func runAdapter(ctx context.Context, name string, a adapters.Adapter) (ev model.Evidence, reason string, ok bool) {
+	avail, why, err := a.Available(ctx)
+	switch {
+	case err != nil:
+		return nil, name + " adapter check failed: " + err.Error(), false
+	case !avail:
+		return nil, why, false
 	}
+	if ev, err = a.Collect(ctx); err != nil {
+		return nil, name + " evidence collection failed: " + err.Error(), false
+	}
+	return ev, "", true
+}
+
+// withEvidence returns snap with Evidence[name] set on a copy of the map.
+func withEvidence(snap model.Snapshot, name string, ev model.Evidence) model.Snapshot {
 	m := make(map[string]json.RawMessage, len(snap.Evidence)+1)
 	maps.Copy(m, snap.Evidence)
-	m[host.Name] = ev
+	m[name] = ev
 	snap.Evidence = m
 	return snap
+}
+
+// attachHost runs the host adapter and returns snap with Evidence["host"] set.
+// Missing prerequisites or failures become evidence that records the reason,
+// so the check reports unavailable instead of failing.
+func attachHost(ctx context.Context, newHost NewHostFunc, cfg host.Config, snap model.Snapshot) model.Snapshot {
+	if newHost == nil {
+		return withEvidence(snap, host.Name, host.Unavailable("host adapter is not configured"))
+	}
+	ev, reason, ok := runAdapter(ctx, host.Name, newHost(cfg))
+	if !ok {
+		ev = host.Unavailable(reason)
+	}
+	return withEvidence(snap, host.Name, ev)
+}
+
+// rejectHostFlagsWithFrom refuses --host-root/--node-name on a replay.
+func rejectHostFlagsWithFrom(cmd *cobra.Command, opts *Options) error {
+	if opts.From == "" {
+		return nil
+	}
+	for _, f := range []string{"host-root", "node-name"} {
+		if cmd.Flags().Changed(f) {
+			return fmt.Errorf("--%s cannot be used with --from (host evidence comes from the snapshot)", f)
+		}
+	}
+	return nil
 }
 
 const hostHelp = `Reads files below --host-root and must run on the node itself; anywhere else
@@ -78,12 +102,8 @@ func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 		cmd := &cobra.Command{
 			Use: use, Short: short, Long: short + "\n\n" + hostHelp, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
-				if opts.From != "" {
-					for _, f := range []string{"host-root", "node-name"} {
-						if cmd.Flags().Changed(f) {
-							return fmt.Errorf("--%s cannot be used with --from (host evidence comes from the snapshot)", f)
-						}
-					}
+				if err := rejectHostFlagsWithFrom(cmd, opts); err != nil {
+					return err
 				}
 				c := build(args)
 				return runResults(cmd, opts, d,

@@ -33,8 +33,10 @@ dra-inspect check alignment
 dra-inspect check cpupinning
 dra-inspect check counters
 dra-inspect check vfio
+dra-inspect check kubevirt
 
 dra-inspect report cluster
+dra-inspect report support
 dra-inspect snapshot capture
 ```
 

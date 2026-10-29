@@ -45,6 +45,13 @@ const capacityHelp = `Check consumable-capacity allocations against published ca
 Of a capacity requestPolicy, only the validRange min and max are validated;
 step, validValues and default are not.`
 
+const kubevirtHelp = `Map each VMI host device to its ResourceClaim allocation. VMI is a name or
+ns/name; -n scopes it. Fails when the claim or its allocation result is
+missing or a device is on another node than the VMI; warns when devices span
+NUMA nodes without guestMappingPassthrough. Works from the VMIs already in the
+snapshot and calls no extra API. Only host-device, claim, NUMA and CPU fields
+of a VMI are read; cloud-init data, credentials and interfaces never are.`
+
 func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 	add := func(use, short, long string, args cobra.PositionalArgs, build func(args []string) check.Check) {
 		parent.AddCommand(&cobra.Command{
@@ -68,5 +75,13 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 	add("counters", "Check shared-counter capacity against allocated claims", "", cobra.NoArgs, func([]string) check.Check { return check.Counters() })
 	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
 	add("topology", "Validate published NUMA and PCIe-root attributes", "", cobra.NoArgs, func([]string) check.Check { return check.Topology() })
+	add("kubevirt [VMI]", "Check KubeVirt VMI host devices against their DRA claims (derived from the snapshot's VMIs)", kubevirtHelp, cobra.MaximumNArgs(1),
+		func(args []string) check.Check {
+			target := ""
+			if len(args) == 1 {
+				target = args[0]
+			}
+			return check.KubeVirt(target, opts.Namespace)
+		})
 	addHostChecks(parent, opts, d)
 }
