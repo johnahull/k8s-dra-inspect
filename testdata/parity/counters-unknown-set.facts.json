@@ -1,0 +1,31 @@
+{
+  "counters": {
+    "diagnostics": [
+      "device gpu.example.com/vf-0 references missing counter set pf-9"
+    ],
+    "exit": 1,
+    "sets": {
+      "pf-0": {
+        "vf-slots": "2/2"
+      }
+    },
+    "stale": false
+  },
+  "countersWithReservedFor": {
+    "diagnostics": [
+      "device gpu.example.com/vf-0 references missing counter set pf-9"
+    ],
+    "exit": 1,
+    "sets": {
+      "pf-0": {
+        "vf-slots": "2/2"
+      }
+    },
+    "stale": false
+  },
+  "fixture": "counters-unknown-set",
+  "legacySha256": {
+    "dra-counters.py": "baa3f764692f992287c35e03d2655c3749871fd737dc93ad20f83f691228155a",
+    "dra-verify.sh": "30843a2cd2dcc23ec61fdcb652e795d371844b10c0bab246eff918afec00047e"
+  }
+}

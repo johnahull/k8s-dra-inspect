@@ -16,32 +16,68 @@ does not create or mutate Kubernetes resources.
 
 ## Status
 
-This repository contains the project bootstrap and CLI skeleton. Inspection
-commands are being added incrementally from the lab `dra-verify.sh` tool.
+The v1 command surface is implemented (inspect, check, report, snapshot,
+completion). Live-cluster verification on kind is planned but **not yet run**;
+see [docs/harness-test-plan.md](docs/harness-test-plan.md). Coming from the lab
+`dra-verify.sh`? See [docs/migration-from-dra-verify.md](docs/migration-from-dra-verify.md).
 
-## Planned command groups
+## Commands
 
 ```text
-dra-inspect inspect slices
-dra-inspect inspect topology
-dra-inspect inspect drivers
-dra-inspect inspect attributes
-dra-inspect inspect deviceclasses
+dra-inspect inspect slices | topology [--compact] | drivers [--attributes]
+dra-inspect inspect attributes [--all-attributes] [--include-capacity]
+dra-inspect inspect deviceclasses [--selector LABEL_SELECTOR]
 dra-inspect inspect claims
 
-dra-inspect check alignment
-dra-inspect check cpupinning
-dra-inspect check counters
-dra-inspect check vfio
-dra-inspect check kubevirt
+dra-inspect check alignment [POD|CLAIM]
+dra-inspect check counters | capacity | topology
+dra-inspect check cpupinning POD [--host-root PATH] [--node-name NAME]
+dra-inspect check vfio [--host-root PATH] [--node-name NAME]
+dra-inspect check kubevirt [VMI]
 
 dra-inspect report cluster
-dra-inspect report support
-dra-inspect snapshot capture
+dra-inspect report support [--host-root PATH] [--node-name NAME]
+dra-inspect snapshot capture [--file FILE] [--force] [--no-redact] [--with-adapters]
+dra-inspect completion bash|zsh|fish
+dra-inspect version
 ```
 
-Human-readable tables will be the default output. Versioned JSON output and
-offline snapshot replay are design requirements for CI and support workflows.
+Global flags: `-n/--namespace`, `-o/--output table|json`, `--from FILE`,
+`--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
+
+- Tables are the default; `-o json` prints a versioned envelope
+  (`schemaVersion`, `results[]` with `check`, `status`, `subject`, `details`).
+- Every result is `pass`, `warn`, `fail`, `unavailable` or `error`. Exit codes:
+  0 pass or warn, 1 fail, 2 error, 3 unavailable (only with `--strict`).
+  Missing permissions or data are `unavailable`, never a guess.
+- `check cpupinning`, `check vfio` and the host adapter read files of the node
+  they run on (`--host-root`, default `/`); elsewhere they are `unavailable`.
+  `check kubevirt` and the KubeVirt adapter work from the VMIs in the snapshot.
+- `report support` is `report cluster` plus `check vfio`, `check kubevirt` and
+  one `adapter.<name>` result per optional adapter (host, kubevirt).
+
+```bash
+dra-inspect inspect topology --compact
+dra-inspect inspect deviceclasses --selector tier=gold
+dra-inspect check alignment my-pod -n team-a
+dra-inspect report cluster -o json
+
+# Capture once, analyze anywhere. Snapshots are redacted by default (opaque
+# driver parameters, CEL selectors, cloud-init data); --from needs no cluster.
+dra-inspect snapshot capture --file snap.json
+dra-inspect check alignment --from snap.json
+
+# On a node: also store host and KubeVirt adapter evidence for support.
+dra-inspect snapshot capture --with-adapters --file bundle.json
+dra-inspect report support --from bundle.json
+
+source <(dra-inspect completion bash)
+```
+
+A sample redacted bundle and its report are in
+[docs/examples/](docs/examples/support-bundle.json)
+([report](docs/examples/support-report.txt)); both are regenerated and checked
+by a test.
 
 ## Install
 
@@ -67,7 +103,8 @@ current directory, so the container filesystem can stay read-only.
 ## Run as a Kubernetes Job
 
 The Helm chart in `deploy/helm/dra-inspect` installs read-only RBAC (`get` and
-`list` only, see [docs/rbac.md](docs/rbac.md)) and, optionally, a one-shot Job.
+`list` only, see [docs/rbac.md](docs/rbac.md); the live Job check is planned in
+[docs/harness-test-plan.md](docs/harness-test-plan.md)) and, optionally, a one-shot Job.
 The chart is not published to a registry yet; install from the repository path.
 
 ```bash
@@ -123,12 +160,16 @@ Requirements:
 
 - Go 1.26.10 or newer
 
-Run the current checks with:
+Run the checks with:
 
 ```bash
 go test -race ./...
 go vet ./...
+hack/check-fixtures.sh   # no real identifiers in testdata/ or docs/examples/
 ```
+
+Legacy parity facts (`testdata/parity/`) come from the manual tool
+`hack/capture-legacy-facts.sh`; it is not run in CI.
 
 ## License
 

@@ -289,16 +289,24 @@ Design: the KubeVirt adapter makes no API calls. It derives versioned evidence (
 
 ### Task 8: Migrate the lab script and validate against a live cluster
 
-**Files:**
-- Create: `docs/migration-from-dra-verify.md`, `docs/harness-test-plan.md`
-- Modify: `README.md`
+Split in two. **8a (offline) is done**; **8b (live kind run) is pending explicit approval and has NOT been run.**
 
-- [ ] Map every retained `dra-verify.sh` command to its new command group.
-- [ ] Document the dropped commands (`composite`, `metadata`, `guest`), the dropped `cpuSocketID` handling, and the replacement for `all`.
-- [ ] Add fixture parity tests for the supported script outputs.
-- [ ] Run live checks against a kind cluster loaded with `dra-topology-aware-co-placement/testing/manifests/drivers/*.yaml`, and record expected unavailable-adapter behavior. TODO: the former harness path `devel/k8s-dra-harness` does not exist; replace this step if a real harness location is supplied.
-- [ ] Publish a support-bundle example using capture and `--from` replay.
-- [ ] Commit: `docs: document dra-verify migration and live-cluster coverage`.
+**Files (8a):**
+- Create: `docs/migration-from-dra-verify.md`, `docs/harness-test-plan.md`, `docs/examples/support-bundle.json`, `docs/examples/support-report.txt`, `hack/capture-legacy-facts.sh`, `testdata/parity/*.facts.json`, `internal/cli/parity_test.go`, `internal/cli/examples_test.go`
+- Modify: `README.md`, `hack/check-fixtures.sh` (also scans `docs/examples/`)
+
+**8a, offline (done):**
+- [x] Map every `dra-verify.sh` command and option to its new command (`docs/migration-from-dra-verify.md`).
+- [x] Document the dropped commands (`composite`, `metadata`, `guest`), the dropped `cpuSocketID` handling, and the replacement for `all`.
+- [x] Fixture parity tests: facts captured from the legacy script through a stub `kubectl` (`hack/capture-legacy-facts.sh`, manual, not CI) and compared with dra-inspect JSON for drivers, topology, claims, alignment, DeviceClass selection and counters. `slices`, `attributes`, `cpupinning`, `vfio` are not covered (see the test header).
+- [x] Publish a support-bundle example generated from fixtures with the real CLI and replayed with `--from` (`docs/examples/`, kept current by a test).
+- [x] Write the live verification plan (`docs/harness-test-plan.md`, status NOT RUN).
+- [x] Commit: `docs: document dra-verify migration and add legacy parity tests`.
+
+**8b, live (pending approval, not run):**
+- [ ] Approve the plan in `docs/harness-test-plan.md` (kind with podman, pinned node image and sample driver tag; the former harness path `devel/k8s-dra-harness` does not exist, so the sample driver is `kubernetes-sigs/dra-example-driver`).
+- [ ] Run it, fill in the results table, and record expected versus observed unavailable-adapter behavior.
+- [ ] Commit the filled results: `docs: record live-cluster verification results`.
 
 ## Final Verification
 
