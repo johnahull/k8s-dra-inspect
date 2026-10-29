@@ -3,6 +3,7 @@ package cli
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"time"
 
@@ -21,6 +22,8 @@ func NewRootCommand(opts *Options, version string) *cobra.Command {
 		Short:         "Inspect and diagnose Kubernetes Dynamic Resource Allocation",
 		SilenceUsage:  true,
 		SilenceErrors: true,
+		// A subcommand defining its own PersistentPreRunE replaces this one,
+		// so Validate would stop running for it.
 		PersistentPreRunE: func(*cobra.Command, []string) error {
 			return opts.Validate()
 		},
@@ -62,9 +65,17 @@ func NewRootCommand(opts *Options, version string) *cobra.Command {
 
 // Execute runs the CLI and returns the process exit code.
 func Execute(version string) int {
-	opts := &Options{}
-	if err := NewRootCommand(opts, version).Execute(); err != nil {
-		fmt.Fprintln(os.Stderr, err)
+	return run(os.Args[1:], os.Stdout, os.Stderr, version)
+}
+
+// run returns 2 for both CLI errors and error-status results, by design.
+func run(args []string, stdout, stderr io.Writer, version string) int {
+	cmd := NewRootCommand(&Options{}, version)
+	cmd.SetArgs(args)
+	cmd.SetOut(stdout)
+	cmd.SetErr(stderr)
+	if err := cmd.Execute(); err != nil {
+		_, _ = fmt.Fprintln(stderr, err)
 		return 2
 	}
 	return 0

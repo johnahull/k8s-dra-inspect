@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func run(t *testing.T, args ...string) (string, error) {
+func runCmd(t *testing.T, args ...string) (string, error) {
 	t.Helper()
 	var buf bytes.Buffer
 	cmd := NewRootCommand(&Options{}, "v1.2.3")
@@ -18,24 +18,24 @@ func run(t *testing.T, args ...string) (string, error) {
 }
 
 func TestVersion(t *testing.T) {
-	out, err := run(t, "version")
+	out, err := runCmd(t, "version")
 	if err != nil || strings.TrimSpace(out) != "v1.2.3" {
 		t.Fatalf("out=%q err=%v", out, err)
 	}
 }
 
 func TestInvalidOutput(t *testing.T) {
-	_, err := run(t, "-o", "xml", "version")
+	_, err := runCmd(t, "-o", "xml", "version")
 	if err == nil || !strings.Contains(err.Error(), "xml") {
 		t.Fatalf("err=%v", err)
 	}
-	if _, err := run(t, "-o", "json", "version"); err != nil {
+	if _, err := runCmd(t, "-o", "json", "version"); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func TestHelpListsGroups(t *testing.T) {
-	out, err := run(t, "--help")
+	out, err := runCmd(t, "--help")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,14 +47,14 @@ func TestHelpListsGroups(t *testing.T) {
 }
 
 func TestEmptyGroupPrintsHelp(t *testing.T) {
-	out, err := run(t, "inspect")
+	out, err := runCmd(t, "inspect")
 	if err != nil || !strings.Contains(out, "Usage:") {
 		t.Fatalf("out=%q err=%v", out, err)
 	}
 }
 
 func TestCompletionBash(t *testing.T) {
-	out, err := run(t, "completion", "bash")
+	out, err := runCmd(t, "completion", "bash")
 	if err != nil || !strings.Contains(out, "bash completion") {
 		t.Fatalf("err=%v", err)
 	}
@@ -80,6 +80,34 @@ func TestColorEnabled(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := ColorEnabled(tt.noColor, env(tt.env), tt.tty); got != tt.want {
 				t.Fatalf("got %v", got)
+			}
+		})
+	}
+}
+
+func TestRun(t *testing.T) {
+	tests := []struct {
+		name       string
+		args       []string
+		want       int
+		wantStdout bool
+	}{
+		{"unknown flag", []string{"--bogus"}, 2, false},
+		{"invalid output", []string{"-o", "xml", "version"}, 2, false},
+		{"unknown command", []string{"bogus"}, 2, false},
+		{"version", []string{"version"}, 0, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var stdout, stderr bytes.Buffer
+			if got := run(tt.args, &stdout, &stderr, "v1"); got != tt.want {
+				t.Fatalf("exit %d, want %d", got, tt.want)
+			}
+			if (stdout.Len() > 0) != tt.wantStdout {
+				t.Errorf("stdout=%q", stdout.String())
+			}
+			if (stderr.Len() > 0) != (tt.want != 0) {
+				t.Errorf("stderr=%q", stderr.String())
 			}
 		})
 	}

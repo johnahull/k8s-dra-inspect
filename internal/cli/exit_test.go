@@ -22,6 +22,8 @@ func TestExitCode(t *testing.T) {
 		{"unavailable strict", []model.Status{p, u}, true, 3},
 		{"error beats fail", []model.Status{f, e, u}, true, 2},
 		{"fail beats unavailable strict", []model.Status{u, f}, true, 1},
+		{"unknown status is error", []model.Status{p, "bogus"}, false, 2},
+		{"empty status is error", []model.Status{""}, false, 2},
 		{"fail lenient with unavailable", []model.Status{u, f}, false, 1},
 	}
 	for _, tt := range tests {
