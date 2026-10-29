@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.counters",
+      "status": "fail",
+      "subject": "gpu.example.com/node-a.example.com/pf-0",
+      "details": {
+        "allocatedBy": [
+          "demo/vfs"
+        ],
+        "counterSet": "pf-0",
+        "counters": {
+          "vf-slots": {
+            "capacity": "2",
+            "remaining": "2",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.example.com",
+        "pool": "node-a.example.com",
+        "reason": "device vf-0 consumes counter vf-slotz, which counter set pf-0 does not define",
+        "summary": "vf-slots 0/2"
+      }
+    }
+  ]
+}

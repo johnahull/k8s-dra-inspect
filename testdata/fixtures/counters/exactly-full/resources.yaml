@@ -1,0 +1,49 @@
+# Synthetic: 2 of 2 vf-slots consumed, which still passes.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: counters-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 2}
+    sharedCounters:
+      - name: pf-0
+        counters:
+          vf-slots: {value: '2'}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: devices-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 2}
+    devices:
+    - name: vf-0
+      consumesCounters:
+      - counterSet: pf-0
+        counters:
+          vf-slots: {value: '1'}
+    - name: vf-1
+      consumesCounters:
+      - counterSet: pf-0
+        counters:
+          vf-slots: {value: '1'}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: vfs, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: vf
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 2}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: vf, driver: gpu.example.com, pool: node-a.example.com, device: vf-0}
+        - {request: vf, driver: gpu.example.com, pool: node-a.example.com, device: vf-1}

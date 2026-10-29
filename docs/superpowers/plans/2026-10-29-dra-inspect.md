@@ -76,6 +76,8 @@ dra-inspect inspect claims [--namespace NS]
 dra-inspect check alignment [POD|CLAIM] [--namespace NS]
 dra-inspect check cpupinning POD [--namespace NS] [--host-root PATH]
 dra-inspect check counters
+dra-inspect check capacity
+dra-inspect check topology
 dra-inspect check vfio [--host-root PATH]
 
 dra-inspect report cluster

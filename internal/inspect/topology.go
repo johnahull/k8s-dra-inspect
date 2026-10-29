@@ -75,7 +75,7 @@ func Topology(compact bool) Inspector {
 							reasons[fmt.Sprintf("conflicting %s attributes: %s differs from another key at the same tier", x.name, x.r.Key)] = true
 						}
 					}
-					if sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].incomplete {
+					if sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete {
 						reasons[incompleteReason(s.Spec.Pool.Name)] = true
 					}
 					k := topoKey{deviceNode(s, d).String(), join(top.NUMA.Values), join(top.PCIeRoot.Values)}

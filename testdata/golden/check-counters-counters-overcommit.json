@@ -1,0 +1,29 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.counters",
+      "status": "fail",
+      "subject": "gpu.example.com/node-a.example.com/pf-0",
+      "details": {
+        "allocatedBy": [
+          "demo/vfs"
+        ],
+        "counterSet": "pf-0",
+        "counters": {
+          "vf-slots": {
+            "capacity": "2",
+            "remaining": "-1",
+            "used": "3"
+          }
+        },
+        "driver": "gpu.example.com",
+        "pool": "node-a.example.com",
+        "reason": "counter vf-slots overcommitted: 3 used of 2",
+        "summary": "vf-slots 3/2"
+      }
+    }
+  ]
+}

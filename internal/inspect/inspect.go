@@ -115,52 +115,11 @@ func sliceNode(s resourcev1.ResourceSlice) string {
 	return strings.Join(parts, ", ")
 }
 
-type poolKey [2]string
+type poolKey = model.PoolKey
 
-// poolSel is the generation consumers should use for a pool.
-type poolSel struct {
-	gen        int64
-	incomplete bool // no generation has all of its slices observed
-}
-
-// selectGenerations picks, per pool, the newest generation whose observed
-// slice count reaches Pool.ResourceSliceCount. A newer partial generation
-// never displaces an older complete one; with no complete generation the
-// newest is used and flagged incomplete.
-func selectGenerations(snap model.Snapshot) map[poolKey]poolSel {
-	type gk struct {
-		pool poolKey
-		gen  int64
-	}
-	seen, want := map[gk]int64{}, map[gk]int64{}
-	for _, s := range snap.ResourceSlices {
-		k := gk{poolKey{s.Spec.Driver, s.Spec.Pool.Name}, s.Spec.Pool.Generation}
-		seen[k]++
-		want[k] = max(want[k], s.Spec.Pool.ResourceSliceCount)
-	}
-	sel := map[poolKey]poolSel{}
-	for k := range seen {
-		complete := seen[k] >= want[k]
-		cur, have := sel[k.pool]
-		// Prefer complete over incomplete, then the higher generation.
-		if !have || (complete && cur.incomplete) || (complete != cur.incomplete && k.gen > cur.gen) {
-			sel[k.pool] = poolSel{gen: k.gen, incomplete: !complete}
-		}
-	}
-	return sel
-}
-
-// current keeps only the selected generation of each pool and returns the
-// selection so callers can report incomplete pools.
-func current(snap model.Snapshot) ([]resourcev1.ResourceSlice, map[poolKey]poolSel) {
-	sel := selectGenerations(snap)
-	var out []resourcev1.ResourceSlice
-	for _, s := range snap.ResourceSlices {
-		if s.Spec.Pool.Generation == sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].gen {
-			out = append(out, s)
-		}
-	}
-	return out, sel
+// current keeps only the selected generation of each pool.
+func current(snap model.Snapshot) ([]resourcev1.ResourceSlice, map[poolKey]model.PoolSel) {
+	return model.CurrentSlices(snap)
 }
 
 // incompleteReason explains a warn status for a partially observed pool.

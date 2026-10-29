@@ -1,0 +1,2 @@
+SUBJECT       STATUS  DETAIL
+              pass    no shared counters published

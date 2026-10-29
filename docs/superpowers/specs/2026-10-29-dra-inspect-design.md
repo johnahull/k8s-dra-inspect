@@ -13,7 +13,7 @@ whether topology, host integrations, and KubeVirt expectations are correct.
 In scope:
 
 - ResourceSlice, DeviceClass, ResourceClaim, Pod, Node, and optional VMI inspection.
-- NUMA, PCIe-root, capacity, and allocation checks.
+- NUMA, PCIe-root, capacity, and allocation checks (`check alignment`, `counters`, `capacity`, `topology`).
 - Offline snapshot capture and replay.
 - Optional VFIO, CDI, CPU-pinning, KubeVirt, and shared-counter adapters.
 - Human-readable tables and versioned JSON output.

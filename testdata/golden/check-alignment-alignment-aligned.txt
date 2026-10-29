@@ -1,0 +1,2 @@
+SUBJECT            STATUS  DETAIL
+demo/aligned-gpus  pass    2 devices, 1 constraints

@@ -1,0 +1,29 @@
+# Synthetic: no pool publishes shared counters.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: gpu-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: plain, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}

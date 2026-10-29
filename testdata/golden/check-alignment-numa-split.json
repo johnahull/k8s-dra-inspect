@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "warn",
+      "subject": "demo/two-gpus",
+      "details": {
+        "constraints": [],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/gpu-1"
+        ],
+        "numa": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "1"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/pcieRoot",
+          "missing": [],
+          "note": "devices span PCIe roots (informational)",
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "pci0000:00"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "pci0000:80"
+            ]
+          }
+        },
+        "reason": "devices span NUMA nodes (no common NUMA node)",
+        "summary": "2 devices, 0 constraints"
+      }
+    }
+  ]
+}

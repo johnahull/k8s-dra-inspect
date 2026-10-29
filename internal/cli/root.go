@@ -60,8 +60,13 @@ func NewRootCommand(opts *Options, version string, deps Deps) *cobra.Command {
 			Args:  cobra.NoArgs,
 			RunE:  func(cmd *cobra.Command, _ []string) error { return cmd.Help() },
 		}
-		if g.name == "inspect" {
+		switch g.name {
+		case "inspect":
 			addInspectCommands(c, opts, deps)
+		case "check":
+			addCheckCommands(c, opts, deps)
+		case "report":
+			addReportCommands(c, opts, deps)
 		}
 		root.AddCommand(c)
 	}

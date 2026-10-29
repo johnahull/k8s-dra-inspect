@@ -35,9 +35,9 @@ func Slices() Inspector {
 				ps := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}]
 				state, status := "current", model.StatusPass
 				switch {
-				case s.Spec.Pool.Generation != ps.gen:
+				case s.Spec.Pool.Generation != ps.Gen:
 					state = "stale"
-				case ps.incomplete:
+				case ps.Incomplete:
 					state, status = "incomplete", model.StatusWarn
 				}
 				det := map[string]any{

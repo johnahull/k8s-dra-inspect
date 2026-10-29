@@ -1,0 +1,156 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "warn",
+      "subject": "default/vm-final-all",
+      "details": {
+        "constraints": [],
+        "devices": [
+          "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-3",
+          "gpu.amd.com/node-a.example.com/gpu-vfio-7",
+          "dra.cpu/node-a.example.com/cpudevnuma001",
+          "dra.memory/node-a.example.com/memory-bjd9hw",
+          "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-4",
+          "gpu.amd.com/node-a.example.com/gpu-vfio-0",
+          "dra.cpu/node-a.example.com/cpudevnuma002",
+          "dra.memory/node-a.example.com/memory-t5wtkl",
+          "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-5",
+          "gpu.amd.com/node-a.example.com/gpu-vfio-1",
+          "dra.cpu/node-a.example.com/cpudevnuma003",
+          "dra.memory/node-a.example.com/memory-4qhskf"
+        ],
+        "numa": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "dra.cpu/node-a.example.com/cpudevnuma001": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "dra.cpu/node-a.example.com/cpudevnuma002": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "dra.cpu/node-a.example.com/cpudevnuma003": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "dra.memory/node-a.example.com/memory-4qhskf": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "dra.memory/node-a.example.com/memory-bjd9hw": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "dra.memory/node-a.example.com/memory-t5wtkl": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-0": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-1": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-7": [
+              "0",
+              "1",
+              "2",
+              "3"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-3": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-4": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-5": [
+              "4",
+              "5",
+              "6",
+              "7"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/pcieRoot",
+          "missing": [
+            "dra.memory/node-a.example.com/memory-bjd9hw",
+            "dra.memory/node-a.example.com/memory-t5wtkl",
+            "dra.memory/node-a.example.com/memory-4qhskf"
+          ],
+          "note": "devices span PCIe roots (informational)",
+          "valuesByDevice": {
+            "dra.cpu/node-a.example.com/cpudevnuma001": [
+              "pci0000:00",
+              "pci0000:64"
+            ],
+            "dra.cpu/node-a.example.com/cpudevnuma002": [
+              "pci0000:32",
+              "pci0000:66"
+            ],
+            "dra.cpu/node-a.example.com/cpudevnuma003": [
+              "pci0000:96",
+              "pci0000:a0"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-0": [
+              "pci0001:d0"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-1": [
+              "pci0001:a0"
+            ],
+            "gpu.amd.com/node-a.example.com/gpu-vfio-7": [
+              "pci0000:d0"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-3": [
+              "pci0001:00"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-4": [
+              "pci0001:00"
+            ],
+            "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0001-07-00-5": [
+              "pci0001:00"
+            ]
+          }
+        },
+        "reason": "devices span NUMA nodes (no common NUMA node)",
+        "summary": "12 devices, 0 constraints"
+      }
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0000-0c-00-0-counter-set",
+      "details": {
+        "allocatedBy": [],
+        "counterSet": "pf-0000-0c-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "1",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 0/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0000-3d-00-0-counter-set",
+      "details": {
+        "allocatedBy": [],
+        "counterSet": "pf-0000-3d-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "1",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 0/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0000-a8-00-0-counter-set",
+      "details": {
+        "allocatedBy": [],
+        "counterSet": "pf-0000-a8-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "1",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 0/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0000-dc-00-0-counter-set",
+      "details": {
+        "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "counterSet": "pf-0000-dc-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "0",
+            "used": "1"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 1/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0001-0d-00-0-counter-set",
+      "details": {
+        "allocatedBy": [],
+        "counterSet": "pf-0001-0d-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "1",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 0/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0001-3d-00-0-counter-set",
+      "details": {
+        "allocatedBy": [],
+        "counterSet": "pf-0001-3d-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "1",
+            "used": "0"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 0/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0001-a5-00-0-counter-set",
+      "details": {
+        "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "counterSet": "pf-0001-a5-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "0",
+            "used": "1"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 1/1"
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/pf-0001-dc-00-0-counter-set",
+      "details": {
+        "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "counterSet": "pf-0001-dc-00-0-counter-set",
+        "counters": {
+          "vf-slots": {
+            "capacity": "1",
+            "remaining": "0",
+            "used": "1"
+          }
+        },
+        "driver": "gpu.amd.com",
+        "pool": "node-a.example.com",
+        "summary": "vf-slots 1/1"
+      }
+    }
+  ]
+}

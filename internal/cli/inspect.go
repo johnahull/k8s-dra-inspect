@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -93,6 +94,14 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 }
 
 func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspector) error {
+	return runResults(cmd, opts, d,
+		func(_ context.Context, snap model.Snapshot) []model.Result { return in.Run(snap) },
+		func(results []model.Result) error { return renderTable(cmd, opts, d, in.Spec, results) })
+}
+
+// runResults loads the snapshot, produces results, prints them as JSON or via
+// table, and maps their statuses to the exit code.
+func runResults(cmd *cobra.Command, opts *Options, d Deps, produce func(context.Context, model.Snapshot) []model.Result, table func([]model.Result) error) error {
 	src, err := d.NewSource(opts)
 	if err != nil {
 		return err
@@ -101,12 +110,11 @@ func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspecto
 	if err != nil {
 		return err
 	}
-	results := in.Run(snap)
-	out := cmd.OutOrStdout()
+	results := produce(cmd.Context(), snap)
 	if opts.Output == "json" {
-		err = render.JSON(out, snap.Source, d.Now(), results)
+		err = render.JSON(cmd.OutOrStdout(), snap.Source, d.Now(), results)
 	} else {
-		err = renderTable(cmd, opts, d, in, results)
+		err = table(results)
 	}
 	if err != nil {
 		return err
@@ -121,7 +129,7 @@ func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspecto
 	return nil
 }
 
-func renderTable(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspector, results []model.Result) error {
+func renderTable(cmd *cobra.Command, opts *Options, d Deps, in inspect.Spec, results []model.Result) error {
 	out := cmd.OutOrStdout()
 	if err := render.Unavailable(out, results); err != nil {
 		return err

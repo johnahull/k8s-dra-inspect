@@ -48,7 +48,7 @@ func Drivers(attributes bool) Inspector {
 					a = &agg{pools: map[string]bool{}, nodes: map[string]bool{}, attrs: map[string]bool{}, placeholders: map[string]bool{}}
 					byDriver[s.Spec.Driver] = a
 				}
-				if !a.pools[s.Spec.Pool.Name] && sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].incomplete {
+				if !a.pools[s.Spec.Pool.Name] && sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete {
 					a.incomplete = append(a.incomplete, s.Spec.Pool.Name)
 				}
 				a.pools[s.Spec.Pool.Name] = true

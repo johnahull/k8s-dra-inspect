@@ -1,0 +1,67 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "pass",
+      "subject": "demo/aligned-gpus",
+      "details": {
+        "constraints": [
+          {
+            "attribute": "resource.kubernetes.io/numaNode",
+            "intersection": [
+              "0"
+            ],
+            "requests": [
+              "gpu"
+            ],
+            "status": "pass",
+            "valuesByDevice": {
+              "gpu.example.com/node-a.example.com/gpu-0": [
+                "0"
+              ],
+              "gpu.example.com/node-a.example.com/gpu-1": [
+                "0"
+              ]
+            }
+          }
+        ],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/gpu-1"
+        ],
+        "numa": {
+          "aligned": true,
+          "constrained": true,
+          "intersection": [
+            "0"
+          ],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "0"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [],
+          "key": "",
+          "missing": [
+            "gpu.example.com/node-a.example.com/gpu-0",
+            "gpu.example.com/node-a.example.com/gpu-1"
+          ],
+          "valuesByDevice": {}
+        },
+        "summary": "2 devices, 1 constraints"
+      }
+    }
+  ]
+}

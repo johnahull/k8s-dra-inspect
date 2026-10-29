@@ -1,0 +1,661 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "node-a.example.com-dra.cpu-mzcdv",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.cpu",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-dra.memory-node-a.example.com5lp9m",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.memory",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00001-dra.memory-node-a.example.comf5cvv",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.memory",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-gpu.amd.com-node-a.example.com9qqwt",
+      "details": {
+        "deviceCount": 16,
+        "driver": "gpu.amd.com",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-sriovnetwork.k8snetworkplumbingwg.io-node-a.example.comfbbkd",
+      "details": {
+        "deviceCount": 32,
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.cpu",
+      "details": {
+        "devices": 4,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.memory",
+      "details": {
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "gpu.amd.com",
+      "details": {
+        "devices": 16,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io",
+      "details": {
+        "devices": 32,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=0/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=0/pcieRoot=pci0000:15",
+      "details": {
+        "deviceCount": 18,
+        "drivers": {
+          "gpu.amd.com": 2,
+          "sriovnetwork.k8snetworkplumbingwg.io": 16
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "dra.net/numaNode,numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:15"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=0/pcieRoot=pci0000:59",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:59"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=1/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:37",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:37"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:48",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:48"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=2/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=2/pcieRoot=pci0000:97",
+      "details": {
+        "deviceCount": 18,
+        "drivers": {
+          "gpu.amd.com": 2,
+          "sriovnetwork.k8snetworkplumbingwg.io": 16
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "dra.net/numaNode,numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:97"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=2/pcieRoot=pci0000:d7",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:d7"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=3/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=3/pcieRoot=pci0000:b7",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:b7"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=3/pcieRoot=pci0000:c7",
+      "details": {
+        "deviceCount": 2,
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:c7"
+        ]
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa0-tight",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa0",
+          "nodepartition.dra.k8s.io/partitionType": "quarter",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa1-loose",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa1",
+          "nodepartition.dra.k8s.io/partitionType": "quarter",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa2-tight",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa2",
+          "nodepartition.dra.k8s.io/partitionType": "quarter",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa3-loose",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa3",
+          "nodepartition.dra.k8s.io/partitionType": "quarter",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa0-tight",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa0",
+          "nodepartition.dra.k8s.io/partitionType": "eighth",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa1-loose",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa1",
+          "nodepartition.dra.k8s.io/partitionType": "eighth",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa2-tight",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa2",
+          "nodepartition.dra.k8s.io/partitionType": "eighth",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa3-loose",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa3",
+          "nodepartition.dra.k8s.io/partitionType": "eighth",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetwor-da12deaf-full-loose",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/partitionType": "full",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra.cpu",
+      "details": {
+        "configPresent": false,
+        "labels": {},
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra.hugepages-2m",
+      "details": {
+        "configPresent": false,
+        "labels": {},
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "dra.memory",
+      "details": {
+        "configPresent": false,
+        "labels": {},
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "gpu.amd.com",
+      "details": {
+        "configPresent": false,
+        "labels": {},
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "gpu.amd.com-vfio",
+      "details": {
+        "configPresent": true,
+        "labels": {},
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "app.kubernetes.io/managed-by": "Helm"
+        },
+        "selectorCount": 1
+      }
+    },
+    {
+      "check": "check.counters",
+      "status": "pass",
+      "subject": "",
+      "details": {
+        "reason": "no shared counters published"
+      }
+    },
+    {
+      "check": "check.capacity",
+      "status": "pass",
+      "subject": "",
+      "details": {
+        "reason": "no consumable capacity allocated"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "dra.cpu/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 4,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [
+          "cpudevnuma000",
+          "cpudevnuma001",
+          "cpudevnuma002",
+          "cpudevnuma003"
+        ],
+        "reason": "PCIe root missing on cpudevnuma000, cpudevnuma001, cpudevnuma002, cpudevnuma003",
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "4 devices, 0 missing NUMA, 4 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "dra.memory/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 8,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [
+          "memory-xnxmvm",
+          "memory-56xhnf",
+          "memory-ddztgx",
+          "memory-nfqcrb",
+          "hugepages-2mi-vgzdk8",
+          "hugepages-2mi-wzkcsz",
+          "hugepages-2mi-5s57zr",
+          "hugepages-2mi-bmgj2r"
+        ],
+        "reason": "PCIe root missing on memory-xnxmvm, memory-56xhnf, memory-ddztgx, memory-nfqcrb, hugepages-2mi-vgzdk8, hugepages-2mi-wzkcsz, hugepages-2mi-5s57zr, hugepages-2mi-bmgj2r",
+        "slicesExpected": 2,
+        "slicesObserved": 2,
+        "summary": "8 devices, 0 missing NUMA, 8 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 16,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "16 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 32,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "32 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    }
+  ]
+}

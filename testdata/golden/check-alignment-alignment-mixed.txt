@@ -1,0 +1,2 @@
+SUBJECT            STATUS  DETAIL
+demo/gpus-and-nic  pass    3 devices, 1 constraints

@@ -1,0 +1,2 @@
+SUBJECT              STATUS  DETAIL
+demo/bad-constraint  error   invalid matchAttribute "numaNode": want domain/name

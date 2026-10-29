@@ -1,0 +1,3 @@
+SUBJECT                                  STATUS  DETAIL
+gpu.example.com/node-a.example.com/pf-0  pass    vf-slots 0/2
+gpu.example.com/node-a.example.com/pf-9  fail    device vf-0 consumes counter set pf-9, which the p…

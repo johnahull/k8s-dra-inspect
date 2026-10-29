@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.capacity",
+      "status": "pass",
+      "subject": "mem.example.com/node-a.example.com/mem-0",
+      "details": {
+        "allocatedBy": [
+          "demo/half",
+          "demo/rest"
+        ],
+        "capacities": {
+          "size": {
+            "consumed": "100Gi",
+            "published": "100Gi",
+            "remaining": "0"
+          }
+        },
+        "summary": "size 100Gi/100Gi"
+      }
+    }
+  ]
+}

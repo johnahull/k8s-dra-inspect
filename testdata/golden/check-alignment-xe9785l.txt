@@ -1,0 +1,2 @@
+SUBJECT               STATUS  DETAIL
+default/vm-final-all  warn    devices span NUMA nodes (no common NUMA node)

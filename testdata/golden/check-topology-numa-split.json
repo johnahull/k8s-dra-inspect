@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "gpu.example.com/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 2,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "2 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    }
+  ]
+}

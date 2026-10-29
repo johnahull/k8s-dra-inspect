@@ -56,7 +56,7 @@ func Attributes(all, capacity bool) Inspector {
 			var out []model.Result
 			cur, sel := current(snap)
 			for _, s := range cur {
-				incomplete := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].incomplete
+				incomplete := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete
 				for _, d := range s.Spec.Devices {
 					attrs := map[string]string{}
 					for k, v := range d.Attributes {
