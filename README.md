@@ -74,19 +74,23 @@ The chart is not published to a registry yet; install from the repository path.
 # RBAC + ServiceAccount only (default): run the CLI yourself with this identity.
 helm install dra-inspect deploy/helm/dra-inspect -n dra-inspect --create-namespace
 
-# Cluster profile plus a one-shot report Job.
+# Cluster profile plus a one-shot report Job. job.strict=true makes the Job
+# fail (exit 3) when any result is unavailable, for example on total API
+# failure; without it such a Job still exits 0.
 helm install dra-inspect deploy/helm/dra-inspect -n dra-inspect --create-namespace \
-  --set job.enabled=true
+  --set job.enabled=true --set job.strict=true
 
 # Namespace profile: Role+RoleBinding in one namespace (default: the release
 # namespace). The Job then runs with -n <namespace>; slices, DeviceClasses and
 # nodes are reported unavailable. A Job covers one namespace, so install one
 # release per namespace; without the Job, rbac.namespaces={a,b} is accepted.
+# Do not set job.strict here: slices, DeviceClasses and nodes are forbidden by
+# design in this profile, so --strict would always fail the Job.
 helm install dra-inspect deploy/helm/dra-inspect -n team-a \
   --set rbac.profile=namespace --set job.enabled=true
 
 kubectl -n dra-inspect wait --for=condition=complete job/dra-inspect --timeout=120s
-kubectl -n dra-inspect logs job/dra-inspect > report.json
+kubectl -n dra-inspect logs job/dra-inspect | sed -n '/^{$/,/^}$/p' > report.json
 helm uninstall dra-inspect -n dra-inspect
 ```
 
@@ -95,6 +99,15 @@ contains `dra-inspect`). The report is JSON on the pod log. The Job is deleted
 `job.ttlSecondsAfterFinished` (default 3600) seconds after it finishes; use
 `helm uninstall` to remove the RBAC. After `helm upgrade` with changed Job
 settings, delete the finished Job first, because Job specs are immutable.
+
+`kubectl logs` merges stderr into stdout, so a klog line can come before or
+after the JSON. The report is indented JSON whose first and last lines are `{`
+and `}`; the `sed` range above extracts it (a per-line `jq -R fromjson?` does
+not work on indented output). The exit code is the Job result: 0 pass or warn,
+1 fail, 2 error, and 3 unavailable only with `job.strict=true`. A non-zero exit
+shows as a failed Job; read the reason with
+`kubectl -n dra-inspect get job/dra-inspect -o jsonpath='{.status.conditions}'`
+and the exit code in the pod's `containerStatuses` (`kubectl get pod`).
 
 The Job pod meets Pod Security `restricted`: non-root UID 65532, RuntimeDefault
 seccomp, no privilege escalation, all capabilities dropped, read-only root

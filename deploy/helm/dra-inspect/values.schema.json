@@ -7,49 +7,173 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "repository": {"type": "string", "minLength": 1},
-        "tag": {"type": "string"},
-        "digest": {"type": "string", "pattern": "^(sha256:[0-9a-f]{64})?$"},
-        "pullPolicy": {"enum": ["Always", "IfNotPresent", "Never"]}
+        "repository": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+([._-][a-z0-9]+)*(:[0-9]+)?(/[a-z0-9]+([._-][a-z0-9]+)*)*$"
+        },
+        "tag": {
+          "type": "string",
+          "pattern": "^([A-Za-z0-9_][A-Za-z0-9._-]{0,127})?$"
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^(sha256:[0-9a-f]{64})?$"
+        },
+        "pullPolicy": {
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        }
       }
     },
     "imagePullSecrets": {
       "type": "array",
-      "items": {"type": "object", "additionalProperties": false, "properties": {"name": {"type": "string"}}}
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      }
     },
     "serviceAccount": {
       "type": "object",
       "additionalProperties": false,
-      "properties": {"create": {"type": "boolean"}, "name": {"type": "string"}}
+      "properties": {
+        "create": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string",
+          "not": {
+            "const": "default"
+          }
+        }
+      }
     },
     "rbac": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "profile": {"enum": ["cluster", "namespace"]},
+        "profile": {
+          "enum": [
+            "cluster",
+            "namespace"
+          ]
+        },
         "namespaces": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$", "maxLength": 63}
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z0-9]([-a-z0-9]*[a-z0-9])?$",
+            "maxLength": 63
+          }
         },
-        "kubevirt": {"type": "boolean"}
+        "kubevirt": {
+          "type": "boolean"
+        }
       },
-      "if": {"properties": {"profile": {"const": "cluster"}}},
-      "then": {"properties": {"namespaces": {"maxItems": 0}}}
+      "if": {
+        "properties": {
+          "profile": {
+            "const": "cluster"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "namespaces": {
+            "maxItems": 0
+          }
+        }
+      }
     },
     "job": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": {"type": "boolean"},
-        "args": {"type": "array", "items": {"type": "string"}},
-        "ttlSecondsAfterFinished": {"type": "integer", "minimum": 0},
-        "activeDeadlineSeconds": {"type": "integer", "minimum": 1},
-        "runAsUser": {"type": "integer", "minimum": 1000, "maximum": 65535},
-        "resources": {"type": "object"},
-        "podAnnotations": {"type": "object", "additionalProperties": {"type": "string"}},
-        "podLabels": {"type": "object", "additionalProperties": {"type": "string"}}
-      }
+        "enabled": {
+          "type": "boolean"
+        },
+        "args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ttlSecondsAfterFinished": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "activeDeadlineSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runAsUser": {
+          "type": "integer",
+          "minimum": 1000,
+          "maximum": 65535
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "requests",
+            "limits"
+          ],
+          "properties": {
+            "requests": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "additionalProperties": false,
+              "minProperties": 1,
+              "properties": {
+                "cpu": {
+                  "type": "string"
+                },
+                "memory": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "podAnnotations": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "podLabels": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "strict": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "resources"
+      ]
     }
   }
 }

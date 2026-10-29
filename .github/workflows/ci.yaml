@@ -108,6 +108,7 @@ jobs:
         with:
           persist-credentials: false
       # helm is preinstalled on ubuntu-latest.
+      - run: helm version
       - run: helm lint deploy/helm/dra-inspect
       - run: helm lint deploy/helm/dra-inspect --set rbac.profile=namespace --set 'rbac.namespaces={ns1,ns2}'
       - name: Render each profile

@@ -16,6 +16,12 @@ Golden files under `testdata/golden/` are regenerated with
 Keep the default tool behavior read-only. New checks should include fixture
 tests and stable JSON output where automation may consume the result.
 
+## Helm chart
+
+`hack/check-chart.sh` needs helm, python3 and PyYAML. Helm 3 and 4 are
+supported; both are verified (the script rejects other majors). CI prints the
+helm version in the chart job log.
+
 ## Releases
 
 Releases are built with [GoReleaser](https://goreleaser.com) (`.goreleaser.yaml`).

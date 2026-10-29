@@ -17,8 +17,8 @@ spec:
   template:
     metadata:
       labels:
-        {{- include "dra-inspect.labels" . | nindent 8 }}
-        {{- with .Values.job.podLabels }}{{ toYaml . | nindent 8 }}{{ end }}
+        {{- /* merge: the first map wins, so user labels cannot override the chart's. */}}
+        {{- merge (include "dra-inspect.labels" . | fromYaml) (deepCopy .Values.job.podLabels) | toYaml | nindent 8 }}
       {{- with .Values.job.podAnnotations }}
       annotations:
         {{- toYaml . | nindent 8 }}
@@ -51,6 +51,9 @@ spec:
           {{- if eq .Values.rbac.profile "namespace" }}
           - "-n"
           - {{ first $nss | quote }}
+          {{- end }}
+          {{- if .Values.job.strict }}
+          - "--strict"
           {{- end }}
         securityContext:
           allowPrivilegeEscalation: false

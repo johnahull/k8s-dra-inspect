@@ -2,6 +2,8 @@ apiVersion: v2
 name: dra-inspect
 description: Read-only RBAC and an opt-in one-shot Job for dra-inspect, a Kubernetes DRA inspection CLI.
 type: application
+# resource.k8s.io/v1 (GA DRA API) is served from Kubernetes 1.34.
+kubeVersion: ">=1.34.0-0"
 version: 0.1.0
 appVersion: "0.1.0"
 keywords: [dra, kubernetes, inspect, read-only]

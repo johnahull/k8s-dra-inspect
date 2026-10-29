@@ -4,11 +4,11 @@ dra-inspect {{ .Chart.AppVersion }}: RBAC profile "{{ .Values.rbac.profile }}" (
 Collect the report:
   kubectl -n {{ .Release.Namespace }} wait --for=condition=complete job/{{ include "dra-inspect.fullname" . }} --timeout=120s
   kubectl -n {{ .Release.Namespace }} logs job/{{ include "dra-inspect.fullname" . }}
-The Job is deleted {{ .Values.job.ttlSecondsAfterFinished }}s after it finishes. Clean up with: helm uninstall {{ .Release.Name }}
+The Job is deleted {{ .Values.job.ttlSecondsAfterFinished }}s after it finishes. Clean up with: helm uninstall {{ .Release.Name }} -n {{ .Release.Namespace }}
 {{- else }}
 
 Only RBAC and the ServiceAccount were installed. To run a one-shot report Job:
-  helm upgrade {{ .Release.Name }} <chart> --reuse-values --set job.enabled=true
+  helm upgrade {{ .Release.Name }} <chart> -n {{ .Release.Namespace }} --reuse-values --set job.enabled=true
 {{- end }}
 
 Host checks (cpupinning, vfio) and the KubeVirt host adapter are not available in the Job.

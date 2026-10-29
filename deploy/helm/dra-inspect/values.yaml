@@ -27,6 +27,9 @@ job:
   # The chart installs RBAC and the ServiceAccount only, unless this is true.
   enabled: false
   args: ["report", "cluster", "-o", "json", "--timeout", "60s"]
+  # Append --strict: the Job exits 3 (fails) when any result is unavailable,
+  # e.g. on total API failure. Always fails under rbac.profile=namespace.
+  strict: false
   ttlSecondsAfterFinished: 3600
   activeDeadlineSeconds: 300
   # Used as both runAsUser and runAsGroup; the image is built for 65532.
