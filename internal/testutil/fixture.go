@@ -53,7 +53,7 @@ func LoadFixture(t testing.TB, dir string) model.Snapshot {
 	snap := model.Snapshot{
 		SchemaVersion: model.SchemaVersion,
 		GeneratedAt:   time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC),
-		Source:        "snapshot",
+		Source:        model.SourceSnapshot,
 		Collection:    map[string]model.CollectionStatus{},
 	}
 	for _, k := range []string{"resourceslices", "deviceclasses", "resourceclaims", "pods", "nodes", "virtualmachineinstances"} {

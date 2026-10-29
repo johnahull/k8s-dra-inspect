@@ -7,6 +7,7 @@ import (
 
 	resourcev1 "k8s.io/api/resource/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime"
 )
 
@@ -27,7 +28,8 @@ func deepCopy[T any, P interface {
 }
 
 // Redact returns a deep copy of s without opaque driver parameters, device
-// status data, last-applied annotations, or managedFields. It is idempotent.
+// status data, last-applied annotations, managedFields, or inline VMI
+// cloud-init data and access credentials. Evidence is left as is. It is idempotent.
 func Redact(s Snapshot) Snapshot {
 	out := s
 	out.Redacted = true
@@ -57,6 +59,9 @@ func Redact(s Snapshot) Snapshot {
 	}
 	for i := range out.VMIs {
 		scrubMeta(&out.VMIs[i])
+		for _, base := range [][]string{{"spec"}, {"spec", "template", "spec"}} {
+			scrubVMISpec(out.VMIs[i].Object, base)
+		}
 	}
 	for i := range out.DeviceClasses {
 		dc := &out.DeviceClasses[i]
@@ -81,6 +86,28 @@ func Redact(s Snapshot) Snapshot {
 		}
 	}
 	return out
+}
+
+// scrubVMISpec drops inline cloud-init data and accessCredentials under the
+// map at path; secret references (names only) stay.
+func scrubVMISpec(obj map[string]any, path []string) {
+	spec, ok, _ := unstructured.NestedFieldNoCopy(obj, path...)
+	m, isMap := spec.(map[string]any)
+	if !ok || !isMap {
+		return
+	}
+	delete(m, "accessCredentials")
+	vols, _ := m["volumes"].([]any)
+	for _, v := range vols {
+		vm, _ := v.(map[string]any)
+		for _, k := range []string{"cloudInitNoCloud", "cloudInitConfigDrive"} {
+			if ci, _ := vm[k].(map[string]any); ci != nil {
+				for _, f := range []string{"userData", "userDataBase64", "networkData", "networkDataBase64"} {
+					delete(ci, f)
+				}
+			}
+		}
+	}
 }
 
 func dropParameters(c *resourcev1.DeviceConfiguration) {

@@ -18,3 +18,7 @@ jobs:
       - run: go test ./...
       - run: go vet ./...
       - run: hack/check-fixtures.sh
+      - name: Scrub script self-test (needs python3 + PyYAML)
+        run: |
+          pip install pyyaml
+          hack/test-scrub.sh

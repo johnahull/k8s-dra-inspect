@@ -81,7 +81,7 @@ func TestSnapshotJSONRoundTrip(t *testing.T) {
 	s := model.Snapshot{
 		SchemaVersion: model.SchemaVersion,
 		GeneratedAt:   time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC),
-		Source:        "live",
+		Source:        model.SourceLive,
 		Collection:    map[string]model.CollectionStatus{"nodes": {State: "forbidden", Reason: "nope"}},
 		ResourceSlices: []resourcev1.ResourceSlice{{
 			ObjectMeta: meta("", "s1"),

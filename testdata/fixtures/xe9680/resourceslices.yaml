@@ -130,7 +130,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 30e28b6d-342e-8eee-1348-23193209980a
+          string: 00000000-0000-4000-8000-000000000001
         vendorID:
           string: '0x1002'
       name: gpu-vfio-6
@@ -154,7 +154,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 1d582246-8b49-ea40-f6af-26158f056d12
+          string: 00000000-0000-4000-8000-000000000002
         vendorID:
           string: '0x1002'
       name: gpu-vfio-7
@@ -178,7 +178,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 609288ee-d989-ba92-9de3-29a693c5b534
+          string: 00000000-0000-4000-8000-000000000003
         vendorID:
           string: '0x1002'
       name: gpu-vfio-1
@@ -272,7 +272,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 8ac3c696-776d-67ac-b1ba-1331a378f423
+          string: 00000000-0000-4000-8000-000000000004
         vendorID:
           string: '0x1002'
       name: gpu-vfio-2
@@ -296,7 +296,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 54882971-0d28-9e5e-7d08-bba27ba4e781
+          string: 00000000-0000-4000-8000-000000000005
         vendorID:
           string: '0x1002'
       name: gpu-vfio-3
@@ -320,7 +320,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 4ba6456f-ccec-65eb-4b86-c833838ed62e
+          string: 00000000-0000-4000-8000-000000000006
         vendorID:
           string: '0x1002'
       name: gpu-vfio-0
@@ -484,7 +484,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 68dbe647-c8ed-33bb-7b66-acde7b4cb1bb
+          string: 00000000-0000-4000-8000-000000000007
         vendorID:
           string: '0x1002'
       name: gpu-vfio-5
@@ -578,7 +578,7 @@ items:
         type:
           string: vfio
         uuid:
-          string: 29db79e6-6839-d915-148f-7b78e3fe2e7e
+          string: 00000000-0000-4000-8000-000000000008
         vendorID:
           string: '0x1002'
       name: gpu-vfio-4

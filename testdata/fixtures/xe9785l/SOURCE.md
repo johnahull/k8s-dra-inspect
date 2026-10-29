@@ -11,3 +11,7 @@ a test). Nothing was hand-written.
 Scrub command (source files copied into one directory first):
 
     hack/scrub-fixtures.sh <srcdir> testdata/fixtures/xe9785l
+
+The script needs python3 with PyYAML (`pip install pyyaml`). It also replaces
+UUIDs, `uuid`/`shareID`/`serial*` attributes and `reservedFor` pod identities
+with deterministic fakes. `hack/test-scrub.sh` self-tests it.

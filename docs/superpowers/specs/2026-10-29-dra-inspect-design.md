@@ -114,6 +114,16 @@ Redaction is on by default; `--no-redact` opts out.
   `status.devices[].data` from ResourceClaims.
 - Drop `metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]`
   and `managedFields` from all objects.
+- For VirtualMachineInstances, drop inline `cloudInitNoCloud` and
+  `cloudInitConfigDrive` data (`userData`, `userDataBase64`, `networkData`,
+  `networkDataBase64`) from `spec.volumes[]` and delete `spec.accessCredentials`
+  (the same under `spec.template.spec` when present). Secret references
+  (names only) stay.
+- `evidence` is not touched by redaction: adapter producers must redact their
+  own evidence before storing it in the snapshot.
+- A namespace-scoped run records `namespace` in the snapshot and marks the
+  resourceclaims and pods collection entries `ok` with reason
+  `namespace <ns> only`.
 - Keep Pods only as name, namespace, uid, nodeName, and resourceClaims. Never
   capture env, annotations, or managedFields.
 - Never capture kubeconfig contents.

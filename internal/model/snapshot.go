@@ -15,6 +15,12 @@ import (
 // SchemaVersion identifies the snapshot and JSON envelope format.
 const SchemaVersion = "dra-inspect/v1alpha1"
 
+// Snapshot sources.
+const (
+	SourceLive     = "live"
+	SourceSnapshot = "snapshot"
+)
+
 // Collection states.
 const (
 	StateOK        = "ok"
@@ -52,7 +58,8 @@ func NewPodRef(p corev1.Pod) PodRef {
 type Snapshot struct {
 	SchemaVersion  string                      `json:"schemaVersion"`
 	GeneratedAt    time.Time                   `json:"generatedAt"`
-	Source         string                      `json:"source"` // live|snapshot
+	Source         string                      `json:"source"`              // SourceLive|SourceSnapshot
+	Namespace      string                      `json:"namespace,omitempty"` // set when collection was namespace-scoped
 	Redacted       bool                        `json:"redacted"`
 	Collection     map[string]CollectionStatus `json:"collection"`
 	ResourceSlices []resourcev1.ResourceSlice  `json:"resourceSlices"`
@@ -61,7 +68,9 @@ type Snapshot struct {
 	Pods           []PodRef                    `json:"pods"`
 	Nodes          []corev1.Node               `json:"nodes"`
 	VMIs           []unstructured.Unstructured `json:"virtualMachineInstances"`
-	Evidence       map[string]json.RawMessage  `json:"evidence"`
+	// Evidence holds adapter output. Redact does not touch it, so adapter
+	// producers must redact their own evidence before storing it here.
+	Evidence map[string]json.RawMessage `json:"evidence"`
 }
 
 type namer interface {

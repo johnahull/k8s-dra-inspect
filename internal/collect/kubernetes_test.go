@@ -2,6 +2,7 @@ package collect
 
 import (
 	"context"
+	"fmt"
 	"testing"
 	"time"
 
@@ -94,7 +95,7 @@ func TestCollectTyped(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if snap.SchemaVersion != model.SchemaVersion || snap.Source != "live" || !snap.GeneratedAt.Equal(now) || snap.Redacted {
+	if snap.SchemaVersion != model.SchemaVersion || snap.Source != model.SourceLive || !snap.GeneratedAt.Equal(now) || snap.Redacted {
 		t.Fatalf("header: %+v", snap)
 	}
 	for _, k := range []string{"resourceslices", "deviceclasses", "resourceclaims", "pods", "nodes", "virtualmachineinstances"} {
@@ -134,6 +135,18 @@ func TestCollectNamespaceScope(t *testing.T) {
 	}
 	if len(snap.ResourceSlices) != 1 || len(snap.Nodes) != 1 {
 		t.Error("cluster-scoped resources must stay cluster-wide")
+	}
+	if snap.Namespace != "a" {
+		t.Errorf("namespace = %q", snap.Namespace)
+	}
+	want := model.CollectionStatus{State: model.StateOK, Reason: "namespace a only"}
+	for _, k := range []string{"resourceclaims", "pods"} {
+		if snap.Collection[k] != want {
+			t.Errorf("%s: %+v", k, snap.Collection[k])
+		}
+	}
+	if snap.Collection["nodes"].Reason != "" {
+		t.Error("cluster-scoped reason must stay empty")
 	}
 }
 
@@ -200,5 +213,19 @@ func TestSnapshotUsesScope(t *testing.T) {
 	snap, err := src.Snapshot(context.Background())
 	if err != nil || len(snap.ResourceClaims) != 1 {
 		t.Fatalf("err=%v n=%d", err, len(snap.ResourceClaims))
+	}
+}
+
+func TestCollectPaginatesAll(t *testing.T) {
+	var objs []runtime.Object
+	for i := range 1200 {
+		objs = append(objs, pod("a", fmt.Sprintf("p%04d", i)))
+	}
+	snap, err := newLive(fake.NewClientset(objs...)).Collect(context.Background(), Scope{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(snap.Pods) != 1200 || snap.Collection["pods"].State != model.StateOK {
+		t.Fatalf("pods=%d %+v", len(snap.Pods), snap.Collection["pods"])
 	}
 }

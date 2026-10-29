@@ -7,13 +7,17 @@ import (
 	"fmt"
 	"time"
 
+	corev1 "k8s.io/api/core/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/tools/pager"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
@@ -67,29 +71,33 @@ func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error)
 	snap := model.Snapshot{
 		SchemaVersion: model.SchemaVersion,
 		GeneratedAt:   l.Now(),
-		Source:        "live",
+		Source:        model.SourceLive,
 		Collection:    map[string]model.CollectionStatus{},
 		Evidence:      map[string]json.RawMessage{},
 	}
 	rc := l.Client.ResourceV1()
 	ns := scope.Namespace
 
-	if list, err := rc.ResourceSlices().List(ctx, metav1.ListOptions{}); record(&snap, "resourceslices", err) {
-		snap.ResourceSlices = list.Items
+	snap.Namespace = ns
+
+	if items, err := listAll(ctx, rc.ResourceSlices().List, func(l *resourcev1.ResourceSliceList) []resourcev1.ResourceSlice { return l.Items }); record(&snap, "resourceslices", err) {
+		snap.ResourceSlices = items
 	}
-	if list, err := rc.DeviceClasses().List(ctx, metav1.ListOptions{}); record(&snap, "deviceclasses", err) {
-		snap.DeviceClasses = list.Items
+	if items, err := listAll(ctx, rc.DeviceClasses().List, func(l *resourcev1.DeviceClassList) []resourcev1.DeviceClass { return l.Items }); record(&snap, "deviceclasses", err) {
+		snap.DeviceClasses = items
 	}
-	if list, err := rc.ResourceClaims(ns).List(ctx, metav1.ListOptions{}); record(&snap, "resourceclaims", err) {
-		snap.ResourceClaims = list.Items
+	if items, err := listAll(ctx, rc.ResourceClaims(ns).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); record(&snap, "resourceclaims", err) {
+		snap.ResourceClaims = items
+		scoped(&snap, "resourceclaims", ns)
 	}
-	if list, err := l.Client.CoreV1().Pods(ns).List(ctx, metav1.ListOptions{}); record(&snap, "pods", err) {
-		for _, p := range list.Items {
-			snap.Pods = append(snap.Pods, model.NewPodRef(p))
+	if items, err := listAll(ctx, l.Client.CoreV1().Pods(ns).List, func(l *corev1.PodList) []corev1.Pod { return l.Items }); record(&snap, "pods", err) {
+		for i := range items {
+			snap.Pods = append(snap.Pods, model.NewPodRef(items[i]))
 		}
+		scoped(&snap, "pods", ns)
 	}
-	if list, err := l.Client.CoreV1().Nodes().List(ctx, metav1.ListOptions{}); record(&snap, "nodes", err) {
-		snap.Nodes = list.Items
+	if items, err := listAll(ctx, l.Client.CoreV1().Nodes().List, func(l *corev1.NodeList) []corev1.Node { return l.Items }); record(&snap, "nodes", err) {
+		snap.Nodes = items
 	}
 	l.collectVMIs(ctx, &snap, ns)
 
@@ -110,6 +118,26 @@ func (l *Live) collectVMIs(ctx context.Context, snap *model.Snapshot, ns string)
 	list, err := l.Dynamic.Resource(vmiGVR).Namespace(ns).List(ctx, metav1.ListOptions{})
 	if record(snap, key, err) {
 		snap.VMIs = list.Items
+	}
+}
+
+const pageSize = 500
+
+// listAll pages through a list call and returns every item.
+func listAll[L runtime.Object, T any](ctx context.Context, list func(context.Context, metav1.ListOptions) (L, error), items func(L) []T) ([]T, error) {
+	p := pager.New(func(ctx context.Context, o metav1.ListOptions) (runtime.Object, error) { return list(ctx, o) })
+	p.PageSize = pageSize
+	obj, _, err := p.List(ctx, metav1.ListOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return items(obj.(L)), nil
+}
+
+// scoped notes on an ok entry that only one namespace was listed.
+func scoped(snap *model.Snapshot, key, ns string) {
+	if ns != "" {
+		snap.Collection[key] = model.CollectionStatus{State: model.StateOK, Reason: "namespace " + ns + " only"}
 	}
 }
 

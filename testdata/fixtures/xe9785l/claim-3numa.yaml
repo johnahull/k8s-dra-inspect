@@ -135,14 +135,14 @@ items:
           driver: dra.cpu
           pool: node-a.example.com
           request: n0-dra-cpu
-          shareID: ea45ae11-3567-4dac-9c7e-2850b72679c8
+          shareID: 00000000-0000-4000-8000-000000000001
         - consumedCapacity:
             size: 396276768Ki
           device: memory-bjd9hw
           driver: dra.memory
           pool: node-a.example.com
           request: n0-dra-memory
-          shareID: 52edc891-0d7a-4579-bdb5-d169dfa75dcf
+          shareID: 00000000-0000-4000-8000-000000000002
         - device: 0001-07-00-4
           driver: sriovnetwork.k8snetworkplumbingwg.io
           pool: node-a.example.com
@@ -157,14 +157,14 @@ items:
           driver: dra.cpu
           pool: node-a.example.com
           request: n1-dra-cpu
-          shareID: 0f5411f5-6cd4-4556-bb53-2b102300b279
+          shareID: 00000000-0000-4000-8000-000000000003
         - consumedCapacity:
             size: 396276768Ki
           device: memory-t5wtkl
           driver: dra.memory
           pool: node-a.example.com
           request: n1-dra-memory
-          shareID: f2b440c8-3ca3-447f-a5e8-c1e4be0de07e
+          shareID: 00000000-0000-4000-8000-000000000004
         - device: 0001-07-00-5
           driver: sriovnetwork.k8snetworkplumbingwg.io
           pool: node-a.example.com
@@ -179,14 +179,14 @@ items:
           driver: dra.cpu
           pool: node-a.example.com
           request: n2-dra-cpu
-          shareID: 152c4488-e62e-4fb2-ac0d-e21694cade6d
+          shareID: 00000000-0000-4000-8000-000000000005
         - consumedCapacity:
             size: 396276768Ki
           device: memory-4qhskf
           driver: dra.memory
           pool: node-a.example.com
           request: n2-dra-memory
-          shareID: 556883ac-5ac4-433c-beae-c13d030839e2
+          shareID: 00000000-0000-4000-8000-000000000006
       nodeSelector:
         nodeSelectorTerms:
         - matchFields:
@@ -220,7 +220,7 @@ items:
       driver: sriovnetwork.k8snetworkplumbingwg.io
       pool: node-a.example.com
     reservedFor:
-    - name: virt-launcher-vm-final-all-8vf8z
+    - name: pod-1
       resource: pods
-      uid: 40d1abda-f8b7-4586-aaba-c0ba5d577a59
+      uid: 00000000-0000-4000-8000-000000000007
 kind: List

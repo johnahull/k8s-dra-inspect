@@ -53,7 +53,9 @@ type Topology struct {
 }
 
 // TopologyOf resolves NUMA and PCIe-root attributes for a device published by
-// driver. cpuSocketID is deliberately not interpreted.
+// driver. cpuSocketID is deliberately not interpreted. Under the last tier
+// (any vendor), keys are ordered by fallback name first (numaNode, numa,
+// numaNodeID), then lexically within one name; the first key is reported.
 func TopologyOf(dev resourcev1.Device, driver string) (Topology, error) {
 	numa, err := resolve(dev, driver, "resource.kubernetes.io/numaNode", []string{"numaNode", "numa", "numaNodeID"})
 	if err != nil {

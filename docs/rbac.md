@@ -7,17 +7,17 @@ profile grants a mutating verb or `pods/exec`.
 
 | API group | Resource | Verbs | Cluster profile | Namespace profile |
 |---|---|---|---|---|
-| `resource.k8s.io` | resourceslices | get, list | yes | no (reported `unavailable`) |
-| `resource.k8s.io` | deviceclasses | get, list | yes | no (reported `unavailable`) |
+| `resource.k8s.io` | resourceslices | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
+| `resource.k8s.io` | deviceclasses | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
 | `resource.k8s.io` | resourceclaims | get, list | yes | yes |
 | core | pods | get, list | yes | yes |
-| core | nodes | get, list | yes | no (reported `unavailable`) |
+| core | nodes | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
 | `kubevirt.io` | virtualmachineinstances | get, list | optional | optional |
 
-In the namespace profile, slice, DeviceClass, and node data is recorded as
-`unavailable` (`forbidden` in the snapshot's collection status). dra-inspect
-never reports cluster-wide coverage from a namespaced grant: checks that need
-ResourceSlices say so instead of guessing.
+In the namespace profile, slices, DeviceClasses, and nodes are recorded in the
+snapshot with collection state `forbidden`, and every analyzer that needs them
+reports `unavailable`. dra-inspect never reports cluster-wide coverage from a
+namespaced grant: checks that need ResourceSlices say so instead of guessing.
 
 ## Cluster profile
 

@@ -39,10 +39,26 @@ func redactInput() model.Snapshot {
 			"annotations":   map[string]any{lastApplied: "SECRET-APPLIED"},
 			"managedFields": []any{map[string]any{"manager": "SECRET-MANAGER"}},
 		},
+		"spec": map[string]any{
+			"accessCredentials": []any{map[string]any{"sshPublicKey": "SECRET-KEY"}},
+			"volumes": []any{
+				map[string]any{"name": "ci", "cloudInitNoCloud": map[string]any{
+					"userData": "SECRET-UD", "userDataBase64": "SECRET-UD64", "networkData": "SECRET-ND", "networkDataBase64": "SECRET-ND64",
+					"secretRef": map[string]any{"name": "keep-ref"}, "userDataSecretRef": map[string]any{"name": "keep-udref"},
+				}},
+				map[string]any{"name": "cd", "cloudInitConfigDrive": map[string]any{"userData": "SECRET-CD"}},
+				map[string]any{"name": "disk", "containerDisk": map[string]any{"image": "img"}},
+			},
+			"template": map[string]any{"spec": map[string]any{
+				"accessCredentials": []any{map[string]any{"sshPublicKey": "SECRET-TKEY"}},
+				"volumes":           []any{map[string]any{"name": "ci", "cloudInitNoCloud": map[string]any{"userData": "SECRET-TUD"}}},
+			}},
+		},
 	}}
 	return model.Snapshot{
 		SchemaVersion:  model.SchemaVersion,
-		Source:         "live",
+		Source:         model.SourceLive,
+		Evidence:       map[string]json.RawMessage{"adapter": json.RawMessage(`{"note":"SECRET-EVIDENCE"}`)},
 		ResourceSlices: []resourcev1.ResourceSlice{{ObjectMeta: secretMeta("s"), Spec: resourcev1.ResourceSliceSpec{Driver: "gpu.example.com"}}},
 		DeviceClasses: []resourcev1.DeviceClass{{ObjectMeta: secretMeta("dc"), Spec: resourcev1.DeviceClassSpec{
 			Config: []resourcev1.DeviceClassConfiguration{{DeviceConfiguration: opaque()}},
@@ -75,8 +91,29 @@ func TestRedact(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(string(b), "SECRET") {
+	// Evidence is the adapter producers' responsibility: Redact must leave it alone.
+	if string(out.Evidence["adapter"]) != `{"note":"SECRET-EVIDENCE"}` {
+		t.Errorf("evidence changed: %s", out.Evidence["adapter"])
+	}
+	if rest := strings.ReplaceAll(string(b), "SECRET-EVIDENCE", ""); strings.Contains(rest, "SECRET") {
 		t.Fatalf("secret survived: %s", b)
+	}
+	vols, _, _ := unstructured.NestedSlice(out.VMIs[0].Object, "spec", "volumes")
+	if len(vols) != 3 {
+		t.Fatalf("volumes lost: %v", vols)
+	}
+	ci := vols[0].(map[string]any)["cloudInitNoCloud"].(map[string]any)
+	if len(ci) != 2 || ci["secretRef"] == nil || ci["userDataSecretRef"] == nil {
+		t.Errorf("secret refs must stay, inline data go: %v", ci)
+	}
+	if cd := vols[1].(map[string]any)["cloudInitConfigDrive"].(map[string]any); len(cd) != 0 {
+		t.Errorf("configdrive: %v", cd)
+	}
+	if vols[2].(map[string]any)["containerDisk"] == nil {
+		t.Error("other volume lost")
+	}
+	if _, ok, _ := unstructured.NestedFieldNoCopy(out.VMIs[0].Object, "spec", "accessCredentials"); ok {
+		t.Error("accessCredentials kept")
 	}
 	if !out.Redacted {
 		t.Error("Redacted not set")
