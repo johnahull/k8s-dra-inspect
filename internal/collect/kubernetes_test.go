@@ -70,7 +70,10 @@ func newLive(cs *fake.Clientset, objs ...runtime.Object) *Live {
 	scheme := runtime.NewScheme()
 	dyn := dynfake.NewSimpleDynamicClientWithCustomListKinds(scheme,
 		map[schema.GroupVersionResource]string{vmiGVR: "VirtualMachineInstanceList"}, objs...)
-	return &Live{Client: cs, Dynamic: dyn, Discovery: cs.Discovery(), Now: func() time.Time { return now }}
+	return &Live{Client: cs, Dynamic: dyn, Probe: func(_ context.Context, gv string) error {
+		_, err := cs.Discovery().ServerResourcesForGroupVersion(gv)
+		return err
+	}, Now: func() time.Time { return now }}
 }
 
 func serveKubeVirt(cs *fake.Clientset) {
@@ -266,8 +269,8 @@ func TestCollectOverallDeadline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if el := time.Since(start); el > 800*time.Millisecond {
-		t.Errorf("Collect took %v, want < 800ms (one overall deadline)", el)
+	if el := time.Since(start); el > 450*time.Millisecond {
+		t.Errorf("Collect took %v, want < 450ms (1.5 x timeout)", el)
 	}
 	if len(snap.Collection) == 0 {
 		t.Fatal("no collection entries")
@@ -305,5 +308,98 @@ func TestCollectFastServerUnaffected(t *testing.T) {
 				t.Errorf("timeout %v: %s = %+v, want ok", to, k, st)
 			}
 		}
+	}
+}
+
+// A server that is slow on every list and hangs on the KubeVirt discovery probe must still
+// finish within the one overall deadline: the probe starts after the deadline has passed.
+func TestCollectDeadlineCoversDiscovery(t *testing.T) {
+	h := func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/apis/kubevirt.io") {
+			hang(w, r)
+			return
+		}
+		time.Sleep(70 * time.Millisecond)
+		okHandler(w, r)
+	}
+	live, err := NewClients(hungKubeconfig(t, http.HandlerFunc(h)), "", 300*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := time.Now()
+	snap, err := live.Collect(context.Background(), Scope{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if el := time.Since(start); el > 450*time.Millisecond {
+		t.Errorf("Collect took %v, want < 450ms (1.5 x timeout)", el)
+	}
+	if st := snap.Collection["virtualmachineinstances"]; st.State != model.StateError || st.Reason != timedOutReason {
+		t.Errorf("vmi = %+v, want error %q", st, timedOutReason)
+	}
+}
+
+func statusHandler(code int, reason string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(code)
+		_, _ = fmt.Fprintf(w, `{"kind":"Status","apiVersion":"v1","status":"Failure","reason":%q,"code":%d}`, reason, code)
+	}
+}
+
+func TestRecordReasonsAreSanitized(t *testing.T) {
+	const token = "SECRET-TOKEN-xyz"
+	tls := httptest.NewTLSServer(http.HandlerFunc(okHandler)) // cert not trusted by the client
+	t.Cleanup(tls.Close)
+	closed := httptest.NewServer(http.HandlerFunc(okHandler))
+	closedAddr := closed.Listener.Addr().String()
+	closed.Close()
+
+	cases := []struct {
+		name, server string
+		h            http.Handler
+		want         string // exact reason of resourceslices
+		state        string
+	}{
+		{"closed port", "http://" + closedAddr, nil, "resourceslices: dial tcp " + closedAddr + ": connect: connection refused", model.StateError},
+		{"bad CA", tls.URL, nil, "resourceslices: tls: failed to verify certificate: x509: certificate signed by unknown authority", model.StateError},
+		{"401", "", statusHandler(401, "Unauthorized"), "resourceslices: unauthorized", model.StateError},
+		{"403", "", statusHandler(403, "Forbidden"), "resourceslices: forbidden", model.StateForbidden},
+		{"404", "", statusHandler(404, "NotFound"), "resourceslices: not found", model.StateNotFound},
+		{"timeout", "", http.HandlerFunc(hang), "timed out after 300ms", model.StateError},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			srv := c.server
+			if c.h != nil {
+				s := httptest.NewServer(c.h)
+				t.Cleanup(s.Close)
+				srv = s.URL
+			}
+			cfg := fmt.Sprintf("apiVersion: v1\nkind: Config\nclusters:\n- name: c\n  cluster: {server: %q}\ncontexts:\n- name: x\n  context: {cluster: c, user: u}\nusers:\n- name: u\n  user: {token: %s}\ncurrent-context: x\n", srv, token)
+			p := filepath.Join(t.TempDir(), "kubeconfig")
+			if err := os.WriteFile(p, []byte(cfg), 0o600); err != nil {
+				t.Fatal(err)
+			}
+			live, err := NewClients(p, "", 300*time.Millisecond)
+			if err != nil {
+				t.Fatal(err)
+			}
+			snap, err := live.Collect(context.Background(), Scope{})
+			if err != nil {
+				t.Fatal(err)
+			}
+			st := snap.Collection["resourceslices"]
+			if st.State != c.state || st.Reason != c.want {
+				t.Errorf("got %+v, want %s %q", st, c.state, c.want)
+			}
+			for k, st := range snap.Collection {
+				for _, bad := range []string{"http://", "https://", "?limit", token, "Get \""} {
+					if strings.Contains(st.Reason, bad) {
+						t.Errorf("%s reason %q contains %q", k, st.Reason, bad)
+					}
+				}
+			}
+		})
 	}
 }

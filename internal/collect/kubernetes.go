@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"net/url"
 	"strings"
 	"time"
 
@@ -16,7 +17,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"k8s.io/client-go/discovery"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
@@ -32,11 +32,13 @@ type Scope struct{ Namespace string }
 
 // Live collects a Snapshot from a cluster using only get/list calls.
 type Live struct {
-	Client    kubernetes.Interface
-	Dynamic   dynamic.Interface
-	Discovery discovery.DiscoveryInterface
-	Now       func() time.Time
-	Scope     Scope
+	Client  kubernetes.Interface
+	Dynamic dynamic.Interface
+	// Probe returns a NotFound error when the group/version is not served. It takes
+	// the context so the overall deadline also covers it.
+	Probe func(ctx context.Context, groupVersion string) error
+	Now   func() time.Time
+	Scope Scope
 	// Timeout is the overall deadline for Collect; 0 means none.
 	Timeout time.Duration
 }
@@ -62,7 +64,11 @@ func NewClients(kubeconfig, kubeContext string, timeout time.Duration) (*Live, e
 	if err != nil {
 		return nil, err
 	}
-	return &Live{Client: cs, Dynamic: dyn, Discovery: cs.Discovery(), Now: time.Now, Timeout: timeout}, nil
+	rest := cs.Discovery().RESTClient()
+	probe := func(ctx context.Context, gv string) error {
+		return rest.Get().AbsPath("/apis/" + gv).Do(ctx).Error()
+	}
+	return &Live{Client: cs, Dynamic: dyn, Probe: probe, Now: time.Now, Timeout: timeout}, nil
 }
 
 // Snapshot implements model.Source using the configured Scope.
@@ -117,7 +123,7 @@ func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error)
 
 func (l *Live) collectVMIs(ctx context.Context, snap *model.Snapshot, ns string) {
 	const key = "virtualmachineinstances"
-	_, err := l.Discovery.ServerResourcesForGroupVersion("kubevirt.io/v1")
+	err := l.Probe(ctx, "kubevirt.io/v1")
 	if apierrors.IsNotFound(err) {
 		snap.Collection[key] = model.CollectionStatus{State: model.StateNotFound, Reason: "kubevirt.io/v1 not served"}
 		return
@@ -158,9 +164,11 @@ func (l *Live) record(snap *model.Snapshot, key string, err error) bool {
 	switch {
 	case err == nil:
 	case apierrors.IsForbidden(err):
-		st = model.CollectionStatus{State: model.StateForbidden, Reason: err.Error()}
+		st = model.CollectionStatus{State: model.StateForbidden, Reason: key + ": forbidden"}
 	case apierrors.IsNotFound(err):
-		st = model.CollectionStatus{State: model.StateNotFound, Reason: err.Error()}
+		st = model.CollectionStatus{State: model.StateNotFound, Reason: key + ": not found"}
+	case apierrors.IsUnauthorized(err):
+		st = model.CollectionStatus{State: model.StateError, Reason: key + ": unauthorized"}
 	case isTimeout(err):
 		// Fixed text: the raw error would echo the request URL.
 		reason := "timed out"
@@ -169,7 +177,12 @@ func (l *Live) record(snap *model.Snapshot, key string, err error) bool {
 		}
 		st = model.CollectionStatus{State: model.StateError, Reason: reason}
 	default:
-		st = model.CollectionStatus{State: model.StateError, Reason: err.Error()}
+		// Drop the *url.Error wrapper (method, URL, query); keep the cause.
+		var ue *url.Error
+		if errors.As(err, &ue) {
+			err = ue.Err
+		}
+		st = model.CollectionStatus{State: model.StateError, Reason: key + ": " + err.Error()}
 	}
 	snap.Collection[key] = st
 	return err == nil

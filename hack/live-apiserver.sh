@@ -212,7 +212,7 @@ main() {
   OUT=$SCRATCH/out; rm -rf "$OUT"; mkdir -p "$OUT" "$BIN" "$PKI"; : >"$OUT/exit-codes.txt"
 
   echo "== 0. binaries from the cached node image ($NODE_DIGEST)"
-  if [ -n "${KUBECTL:-}" ]; then :; elif command -v kubectl >/dev/null; then KUBECTL=$(command -v kubectl); else KUBECTL=$BIN/kubectl; fi
+  if [ -n "${KUBECTL:-}" ]; then :; elif type -P kubectl >/dev/null; then KUBECTL=$(type -P kubectl); else KUBECTL=$BIN/kubectl; fi
   extract_binaries
   require_eq "kube-apiserver version" "Kubernetes $WANT_APISERVER" "$("$BIN/kube-apiserver" --version)"
   require_eq "etcd version" "$WANT_ETCD" "$("$BIN/etcd" --version | awk '/etcd Version/ {print $3}')"
@@ -526,8 +526,8 @@ EOF
   head -n 3 "$OUT/hang.txt" | cut -c1-300
   within "hang: --timeout 3s is far below the old ~18 s (6 kinds x 3 s)" 2.9 9 "$HANG_ELAPSED"
   within "hang: report cluster is also far below 18 s" 2.9 9 "$HANG_REPORT_ELAPSED"
-  # F1: the KubeVirt discovery call in collectVMIs is not bound by the context, so it costs a second full timeout.
-  xfail "F1 hang: --timeout 3s should take about 3 s in total" true "$(awk -v v="$HANG_ELAPSED" 'BEGIN{print (v < 4.5) ? "true" : "false"}')"
+  # F1 (fixed): the KubeVirt probe takes the context, so --timeout is the total (< 1.5 x timeout).
+  check "hang: --timeout 3s finishes in < 4.5 s in total" true "$(awk -v v="$HANG_ELAPSED" 'BEGIN{print (v < 4.5) ? "true" : "false"}')"
   check "hang: exit 0" 0 "$(exit_code hang)"
   check "hang: --strict exit 3" 3 "$(exit_code hang-strict)"
   check "hang: says timed out after 3s" true "$(grep -q 'UNAVAILABLE.*timed out after 3s' "$OUT/hang.txt" && echo true || echo false)"
@@ -547,8 +547,12 @@ EOF
   check "bad CA: x509 unknown authority" true "$(grep -q 'UNAVAILABLE.*x509' "$OUT/badca.txt" && echo true || echo false)"
   check "bad token: reported unavailable" true "$(grep -q 'UNAVAILABLE' "$OUT/badtoken.txt" && echo true || echo false)"
   check "bad token: reason does not echo a URL" 0 "$(grep -cE 'https?://' "$OUT/badtoken.txt" || true)"
-  # F2: only the timeout reason is URL-free; connection and TLS errors still carry the raw client-go URL.
-  for f in closed badca; do xfail "F2 $f: reason should not echo the request URL" 0 "$(grep -cE 'https?://' "$OUT/$f.txt" || true)"; done
+  # F2 (fixed): every reason is "<resource>: <cause>" without method, URL or query.
+  for f in closed badca; do
+    check "$f: reason does not echo a URL" 0 "$(grep -cE 'https?://' "$OUT/$f.txt" || true)"
+    check "$f: reason does not echo a query" 0 "$(grep -c '?limit' "$OUT/$f.txt" || true)"
+  done
+  check "bad token: reason does not echo a query" 0 "$(grep -c '?limit' "$OUT/badtoken.txt" || true)"
   for f in hang closed badca badtoken; do echo "-- $f:"; head -n 3 "$OUT/$f.txt" | cut -c1-260; done
 
   absent "no opaque marker in any output at the end" "$OPAQUE_MARKER" "$OUT" "$SNAP"
