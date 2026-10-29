@@ -179,3 +179,100 @@ func TestKubeVirtDeviceWithoutNodeIsUnavailable(t *testing.T) {
 	}
 	wantStatus(t, kvOne(t, snap, "vm-ok"), model.StatusUnavailable, "has no known node")
 }
+
+func TestKubeVirtClaimInOtherNamespaceDoesNotSatisfy(t *testing.T) {
+	snap := kvSnap(t)
+	for i := range snap.ResourceClaims {
+		if snap.ResourceClaims[i].Name == "claim-b" {
+			snap.ResourceClaims[i].Namespace = "elsewhere"
+		}
+	}
+	wantStatus(t, kvOne(t, snap, "demo/vm-wrong-node"), model.StatusFail, "claim demo/claim-b not found")
+}
+
+func TestKubeVirtRequestPrefixRule(t *testing.T) {
+	setRequest := func(req string) model.Snapshot {
+		snap := kvSnap(t)
+		for i := range snap.ResourceClaims {
+			if snap.ResourceClaims[i].Name == "claim-ok" {
+				snap.ResourceClaims[i].Status.Allocation.Devices.Results[0].Request = req
+			}
+		}
+		return snap
+	}
+	// vm-ok's hostDevice request gpu0 must not match a result named gpu01 ...
+	wantStatus(t, kvOne(t, setRequest("gpu01"), "demo/vm-ok"), model.StatusFail, "request gpu0 has no allocation result")
+	// ... but does match the sub-request gpu0/sub.
+	if r := kvOne(t, setRequest("gpu0/sub"), "demo/vm-ok"); r.Status != model.StatusPass {
+		t.Fatalf("%+v", r)
+	}
+}
+
+func setDedicated(t *testing.T, snap model.Snapshot, vmi string, dedicated bool) {
+	t.Helper()
+	for i := range snap.VMIs {
+		if snap.VMIs[i].GetName() == vmi {
+			snap.VMIs[i].Object["spec"].(map[string]any)["domain"].(map[string]any)["cpu"].(map[string]any)["dedicatedCpuPlacement"] = dedicated
+		}
+	}
+}
+
+func TestKubeVirtPassthroughNeedsDedicatedCPUs(t *testing.T) {
+	snap := kvSnap(t)
+	if r := kvOne(t, snap, "demo/vm-ok"); r.Status != model.StatusPass {
+		t.Fatalf("dedicated: %+v", r)
+	}
+	setDedicated(t, snap, "vm-ok", false)
+	wantStatus(t, kvOne(t, snap, "demo/vm-ok"), model.StatusWarn, "NUMA passthrough requires dedicated CPU placement; KubeVirt will not schedule such a VMI")
+}
+
+func kvEvidenceSnap(t *testing.T, ev kubevirt.Evidence) model.Snapshot {
+	t.Helper()
+	snap := kvSnap(t)
+	raw, err := json.Marshal(ev)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap.Evidence = map[string]json.RawMessage{kubevirt.Name: raw}
+	return snap
+}
+
+func TestKubeVirtFromEvidenceDuplicateVMIs(t *testing.T) {
+	v := kubevirt.VMI{Namespace: "demo", Name: "dup", Claims: map[string]string{}}
+	rs := run(KubeVirt("", ""), kvEvidenceSnap(t, kubevirt.Evidence{Version: 1, VMIs: []kubevirt.VMI{v, v}}))
+	if len(rs) != 1 || fmt.Sprint(rs[0].Details["warnings"]) != "[duplicate VMIs ignored]" {
+		t.Fatalf("%+v", rs)
+	}
+}
+
+func TestKubeVirtFromEvidenceBoundsHugeStrings(t *testing.T) {
+	long := strings.Repeat("x", 10<<20)
+	v := kubevirt.VMI{Namespace: "demo", Name: long, NodeName: "node-a.example.com",
+		Claims:      map[string]string{long: long},
+		HostDevices: []kubevirt.HostDevice{{Name: long, ClaimAlias: long, ClaimName: long, RequestName: long}}}
+	rs := run(KubeVirt("", ""), kvEvidenceSnap(t, kubevirt.Evidence{Version: 1, VMIs: []kubevirt.VMI{v}}))
+	raw, _ := json.Marshal(rs)
+	if len(rs) != 1 || len(raw) > 16<<10 {
+		t.Fatalf("%d results, %d bytes of output", len(rs), len(raw))
+	}
+}
+
+func TestKubeVirtFromEvidenceCapsMaps(t *testing.T) {
+	claims := map[string]string{}
+	for i := 0; i < 5000; i++ {
+		claims[fmt.Sprint("a", i)] = "c"
+	}
+	var hds []kubevirt.HostDevice
+	for i := 0; i < 5000; i++ {
+		hds = append(hds, kubevirt.HostDevice{Name: "h", ClaimAlias: "a0", ClaimName: "c", RequestName: "r"})
+	}
+	v := kubevirt.VMI{Namespace: "demo", Name: "big", Claims: claims, HostDevices: hds}
+	rs := run(KubeVirt("", ""), kvEvidenceSnap(t, kubevirt.Evidence{Version: 1, VMIs: []kubevirt.VMI{v}}))
+	w := fmt.Sprint(rs[0].Details["warnings"])
+	if len(rs) != 1 || !strings.Contains(w, "claims truncated at 1024") || !strings.Contains(w, "hostDevices truncated at 1024") {
+		t.Fatalf("warnings %s", w)
+	}
+	if d, _ := rs[0].Details["devices"].([]map[string]any); len(d) > 1024 {
+		t.Fatalf("%d devices", len(d))
+	}
+}

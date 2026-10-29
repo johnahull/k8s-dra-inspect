@@ -48,7 +48,10 @@ step, validValues and default are not.`
 const kubevirtHelp = `Map each VMI host device to its ResourceClaim allocation. VMI is a name or
 ns/name; -n scopes it. Fails when the claim or its allocation result is
 missing or a device is on another node than the VMI; warns when devices span
-NUMA nodes without guestMappingPassthrough. Works from the VMIs already in the
+NUMA nodes without guestMappingPassthrough, or when guestMappingPassthrough is
+set without dedicatedCpuPlacement. Claims generated from
+resourceClaimTemplateName are not resolved in v1 and stay unavailable (upgrade path: join through the virt-launcher pod's
+resourceClaimStatuses). Works from the VMIs already in the
 snapshot and calls no extra API. Only host-device, claim, NUMA and CPU fields
 of a VMI are read; cloud-init data, credentials and interfaces never are.`
 

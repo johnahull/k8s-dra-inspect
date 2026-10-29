@@ -118,6 +118,7 @@ func (l *Live) collectVMIs(ctx context.Context, snap *model.Snapshot, ns string)
 	list, err := l.Dynamic.Resource(vmiGVR).Namespace(ns).List(ctx, metav1.ListOptions{})
 	if record(snap, key, err) {
 		snap.VMIs = list.Items
+		scoped(snap, key, ns)
 	}
 }
 

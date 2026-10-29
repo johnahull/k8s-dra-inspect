@@ -7,6 +7,7 @@ import (
 	"cmp"
 	"context"
 	"encoding/json"
+	"maps"
 	"slices"
 	"strings"
 
@@ -49,6 +50,98 @@ type VMI struct {
 type Evidence struct {
 	Version int   `json:"version"`
 	VMIs    []VMI `json:"vmis"`
+	// Warnings are fixed texts about bounds applied to the evidence.
+	Warnings []string `json:"warnings,omitempty"`
+}
+
+// Bounds on evidence size and string length.
+const (
+	MaxVMIs        = 10000
+	MaxHostDevices = 1024
+	MaxClaims      = 1024
+	MaxString      = 253
+	maxWarnings    = 64
+)
+
+// trunc cuts s to MaxString characters plus an ellipsis.
+func trunc(s string) string {
+	if len(s) <= MaxString { // MaxString runes need at least that many bytes
+		return s
+	}
+	n := 0
+	for i := range s {
+		if n == MaxString {
+			return s[:i] + "…"
+		}
+		n++
+	}
+	return s
+}
+
+func addWarning(ws []string, w string) []string {
+	if slices.Contains(ws, w) {
+		return ws
+	}
+	return append(ws, w)
+}
+
+// Bound makes e safe to hold and print whatever its source: strings are cut to
+// MaxString characters, VMIs are deduplicated by namespace/name (the first
+// wins) and capped, and per-VMI maps and lists are capped. Each bound that
+// applies adds a fixed-text warning.
+func (e *Evidence) Bound() {
+	seen := map[[2]string]bool{}
+	out := make([]VMI, 0, min(len(e.VMIs), MaxVMIs))
+	for _, v := range e.VMIs {
+		v.Namespace, v.Name, v.NodeName, v.Phase = trunc(v.Namespace), trunc(v.Name), trunc(v.NodeName), trunc(v.Phase)
+		k := [2]string{v.Namespace, v.Name}
+		if seen[k] {
+			e.Warnings = addWarning(e.Warnings, "duplicate VMIs ignored")
+			continue
+		}
+		if len(out) == MaxVMIs {
+			e.Warnings = addWarning(e.Warnings, "vmis truncated at 10000")
+			break
+		}
+		seen[k] = true
+		out = append(out, v.bound())
+	}
+	e.VMIs = out
+}
+
+func (v VMI) bound() VMI {
+	if len(v.Claims) > MaxClaims {
+		v.Warnings = addWarning(slices.Clone(v.Warnings), "claims truncated at 1024")
+	}
+	claims := make(map[string]string, min(len(v.Claims), MaxClaims))
+	// Map order is random; keep the smallest keys so the result is deterministic.
+	for _, a := range slices.Sorted(maps.Keys(v.Claims)) {
+		if len(claims) == MaxClaims {
+			break
+		}
+		claims[trunc(a)] = trunc(v.Claims[a])
+	}
+	v.Claims = claims
+	if len(v.HostDevices) > MaxHostDevices {
+		v.Warnings = addWarning(slices.Clone(v.Warnings), "hostDevices truncated at 1024")
+		v.HostDevices = v.HostDevices[:MaxHostDevices]
+	}
+	hds := make([]HostDevice, len(v.HostDevices))
+	for i, d := range v.HostDevices {
+		hds[i] = HostDevice{trunc(d.Name), trunc(d.ClaimAlias), trunc(d.ClaimName), trunc(d.RequestName)}
+	}
+	v.HostDevices = hds
+	if len(v.Warnings) > maxWarnings {
+		v.Warnings = v.Warnings[:maxWarnings]
+	}
+	ws := make([]string, len(v.Warnings))
+	for i, w := range v.Warnings {
+		ws[i] = trunc(w)
+	}
+	if len(ws) > 0 {
+		v.Warnings = ws
+	}
+	return v
 }
 
 // Config is the snapshot data the adapter works from.
@@ -94,6 +187,7 @@ func (a *Adapter) Collect(ctx context.Context) (model.Evidence, error) {
 	slices.SortFunc(ev.VMIs, func(x, y VMI) int {
 		return cmp.Or(cmp.Compare(x.Namespace, y.Namespace), cmp.Compare(x.Name, y.Name))
 	})
+	ev.Bound()
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
@@ -176,6 +270,10 @@ func fromObject(obj map[string]any) VMI {
 		if !isList {
 			warn("spec.resourceClaims is not a list")
 		}
+		if len(list) > MaxClaims {
+			warn("claims truncated at 1024")
+			list = list[:MaxClaims]
+		}
 		for _, e := range list {
 			m, isMap := e.(map[string]any)
 			name, _ := m["name"].(string)
@@ -190,6 +288,10 @@ func fromObject(obj map[string]any) VMI {
 		list, isList := x.([]any)
 		if !isList {
 			warn("spec.domain.devices.hostDevices is not a list")
+		}
+		if len(list) > MaxHostDevices {
+			warn("hostDevices truncated at 1024")
+			list = list[:MaxHostDevices]
 		}
 		for _, e := range list {
 			m, isMap := e.(map[string]any)

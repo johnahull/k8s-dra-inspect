@@ -2,6 +2,7 @@ package model_test
 
 import (
 	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -99,23 +100,6 @@ func TestRedact(t *testing.T) {
 	}
 	if rest := strings.ReplaceAll(string(b), "SECRET-EVIDENCE", ""); strings.Contains(rest, "SECRET") {
 		t.Fatalf("secret survived: %s", b)
-	}
-	vols, _, _ := unstructured.NestedSlice(out.VMIs[0].Object, "spec", "volumes")
-	if len(vols) != 3 {
-		t.Fatalf("volumes lost: %v", vols)
-	}
-	ci := vols[0].(map[string]any)["cloudInitNoCloud"].(map[string]any)
-	if len(ci) != 2 || ci["secretRef"] == nil || ci["userDataSecretRef"] == nil {
-		t.Errorf("secret refs must stay, inline data go: %v", ci)
-	}
-	if cd := vols[1].(map[string]any)["cloudInitConfigDrive"].(map[string]any); len(cd) != 0 {
-		t.Errorf("configdrive: %v", cd)
-	}
-	if vols[2].(map[string]any)["containerDisk"] == nil {
-		t.Error("other volume lost")
-	}
-	if _, ok, _ := unstructured.NestedFieldNoCopy(out.VMIs[0].Object, "spec", "accessCredentials"); ok {
-		t.Error("accessCredentials kept")
 	}
 	if !out.Redacted {
 		t.Error("Redacted not set")
@@ -217,43 +201,94 @@ func TestRedactNodeKeepsOnlyNameLabelsAllocatable(t *testing.T) {
 	}
 }
 
-func TestRedactVMIDropsStatusIdentifiersAndFirmware(t *testing.T) {
-	fw := func() map[string]any {
-		return map[string]any{"domain": map[string]any{"firmware": map[string]any{"uuid": "FWUUID-LEAK", "serial": "FWSERIAL-LEAK", "bootloader": map[string]any{"efi": map[string]any{}}}, "devices": map[string]any{"gpus": []any{map[string]any{"name": "g"}}}}}
-	}
-	spec := fw()
-	spec["template"] = map[string]any{"spec": fw()}
-	vmi := unstructured.Unstructured{Object: map[string]any{
-		"metadata": map[string]any{"name": "vmi"},
-		"spec":     spec,
+func allowVMI() unstructured.Unstructured {
+	return unstructured.Unstructured{Object: map[string]any{
+		"apiVersion": "kubevirt.io/v1", "kind": "VirtualMachineInstance",
+		"metadata": map[string]any{
+			"name": "vmi", "namespace": "demo", "uid": "u1",
+			"labels":          map[string]any{"l": "LABEL-LEAK"},
+			"annotations":     map[string]any{"a": "ANNOTATION-LEAK"},
+			"ownerReferences": []any{map[string]any{"name": "OWNER-LEAK"}},
+		},
+		"spec": map[string]any{
+			"hostname": "HOSTNAME-LEAK", "subdomain": "SUBDOMAIN-LEAK", "nodeSelector": map[string]any{"k": "NODESEL-LEAK"},
+			"networks":          []any{map[string]any{"name": "NET-LEAK"}},
+			"volumes":           []any{map[string]any{"cloudInitNoCloud": map[string]any{"userData": "UD-LEAK"}}},
+			"accessCredentials": []any{map[string]any{"sshPublicKey": "KEY-LEAK"}},
+			"resourceClaims": []any{
+				map[string]any{"name": "al", "resourceClaimName": "cl", "resourceClaimTemplateName": "tpl", "extra": "EXTRA-LEAK"},
+				"junk-LEAK",
+			},
+			"domain": map[string]any{
+				"firmware": map[string]any{"uuid": "FWUUID-LEAK"},
+				"cpu": map[string]any{"sockets": int64(2), "cores": int64(4), "threads": int64(1), "dedicatedCpuPlacement": true, "model": "MODEL-LEAK",
+					"numa": map[string]any{"guestMappingPassthrough": map[string]any{"x": "NUMAVAL-LEAK"}, "other": "NUMAOTHER-LEAK"}},
+				"devices": map[string]any{
+					"gpus": []any{map[string]any{"name": "GPU-LEAK"}},
+					"hostDevices": []any{
+						map[string]any{"name": "hd", "claimName": "al", "requestName": "r", "deviceName": "DEVNAME-LEAK"},
+						"junk-LEAK", nil,
+					},
+				},
+			},
+		},
 		"status": map[string]any{
-			"nodeName":     "node-a",
-			"phase":        "Running",
-			"interfaces":   []any{map[string]any{"ipAddress": "IFACE-LEAK", "mac": "MAC-LEAK"}},
-			"guestOSInfo":  map[string]any{"name": "GUEST-LEAK"},
-			"volumeStatus": []any{map[string]any{"name": "VOLSTATUS-LEAK"}},
+			"nodeName": "node-a", "phase": "Running",
+			"interfaces":     []any{map[string]any{"ipAddress": "IFACE-LEAK"}},
+			"guestOSInfo":    map[string]any{"name": "GUEST-LEAK"},
+			"volumeStatus":   []any{map[string]any{"name": "VOLSTATUS-LEAK"}},
+			"migrationState": map[string]any{"sourceNode": "MIG-LEAK"},
+			"activePods":     map[string]any{"p": "ACTIVEPOD-LEAK"},
 		},
 	}}
-	in := model.Snapshot{VMIs: []unstructured.Unstructured{vmi}}
+}
+
+func TestRedactVMIAllowList(t *testing.T) {
+	in := model.Snapshot{VMIs: []unstructured.Unstructured{allowVMI()}}
 	before, _ := json.Marshal(in)
 	out := model.Redact(in)
 	b, _ := json.Marshal(out)
-	for _, leak := range []string{"FWUUID-LEAK", "FWSERIAL-LEAK", "IFACE-LEAK", "MAC-LEAK", "GUEST-LEAK", "VOLSTATUS-LEAK"} {
-		if strings.Contains(string(b), leak) {
-			t.Errorf("redacted bytes contain %q", leak)
-		}
+	if strings.Contains(string(b), "LEAK") {
+		t.Errorf("leak survived: %s", b)
 	}
-	o := out.VMIs[0].Object
-	for _, p := range [][]string{{"status", "nodeName"}, {"status", "phase"}, {"spec", "domain", "devices", "gpus"}, {"spec", "domain", "firmware", "bootloader"},
-		{"spec", "template", "spec", "domain", "devices", "gpus"}, {"spec", "template", "spec", "domain", "firmware", "bootloader"}} {
-		if _, ok, _ := unstructured.NestedFieldNoCopy(o, p...); !ok {
-			t.Errorf("%v lost", p)
-		}
+	want := map[string]any{
+		"apiVersion": "kubevirt.io/v1", "kind": "VirtualMachineInstance",
+		"metadata": map[string]any{"name": "vmi", "namespace": "demo", "uid": "u1"},
+		"spec": map[string]any{
+			"resourceClaims": []any{map[string]any{"name": "al", "resourceClaimName": "cl", "resourceClaimTemplateName": "tpl"}},
+			"domain": map[string]any{
+				"cpu": map[string]any{"sockets": int64(2), "cores": int64(4), "threads": int64(1), "dedicatedCpuPlacement": true,
+					"numa": map[string]any{"guestMappingPassthrough": map[string]any{}}},
+				"devices": map[string]any{"hostDevices": []any{map[string]any{"name": "hd", "claimName": "al", "requestName": "r"}}},
+			},
+		},
+		"status": map[string]any{"nodeName": "node-a", "phase": "Running"},
+	}
+	if !reflect.DeepEqual(out.VMIs[0].Object, want) {
+		t.Errorf("got  %v\nwant %v", out.VMIs[0].Object, want)
 	}
 	if after, _ := json.Marshal(in); string(before) != string(after) {
 		t.Fatal("input mutated")
 	}
 	if twice, _ := json.Marshal(model.Redact(out)); string(twice) != string(b) {
 		t.Fatal("not idempotent")
+	}
+}
+
+func TestRedactVMIGarbageShapesDropped(t *testing.T) {
+	for _, obj := range []map[string]any{
+		{"metadata": "x", "spec": "x", "status": "x"},
+		{"metadata": []any{int64(1)}, "spec": []any{"x"}, "status": int64(5)},
+		{"metadata": map[string]any{"name": int64(7), "namespace": []any{}, "uid": nil}, "spec": map[string]any{
+			"resourceClaims": "x", "domain": map[string]any{"cpu": "x", "devices": []any{"x"}}}, "status": map[string]any{"nodeName": int64(7), "phase": map[string]any{"G": "G"}}},
+		{"spec": map[string]any{"resourceClaims": []any{int64(5), nil, map[string]any{"name": int64(3), "resourceClaimName": []any{"G"}}},
+			"domain": map[string]any{"cpu": map[string]any{"sockets": "G", "cores": nil, "dedicatedCpuPlacement": "G", "numa": "G"},
+				"devices": map[string]any{"hostDevices": "G"}}}},
+	} {
+		in := model.Snapshot{VMIs: []unstructured.Unstructured{{Object: obj}}}
+		b, _ := json.Marshal(model.Redact(in))
+		if strings.Contains(string(b), "\"G\"") || strings.Contains(string(b), ":7") || strings.Contains(string(b), ":3") {
+			t.Errorf("garbage kept: %s", b)
+		}
 	}
 }

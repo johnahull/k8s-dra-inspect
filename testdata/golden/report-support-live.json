@@ -481,7 +481,7 @@
       "status": "warn",
       "subject": "demo/vm-split",
       "details": {
-        "dedicatedCPUPlacement": false,
+        "dedicatedCPUPlacement": true,
         "devices": [
           {
             "device": "gpu-0",

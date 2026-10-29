@@ -31,8 +31,8 @@ func deepCopy[T any, P interface {
 // Redact returns a deep copy of s without opaque driver parameters, device
 // status data, last-applied annotations, managedFields, or inline VMI
 // cloud-init data and access credentials. Nodes keep only name, labels and
-// status.allocatable; VMIs also lose status interfaces, guest OS info, volume
-// status and firmware uuid/serial. Evidence is left as is. It is idempotent.
+// status.allocatable; VMIs keep only the allow-list in redactVMI. Evidence is
+// left as is. It is idempotent.
 func Redact(s Snapshot) Snapshot {
 	out := s
 	out.Redacted = true
@@ -41,7 +41,10 @@ func Redact(s Snapshot) Snapshot {
 	out.DeviceClasses = deepCopy(s.DeviceClasses)
 	out.ResourceClaims = deepCopy(s.ResourceClaims)
 	out.Nodes = deepCopy(s.Nodes)
-	out.VMIs = deepCopy(s.VMIs)
+	out.VMIs = nil
+	if s.VMIs != nil {
+		out.VMIs = make([]unstructured.Unstructured, len(s.VMIs))
+	}
 	out.Pods = slices.Clone(s.Pods)
 	for i := range out.Pods {
 		out.Pods[i].ResourceClaims = deepCopy(out.Pods[i].ResourceClaims)
@@ -66,14 +69,8 @@ func Redact(s Snapshot) Snapshot {
 			Status:     corev1.NodeStatus{Allocatable: n.Status.Allocatable},
 		}
 	}
-	for i := range out.VMIs {
-		scrubMeta(&out.VMIs[i])
-		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "interfaces")
-		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "guestOSInfo")
-		unstructured.RemoveNestedField(out.VMIs[i].Object, "status", "volumeStatus")
-		for _, base := range [][]string{{"spec"}, {"spec", "template", "spec"}} {
-			scrubVMISpec(out.VMIs[i].Object, base)
-		}
+	for i := range s.VMIs {
+		out.VMIs[i] = unstructured.Unstructured{Object: redactVMI(s.VMIs[i].Object)}
 	}
 	for i := range out.DeviceClasses {
 		dc := &out.DeviceClasses[i]
@@ -100,27 +97,95 @@ func Redact(s Snapshot) Snapshot {
 	return out
 }
 
-// scrubVMISpec drops inline cloud-init data and accessCredentials under the
-// map at path; secret references (names only) stay.
-func scrubVMISpec(obj map[string]any, path []string) {
-	spec, ok, _ := unstructured.NestedFieldNoCopy(obj, path...)
-	m, isMap := spec.(map[string]any)
-	if !ok || !isMap {
-		return
+// redactVMI rebuilds a VMI from an allow-list of what replay and the kubevirt
+// adapter read. Everything else (labels, annotations, owners, networks,
+// volumes, cloud-init, credentials, status details) is never copied, and a
+// value of an unexpected type is dropped. The result shares nothing with obj.
+func redactVMI(obj map[string]any) map[string]any {
+	out := map[string]any{}
+	keep(out, obj, "apiVersion", "kind")
+	if m := sub(obj, "metadata"); m != nil {
+		put(out, "metadata", pick(m, "name", "namespace", "uid"))
 	}
-	delete(m, "accessCredentials")
-	for _, f := range []string{"uuid", "serial"} {
-		unstructured.RemoveNestedField(m, "domain", "firmware", f)
+	if st := sub(obj, "status"); st != nil {
+		put(out, "status", pick(st, "nodeName", "phase"))
 	}
-	vols, _ := m["volumes"].([]any)
-	for _, v := range vols {
-		vm, _ := v.(map[string]any)
-		for _, k := range []string{"cloudInitNoCloud", "cloudInitConfigDrive"} {
-			if ci, _ := vm[k].(map[string]any); ci != nil {
-				for _, f := range []string{"userData", "userDataBase64", "networkData", "networkDataBase64"} {
-					delete(ci, f)
+	spec := map[string]any{}
+	if sp := sub(obj, "spec"); sp != nil {
+		if l, ok := sp["resourceClaims"].([]any); ok {
+			var cs []any
+			for _, e := range l {
+				if m, ok := e.(map[string]any); ok {
+					cs = append(cs, pick(m, "name", "resourceClaimName", "resourceClaimTemplateName"))
 				}
 			}
+			if cs != nil {
+				spec["resourceClaims"] = cs
+			}
+		}
+		dom := map[string]any{}
+		d := sub(sp, "domain")
+		if cpu := sub(d, "cpu"); cpu != nil {
+			c := map[string]any{}
+			for _, k := range []string{"sockets", "cores", "threads"} {
+				switch n := cpu[k].(type) {
+				case int64, float64, int:
+					c[k] = n
+				}
+			}
+			if b, ok := cpu["dedicatedCpuPlacement"].(bool); ok {
+				c["dedicatedCpuPlacement"] = b
+			}
+			if n := sub(cpu, "numa"); n != nil {
+				numa := map[string]any{}
+				if n["guestMappingPassthrough"] != nil {
+					numa["guestMappingPassthrough"] = map[string]any{} // only presence is read
+				}
+				put(c, "numa", numa)
+			}
+			put(dom, "cpu", c)
+		}
+		if l, ok := sub(d, "devices")["hostDevices"].([]any); ok {
+			var hs []any
+			for _, e := range l {
+				if m, ok := e.(map[string]any); ok {
+					hs = append(hs, pick(m, "name", "claimName", "requestName"))
+				}
+			}
+			if hs != nil {
+				put(dom, "devices", map[string]any{"hostDevices": hs})
+			}
+		}
+		put(spec, "domain", dom)
+	}
+	put(out, "spec", spec)
+	return out
+}
+
+// sub returns m[k] as a map, or nil; a nil m is fine.
+func sub(m map[string]any, k string) map[string]any {
+	x, _ := m[k].(map[string]any)
+	return x
+}
+
+// put sets m[k]=v unless v is empty.
+func put(m map[string]any, k string, v map[string]any) {
+	if len(v) > 0 {
+		m[k] = v
+	}
+}
+
+// pick returns the string values of src under keys.
+func pick(src map[string]any, keys ...string) map[string]any {
+	out := map[string]any{}
+	keep(out, src, keys...)
+	return out
+}
+
+func keep(dst, src map[string]any, keys ...string) {
+	for _, k := range keys {
+		if s, ok := src[k].(string); ok {
+			dst[k] = s
 		}
 	}
 }

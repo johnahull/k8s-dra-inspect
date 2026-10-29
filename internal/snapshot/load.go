@@ -101,7 +101,7 @@ func Scope(s model.Snapshot, ns string) (model.Snapshot, error) {
 	}
 	s.Pods = pods
 	s.Collection = maps.Clone(s.Collection)
-	for _, k := range []string{"resourceclaims", "pods"} {
+	for _, k := range []string{"resourceclaims", "pods", "virtualmachineinstances"} {
 		if st, ok := s.Collection[k]; ok && st.State == model.StateOK {
 			s.Collection[k] = model.CollectionStatus{State: model.StateOK, Reason: "namespace " + ns + " only"}
 		}

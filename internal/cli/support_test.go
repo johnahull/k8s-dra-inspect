@@ -217,7 +217,7 @@ func TestCaptureWithAdaptersStoresRedactedEvidence(t *testing.T) {
 	if len(s.Evidence[host.Name]) == 0 || len(s.Evidence[kubevirt.Name]) == 0 {
 		t.Fatalf("evidence keys: %v", s.Evidence)
 	}
-	for _, m := range []string{"SECRET-CLOUDINIT-MARKER", "SECRET-ACCESSCRED-MARKER", "SECRET-GUESTOS-MARKER", "2001:db8"} {
+	for _, m := range []string{"SECRET-CLOUDINIT-MARKER", "SECRET-ACCESSCRED-MARKER", "SECRET-GUESTOS-MARKER", "SECRET-ANNOTATION-MARKER", "SECRET-GARBAGE-MARKER", "2001:db8"} {
 		if bytes.Contains(raw, []byte(m)) {
 			t.Errorf("captured file contains %q", m)
 		}
@@ -265,5 +265,85 @@ func TestReportSupportNamespaceScopesKubeVirt(t *testing.T) {
 	kv := find(resultsOf(t, out), "check.kubevirt")
 	if len(kv) != 1 || kv[0].Status != model.StatusPass || kv[0].Details["summary"] != "no VirtualMachineInstances" {
 		t.Fatalf("%+v", kv)
+	}
+}
+
+// Every key in a captured VMI and in the kubevirt evidence must be on the
+// allow-list; a new key means a new disclosure and needs a conscious decision.
+func TestCaptureWithAdaptersKeysAreAllowListed(t *testing.T) {
+	_, raw := captureWithAdapters(t, kvFixture(t), kvHost(t).Root)
+	var doc struct {
+		VMIs     []map[string]any           `json:"virtualMachineInstances"`
+		Evidence map[string]json.RawMessage `json:"evidence"`
+	}
+	if err := json.Unmarshal(raw, &doc); err != nil {
+		t.Fatal(err)
+	}
+	// walk checks every map key against allowed (keyed by dotted path; [] marks list elements).
+	var walk func(path string, v any, allowed map[string]bool)
+	walk = func(path string, v any, allowed map[string]bool) {
+		switch x := v.(type) {
+		case map[string]any:
+			if path == ".vmis[].claims" {
+				return // alias -> claim name; the keys are data, not schema
+			}
+			for k, c := range x {
+				p := path + "." + k
+				if !allowed[p] {
+					t.Errorf("key %s is not allow-listed", p)
+				}
+				walk(p, c, allowed)
+			}
+		case []any:
+			for _, c := range x {
+				walk(path+"[]", c, allowed)
+			}
+		}
+	}
+	allow := func(ps ...string) map[string]bool {
+		m := map[string]bool{}
+		for _, p := range ps {
+			m[p] = true
+		}
+		return m
+	}
+	vmiAllowed := allow(".apiVersion", ".kind", ".metadata", ".metadata.name", ".metadata.namespace", ".metadata.uid",
+		".spec", ".spec.resourceClaims", ".spec.domain",
+		".spec.resourceClaims[].name", ".spec.resourceClaims[].resourceClaimName", ".spec.resourceClaims[].resourceClaimTemplateName",
+		".spec.domain.cpu", ".spec.domain.cpu.sockets", ".spec.domain.cpu.cores", ".spec.domain.cpu.threads", ".spec.domain.cpu.dedicatedCpuPlacement",
+		".spec.domain.cpu.numa", ".spec.domain.cpu.numa.guestMappingPassthrough",
+		".spec.domain.devices", ".spec.domain.devices.hostDevices",
+		".spec.domain.devices.hostDevices[].name", ".spec.domain.devices.hostDevices[].claimName", ".spec.domain.devices.hostDevices[].requestName",
+		".status", ".status.nodeName", ".status.phase")
+	if len(doc.VMIs) == 0 {
+		t.Fatal("no VMIs captured")
+	}
+	for _, v := range doc.VMIs {
+		walk("", v, vmiAllowed)
+	}
+	var ev any
+	if err := json.Unmarshal(doc.Evidence[kubevirt.Name], &ev); err != nil {
+		t.Fatal(err)
+	}
+	evAllowed := allow(".version", ".vmis", ".vmis[].namespace", ".vmis[].name", ".vmis[].nodeName", ".vmis[].phase", ".vmis[].claims",
+		".vmis[].hostDevices", ".vmis[].guestNUMAPassthrough", ".vmis[].dedicatedCPUPlacement", ".vmis[].sockets", ".vmis[].cores", ".vmis[].threads",
+		".vmis[].warnings", ".warnings", ".vmis[].hostDevices[].name", ".vmis[].hostDevices[].claimAlias", ".vmis[].hostDevices[].claimName", ".vmis[].hostDevices[].requestName")
+	walk("", ev, evAllowed)
+}
+
+func TestHelpDocumentsStrictAndTemplateClaims(t *testing.T) {
+	for _, tc := range []struct {
+		args []string
+		want []string
+	}{
+		{[]string{"report", "support", "--help"}, []string{"--strict", "unavailable adapter", "exit code 3"}},
+		{[]string{"check", "kubevirt", "--help"}, []string{"resourceClaimTemplateName", "not resolved", "resourceClaimStatuses"}},
+	} {
+		out, _, _ := runHost(t, kvFixture(t), noHost(t), tc.args...)
+		for _, w := range tc.want {
+			if !strings.Contains(out, w) {
+				t.Errorf("%v help lacks %q", tc.args, w)
+			}
+		}
 	}
 }

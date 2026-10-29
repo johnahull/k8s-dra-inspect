@@ -24,7 +24,10 @@ blocks the other results. check.cpupinning needs a pod and is not included.
 A live run reads files below --host-root on this node (read-only; run it on the
 node) and derives KubeVirt evidence from the VMIs already collected. With
 --from, the evidence stored in the snapshot (snapshot capture --with-adapters)
-is used and --host-root and --node-name are rejected.`
+is used and --host-root and --node-name are rejected.
+
+With --strict, an unavailable adapter (for example the host adapter when not
+running on the node) makes the exit code 3.`
 
 func addReportCommands(parent *cobra.Command, opts *Options, d Deps) {
 	var root, nodeName string

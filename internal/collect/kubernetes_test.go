@@ -203,6 +203,9 @@ func TestCollectVMIsNamespaced(t *testing.T) {
 	if len(snap.VMIs) != 1 || snap.VMIs[0].GetName() != "v2" {
 		t.Fatalf("vmis: %v", snap.VMIs)
 	}
+	if want := (model.CollectionStatus{State: model.StateOK, Reason: "namespace b only"}); snap.Collection["virtualmachineinstances"] != want {
+		t.Errorf("collection: %+v", snap.Collection["virtualmachineinstances"])
+	}
 }
 
 func TestSnapshotUsesScope(t *testing.T) {

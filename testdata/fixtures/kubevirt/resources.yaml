@@ -82,7 +82,7 @@ items:
   metadata: {name: vm-split, namespace: demo}
   spec:
     domain:
-      cpu: {sockets: 1, cores: 4, threads: 2}
+      cpu: {sockets: 1, cores: 4, threads: 2, dedicatedCpuPlacement: true}
       devices:
         hostDevices:
         - {name: gpu0, claimName: partitions, requestName: gpu0}

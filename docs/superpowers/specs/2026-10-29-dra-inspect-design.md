@@ -84,7 +84,13 @@ guest info). It is unavailable when the VMI collection is not ok (for example
 `kubevirt.io/v1 not served`). `check kubevirt [VMI]` maps each VMI host device
 to its claim's allocation result and reports a missing claim or allocation, a
 device on another node than the VMI (fail), and devices on two or more NUMA
-nodes without `guestMappingPassthrough` (warn).
+nodes without `guestMappingPassthrough` (warn), as well as
+`guestMappingPassthrough` without `dedicatedCpuPlacement` (warn: KubeVirt will
+not schedule such a VMI). Evidence is bounded: at most 10000 VMIs, 1024 host
+devices and 1024 claim aliases per VMI, strings cut to 253 characters, and
+duplicate VMIs (same namespace/name) ignored, each with a fixed-text warning.
+Evidence read with `--from` is validated only for version and shape, then
+bounded the same way.
 
 `report support` runs the `report cluster` members plus `check.vfio`,
 `check.kubevirt` and one `adapter.<name>` result per adapter (host, kubevirt):
@@ -145,6 +151,10 @@ v1 does not evaluate: `distinctAttribute` constraints, derived attributes
 A claim's status is the worst of its findings: error, then fail, then
 unavailable, then warn, then pass.
 
+`check kubevirt` does not resolve claims generated from
+`resourceClaimTemplateName` in v1; they stay `unavailable`. Upgrade path: join
+through the virt-launcher pod's `resourceClaimStatuses`.
+
 ## JSON Output
 
 Every JSON document is an envelope:
@@ -178,25 +188,28 @@ the file may contain sensitive data.
   `status.devices[].data` from ResourceClaims.
 - Drop `metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]`
   and `managedFields` from all objects.
-- For VirtualMachineInstances, drop inline `cloudInitNoCloud` and
-  `cloudInitConfigDrive` data (`userData`, `userDataBase64`, `networkData`,
-  `networkDataBase64`) from `spec.volumes[]` and delete `spec.accessCredentials`
-  (the same under `spec.template.spec` when present). Secret references
-  (names only) stay.
 - Nodes are reduced to an allow-list: `metadata.name`, `metadata.labels` and
   `status.allocatable`. Everything else is dropped: all annotations, UID and
   resourceVersion, `status.addresses` (IPs and hostnames), `status.nodeInfo`
   (machineID, systemUUID, bootID), `status.images`, `status.volumesInUse`,
   `status.volumesAttached`, `status.daemonEndpoints`, conditions, capacity,
   taints, `spec.providerID`, `spec.podCIDR` and `spec.podCIDRs`.
-- VirtualMachineInstances additionally lose `status.interfaces`,
-  `status.guestOSInfo`, `status.volumeStatus`, and
-  `spec.domain.firmware.uuid` and `.serial` (also under `spec.template.spec`).
-  `status.nodeName` stays.
+- VirtualMachineInstances are rebuilt from an allow-list: `apiVersion`, `kind`,
+  `metadata.{name,namespace,uid}`,
+  `spec.resourceClaims[].{name,resourceClaimName,resourceClaimTemplateName}`,
+  `spec.domain.cpu.{sockets,cores,threads,dedicatedCpuPlacement}`,
+  `spec.domain.cpu.numa` (only whether `guestMappingPassthrough` is set),
+  `spec.domain.devices.hostDevices[].{name,claimName,requestName}`, and
+  `status.{nodeName,phase}`. Everything else is dropped: all labels and
+  annotations, ownerReferences, networks, nodeSelector, hostname, subdomain,
+  volumes (cloud-init), accessCredentials, firmware, interfaces, guest info,
+  migration state, activePods, and any value of an unexpected type.
+  `--no-redact` keeps full objects.
 - Intentionally kept, because replay needs it and it is not secret on its own:
   DeviceClass and ResourceClaim CEL selector text (user-facing inspect output
   hides selector text, but the snapshot file contains it), `reservedFor` pod
-  names, Node labels, and VMI spec devices (GPUs, host devices). Review a
+  names, Node labels, and the VMI names, namespaces, UIDs, node names, claim names and
+  host-device names on the allow-list above. Review a
   snapshot before sharing it outside the team that owns the cluster.
 - `Read` accepts at most 256 MiB (larger input fails with
   `snapshot larger than 256 MiB`), rejects any data after the snapshot object

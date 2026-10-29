@@ -55,7 +55,12 @@ func KubeVirt(target, namespace string) Check {
 				}
 				idx, built = newDeviceIndex(snap), true
 			}
-			out = append(out, kubevirtVMI(snap, idx, v))
+			r := kubevirtVMI(snap, idx, v)
+			if len(ev.Warnings) > 0 {
+				ws, _ := r.Details["warnings"].([]string)
+				r.Details["warnings"] = append(slices.Clone(ws), ev.Warnings...)
+			}
+			out = append(out, r)
 		}
 		return out
 	}
@@ -81,6 +86,7 @@ func loadKubeVirt(ctx context.Context, snap model.Snapshot, name string) (kubevi
 	if ev.Version < 1 || ev.Version > kubevirt.Version {
 		return ev, single(name, model.StatusUnavailable, "", fmt.Sprintf("unsupported kubevirt evidence version %d", ev.Version)), false
 	}
+	ev.Bound() // evidence from --from is only checked for version and shape
 	return ev, nil, true
 }
 
@@ -164,6 +170,9 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 	}
 	if len(numa) >= 2 && !v.GuestNUMAPassthrough {
 		fs = append(fs, finding{model.StatusWarn, fmt.Sprintf("devices span NUMA nodes %s without guestMappingPassthrough; the guest cannot see the topology", strings.Join(numa, ","))})
+	}
+	if v.GuestNUMAPassthrough && !v.DedicatedCPUPlacement {
+		fs = append(fs, finding{model.StatusWarn, "NUMA passthrough requires dedicated CPU placement; KubeVirt will not schedule such a VMI"})
 	}
 	st := worst(fs)
 	det := map[string]any{

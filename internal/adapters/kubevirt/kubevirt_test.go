@@ -3,10 +3,14 @@ package kubevirt
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"reflect"
+	"runtime"
+	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/adapters"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
@@ -94,7 +98,7 @@ func TestEvidenceContentAndSort(t *testing.T) {
 	if !reflect.DeepEqual(got, exp) {
 		t.Fatalf("vm-ok:\n got %+v\nwant %+v", got, exp)
 	}
-	if s := vmi(ev, "vm-split"); s.GuestNUMAPassthrough || s.DedicatedCPUPlacement || s.Threads != 2 {
+	if s := vmi(ev, "vm-split"); s.GuestNUMAPassthrough || !s.DedicatedCPUPlacement || s.Threads != 2 {
 		t.Fatalf("vm-split %+v", s)
 	}
 	if p := vmi(ev, "vm-pending"); p.NodeName != "" || p.Phase != "Pending" {
@@ -158,5 +162,116 @@ func TestWholeObjectGarbageDoesNotPanic(t *testing.T) {
 		{"spec": map[string]any{"domain": map[string]any{"devices": map[string]any{"hostDevices": "x"}}}},
 	} {
 		collect(t, Config{VMIs: []unstructured.Unstructured{{Object: obj}}, State: model.CollectionStatus{State: model.StateOK}})
+	}
+}
+
+// jsonFields lists the JSON keys of struct type t, sorted.
+func jsonFields(t reflect.Type) []string {
+	var f []string
+	for i := 0; i < t.NumField(); i++ {
+		f = append(f, strings.Split(t.Field(i).Tag.Get("json"), ",")[0])
+	}
+	slices.Sort(f)
+	return f
+}
+
+// Adding a field to the evidence types must be a conscious privacy decision:
+// update the pinned lists (and the spec) together with the field.
+func TestEvidenceFieldAllowList(t *testing.T) {
+	for _, tc := range []struct {
+		typ  reflect.Type
+		want []string
+	}{
+		{reflect.TypeOf(Evidence{}), []string{"version", "vmis", "warnings"}},
+		{reflect.TypeOf(VMI{}), []string{"claims", "cores", "dedicatedCPUPlacement", "guestNUMAPassthrough", "hostDevices", "name", "namespace", "nodeName", "phase", "sockets", "threads", "warnings"}},
+		{reflect.TypeOf(HostDevice{}), []string{"claimAlias", "claimName", "name", "requestName"}},
+	} {
+		if got := jsonFields(tc.typ); !slices.Equal(got, tc.want) {
+			t.Errorf("%s fields %v, pinned %v", tc.typ.Name(), got, tc.want)
+		}
+	}
+}
+
+func okState() model.CollectionStatus { return model.CollectionStatus{State: model.StateOK} }
+
+func hasWarning(ws []string, w string) bool { return slices.Contains(ws, w) }
+
+func allocDelta(f func()) uint64 {
+	var a, b runtime.MemStats
+	runtime.ReadMemStats(&a)
+	f()
+	runtime.ReadMemStats(&b)
+	return b.TotalAlloc - a.TotalAlloc
+}
+
+func TestHostDevicesCappedPerVMI(t *testing.T) {
+	var hds []any
+	for i := 0; i < 5000; i++ {
+		hds = append(hds, map[string]any{"name": fmt.Sprint("d", i), "claimName": "a", "requestName": "r"})
+	}
+	obj := map[string]any{"metadata": map[string]any{"name": "big", "namespace": "ns"},
+		"spec": map[string]any{"domain": map[string]any{"devices": map[string]any{"hostDevices": hds}}}}
+	var ev Evidence
+	start := time.Now()
+	if d := allocDelta(func() { ev = collect(t, Config{VMIs: []unstructured.Unstructured{{Object: obj}}, State: okState()}) }); d > 256<<20 {
+		t.Errorf("allocated %d bytes", d)
+	}
+	if time.Since(start) > 5*time.Second {
+		t.Errorf("took %v", time.Since(start))
+	}
+	if n := len(ev.VMIs[0].HostDevices); n != 1024 {
+		t.Errorf("hostDevices %d, want 1024", n)
+	}
+	if !hasWarning(ev.VMIs[0].Warnings, "hostDevices truncated at 1024") {
+		t.Errorf("warnings %v", ev.VMIs[0].Warnings)
+	}
+}
+
+func TestVMIsCapped(t *testing.T) {
+	vmis := make([]unstructured.Unstructured, 20000)
+	for i := range vmis {
+		vmis[i] = unstructured.Unstructured{Object: map[string]any{"metadata": map[string]any{"name": fmt.Sprintf("v%05d", i), "namespace": "ns"}}}
+	}
+	var ev Evidence
+	start := time.Now()
+	if d := allocDelta(func() { ev = collect(t, Config{VMIs: vmis, State: okState()}) }); d > 256<<20 {
+		t.Errorf("allocated %d bytes", d)
+	}
+	if time.Since(start) > 10*time.Second {
+		t.Errorf("took %v", time.Since(start))
+	}
+	if len(ev.VMIs) != 10000 || ev.VMIs[0].Name != "v00000" || !hasWarning(ev.Warnings, "vmis truncated at 10000") {
+		t.Errorf("vmis %d warnings %v", len(ev.VMIs), ev.Warnings)
+	}
+}
+
+func TestBoundDedupesTruncatesAndCaps(t *testing.T) {
+	long := strings.Repeat("é", 10<<20) // 10M runes
+	claims := map[string]string{}
+	for i := 0; i < 5000; i++ {
+		claims[fmt.Sprint("a", i)] = "c"
+	}
+	ev := Evidence{Version: 1, VMIs: []VMI{
+		{Namespace: "ns", Name: "dup", Phase: "first"},
+		{Namespace: "ns", Name: "dup", Phase: "second"},
+		{Namespace: long, Name: long, NodeName: long, Claims: map[string]string{long: long}, HostDevices: []HostDevice{{Name: long, ClaimAlias: long, ClaimName: long, RequestName: long}}},
+		{Namespace: "ns", Name: "many", Claims: claims},
+	}}
+	ev.Bound()
+	if len(ev.VMIs) != 3 || ev.VMIs[0].Phase != "first" {
+		t.Fatalf("dedupe: %+v", ev.VMIs[:1])
+	}
+	if !hasWarning(ev.Warnings, "duplicate VMIs ignored") {
+		t.Errorf("warnings %v", ev.Warnings)
+	}
+	if n := len(ev.VMIs[2].Claims); n != 1024 || !hasWarning(ev.VMIs[2].Warnings, "claims truncated at 1024") {
+		t.Errorf("claims %d warnings %v", n, ev.VMIs[2].Warnings)
+	}
+	raw, _ := json.Marshal(ev)
+	if len(raw) > 64<<10 {
+		t.Fatalf("bounded evidence is %d bytes", len(raw))
+	}
+	if n := len([]rune(ev.VMIs[1].Name)); n != MaxString+1 || !strings.HasSuffix(ev.VMIs[1].Name, "…") {
+		t.Errorf("name has %d runes", n)
 	}
 }
