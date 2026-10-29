@@ -32,7 +32,7 @@ Out of scope:
 
 - Repository: `github.com/johnahull/k8s-dra-inspect`.
 - Binary: `dra-inspect`.
-- Implementation language: Go 1.25 or newer.
+- Implementation language: Go 1.26 or newer.
 - CLI framework: Cobra.
 - API target: `resource.k8s.io/v1` only, Kubernetes 1.34 or newer, client-go
   v0.34 or newer. Older API versions are not supported.
@@ -67,7 +67,8 @@ wins.
 | NUMA node | `resource.kubernetes.io/numaNode` | `numaNode`, `numa`, `numaNodeID` |
 | PCIe root | `resource.kubernetes.io/pcieRoot` | `pcieRoot` |
 
-A list-valued attribute is a set. Two devices align when their sets intersect.
+A list-valued attribute is a set. A constraint holds when the intersection of the sets across all devices in its
+scope is non-empty (not pairwise).
 `cpuSocketID` is not a standard attribute and is not interpreted by v1.
 
 ## Results, Status, and Exit Codes
@@ -90,6 +91,9 @@ Every inspector and check returns `[]Result`. A `Result` has a status of `pass`,
 | 2 | at least one `error` |
 | 3 | at least one `unavailable`, only with `--strict` |
 
+Precedence when several apply: error (2), then fail (1), then unavailable with
+`--strict` (3), then 0. Cobra usage errors also exit 2.
+
 ## JSON Output
 
 Every JSON document is an envelope:
@@ -106,6 +110,10 @@ Within one `schemaVersion`, changes are additive only. Resource names are exact
 Redaction is on by default; `--no-redact` opts out.
 
 - Drop `config[].opaque.parameters` from DeviceClasses and ResourceClaims.
+- Drop `status.allocation.devices.config[].opaque.parameters` and
+  `status.devices[].data` from ResourceClaims.
+- Drop `metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]`
+  and `managedFields` from all objects.
 - Keep Pods only as name, namespace, uid, nodeName, and resourceClaims. Never
   capture env, annotations, or managedFields.
 - Never capture kubeconfig contents.
@@ -124,7 +132,6 @@ when stdout is not a terminal.
 | `resource.k8s.io` | resourceclaims | get, list | yes | yes |
 | core | pods | get, list | yes | yes |
 | core | nodes | get, list | yes | no (reported `unavailable`) |
-| `apps` | daemonsets | get, list | yes | no |
 | `kubevirt.io` | virtualmachineinstances | get, list | optional | optional |
 
 No profile grants a mutating verb or `pods/exec`.

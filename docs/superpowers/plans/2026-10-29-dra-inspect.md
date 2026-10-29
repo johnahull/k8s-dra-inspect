@@ -6,7 +6,7 @@
 
 **Architecture:** A Go/Cobra CLI collects typed Kubernetes DRA objects into normalized models, runs independent inspection/check analyzers, and renders tables or versioned JSON. Optional host and KubeVirt adapters are isolated from the core Kubernetes collector so normal cluster inspection never requires privileged access.
 
-**Tech Stack:** Go 1.25+, Cobra, client-go v0.34+ (`resource.k8s.io/v1` only, Kubernetes 1.34+), typed fixture snapshots, GoReleaser, GitHub Actions, optional Helm Job manifests.
+**Tech Stack:** Go 1.26+, Cobra, client-go v0.34+ (`resource.k8s.io/v1` only, Kubernetes 1.34+), typed fixture snapshots, GoReleaser, GitHub Actions, optional Helm Job manifests.
 
 **Spec:** `docs/superpowers/specs/2026-10-29-dra-inspect-design.md`
 
@@ -21,7 +21,7 @@
 - `inspect metadata` and `inspect guest` are excluded from v1 (they need `pods/exec` or SSH).
 - `cpuSocketID` is not a standard attribute and is not interpreted.
 - Host checks run only on the node (`--host-root`), return `unavailable` elsewhere, and are not part of the default Job.
-- Shared types (`Result`, `Snapshot`, `Evidence`) live in `internal/model` and are created in Task 2.
+- Shared types (`Result`, `Snapshot`, `Evidence`) live in `internal/model` and are created in Tasks 1-2.
 - Cluster RBAC is read-only; namespace mode must not silently claim cluster-wide coverage.
 
 ## Review Focus
@@ -58,7 +58,7 @@
 | `-a`, `--all` | Drop as global | Explicit command flags such as `--all-attributes` |
 | `-t`, `--simple` | Drop | `inspect topology --compact` |
 | `-h`, `--help` | Keep | Standard Cobra help |
-| Positional DeviceClass filters | Replace | `--kind`, `--grouping`, and `--partition` |
+| Positional DeviceClass filters | Replace | a generic label `--selector` and `--partition` |
 | Positional Pod/VM targets | Keep | Typed command-specific positional arguments |
 | `source dra-verify.sh` | Drop | Standalone binary only |
 | `eval ... completions` | Drop | Cobra completion generation |
@@ -70,7 +70,7 @@ dra-inspect inspect slices
 dra-inspect inspect topology
 dra-inspect inspect drivers [--attributes]
 dra-inspect inspect attributes [--all-attributes] [--include-capacity]
-dra-inspect inspect deviceclasses [--kind KIND] [--grouping NAME]
+dra-inspect inspect deviceclasses [--selector LABEL_SELECTOR]
 dra-inspect inspect claims [--namespace NS]
 
 dra-inspect check alignment [POD|CLAIM] [--namespace NS]
@@ -119,13 +119,13 @@ commands for each installation method.
 
 **Files:**
 - Modify: `cmd/dra-inspect/main.go`
-- Create: `internal/cli/root.go`, `internal/cli/options.go`, `internal/cli/exit.go`
+- Create: `internal/model/result.go`, `internal/cli/root.go`, `internal/cli/options.go`, `internal/cli/exit.go`
 - Test: `internal/cli/root_test.go`
 
 **Interfaces:**
 - `Options` carries kubeconfig, context, namespace, output format, color, timeout, `From` (snapshot path), and `Strict`.
-- `NewRootCommand(opts *Options) *cobra.Command` returns the executable command tree.
-- `ExitCode(statuses []model.Status, strict bool) int` maps result statuses to the exit codes in the spec. `model.Status` is declared in Task 2; Task 1 declares a local placeholder type until then.
+- `NewRootCommand(opts *Options, version string) *cobra.Command` returns the executable command tree.
+- `ExitCode(statuses []model.Status, strict bool) int` maps result statuses to the exit codes in the spec. Task 1 declares `model.Status` and `model.Result` in `internal/model/result.go`.
 
 - [ ] Add failing tests for version output, invalid output format, `--no-color`/`NO_COLOR`/non-TTY, and exit status mapping (0 pass/warn, 1 fail, 2 error, 3 unavailable only with `--strict`).
 - [ ] Implement the root command and the `inspect`, `check`, `report`, `snapshot`, and `completion` groups as empty parents.
@@ -135,7 +135,7 @@ commands for each installation method.
 ### Task 2: Add typed Kubernetes collection, shared models, and RBAC docs
 
 **Files:**
-- Create: `internal/model/result.go`, `internal/model/snapshot.go`, `internal/model/redact.go`, `internal/model/dra.go`, `internal/collect/kubernetes.go`, `docs/rbac.md`
+- Create: `internal/model/snapshot.go`, `internal/model/redact.go`, `internal/model/dra.go`, `internal/collect/kubernetes.go`, `docs/rbac.md`
 - Test: `internal/model/*_test.go`, `internal/collect/kubernetes_test.go`
 - Fixtures: `testdata/` converted from the sibling repo's `dra-topology-aware-co-placement/testing/results/*/resourceslices.yaml`
 
@@ -144,7 +144,7 @@ commands for each installation method.
 - `model.Status` is `pass|warn|fail|unavailable|error`.
 - `model.Snapshot` stores `SchemaVersion` (constant `dra-inspect/v1alpha1`), collection metadata, redacted objects, and `Evidence map[string]json.RawMessage` keyed by adapter name (empty until Task 6).
 - `model.Redact(Snapshot) Snapshot` applies the redaction rules in the spec; `--no-redact` skips it.
-- `Collector` exposes typed collection for ResourceSlices, DeviceClasses, ResourceClaims, Pods, Nodes, DaemonSets, and optional VMIs (dynamic client).
+- `Collector` exposes typed collection for ResourceSlices, DeviceClasses, ResourceClaims, Pods, Nodes, and optional VMIs (dynamic client).
 - `Collect(ctx, scope) (model.Snapshot, error)` is the single core data acquisition entrypoint.
 
 - [ ] Add fixture tests for scalar/list-valued attributes, quantities, device counts, allocation results, and namespaced filtering, using the client-go v0.34 fake clientset (`ResourceV1()`) and a dynamic fake client for VMIs.
@@ -179,7 +179,7 @@ commands for each installation method.
 - Modify: `internal/cli/inspect.go`
 - Test: `internal/inspect/*_test.go`; goldens in `testdata/golden/`
 
-- [ ] Add golden tests for `inspect topology` (grouped by NUMA node and PCIe root using the attribute resolution table in the spec), `deviceclasses` (`--kind`, `--grouping`), and `claims`.
+- [ ] Add golden tests for `inspect topology` (grouped by NUMA node and PCIe root using the attribute resolution table in the spec), `deviceclasses` (`--selector`), and `claims`.
 - [ ] `inspect claims` joins VMIs when available; otherwise it reports the VMI field as `unavailable`.
 - [ ] Ensure opaque selectors/configuration are omitted from normal user output.
 - [ ] Commit: `feat: add topology, deviceclass, and claim inspection`.
@@ -194,7 +194,7 @@ commands for each installation method.
 - `Check(ctx context.Context, snapshot model.Snapshot) []model.Result` is the common check contract.
 - Alignment compares claim allocation results with NUMA, PCIe-root, and request constraints; list-valued attributes align by set intersection.
 - Severity follows the spec: violated `matchAttribute` constraint is `fail`, NUMA split is `warn`, PCIe-root split is informational unless constrained.
-- `check counters` uses ResourceSlice `sharedCounters` and `consumesCounters` only; it needs no adapter.
+- `check counters` uses ResourceSlice `sharedCounters` and `consumesCounters` only; it needs no adapter. Allocated claims count as consuming shared counters even when `reservedFor` is empty, as the scheduler does.
 
 - [ ] Add passing and failing fixtures for NUMA, PCIe-root, mixed-device, missing-attribute, and consumable-capacity cases.
 - [ ] Port the cases from the legacy `test_dra_counters.py` as counter fixtures.
