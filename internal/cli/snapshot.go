@@ -25,7 +25,10 @@ func addSnapshotCommands(parent *cobra.Command, opts *Options, d Deps) {
 		Long: `Collect the cluster state and write it as a JSON snapshot (default: stdout).
 
 Sensitive fields (opaque driver parameters, last-applied annotations,
-managedFields, VMI cloud-init data) are removed unless --no-redact is given.
+managedFields, VMI cloud-init data) are removed unless --no-redact is given;
+Nodes and VMIs are reduced to an allow-list. CEL selector text is kept in the
+snapshot (replay needs it), as are Node labels, reservedFor pod names and VMI
+names, UIDs and node names: review a snapshot before sharing it.
 Collections that could not be read are recorded in the file and listed on
 stderr; they do not fail the capture unless --strict is set.
 
@@ -77,7 +80,7 @@ evidence is redacted by its producer and is kept even with --no-redact.`,
 		},
 	}
 	c.Flags().StringVarP(&file, "file", "f", "", "write the snapshot to FILE (default: stdout)")
-	c.Flags().BoolVar(&noRedact, "no-redact", false, "keep opaque parameters, cloud-init data and other sensitive fields")
+	c.Flags().BoolVar(&noRedact, "no-redact", false, "keep opaque parameters, cloud-init data and full Node/VMI objects (default removes them; CEL selector text is kept either way)")
 	c.Flags().BoolVar(&force, "force", false, "overwrite an existing --file")
 	c.Flags().BoolVar(&withAdapters, "with-adapters", false, "also store host and KubeVirt adapter evidence (replay with report support --from)")
 	c.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (with --with-adapters)")

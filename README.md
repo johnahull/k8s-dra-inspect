@@ -69,7 +69,9 @@ dra-inspect check alignment my-pod -n team-a
 dra-inspect report cluster -o json
 
 # Capture once, analyze anywhere. Snapshots are redacted by default (opaque
-# driver parameters, CEL selectors, cloud-init data); --from needs no cluster.
+# driver parameters, cloud-init data, managedFields, most Node and VMI fields)
+# but CEL selector text is kept for replay: review a snapshot before sharing it.
+# --from needs no cluster.
 dra-inspect snapshot capture --file snap.json
 dra-inspect check alignment --from snap.json
 
@@ -80,12 +82,22 @@ dra-inspect report support --from bundle.json
 source <(dra-inspect completion bash)
 ```
 
+Snapshots keep DeviceClass and ResourceClaim CEL selector text, `reservedFor`
+pod names, Node labels and VMI names, namespaces, UIDs and node names; see
+[SECURITY.md](SECURITY.md) for exactly what is removed and kept.
+
+The parent groups `inspect`, `check`, `report` and `snapshot` without a
+subcommand print help and exit 0.
+
 A sample redacted bundle and its report are in
 [docs/examples/](docs/examples/support-bundle.json)
 ([report](docs/examples/support-report.txt)); both are regenerated and checked
 by a test.
 
 ## Install
+
+Release binaries need no local Go toolchain; building from source needs
+Go >= 1.26.10 (older toolchains auto-download it unless `GOTOOLCHAIN=local`).
 
 Once a release is published (publishing is a manual maintainer step for now),
 download the archive for your platform from the GitHub releases page, verify it

@@ -109,9 +109,12 @@ How to read the output:
   slice, DeviceClass and node checks `unavailable` (see [rbac.md](rbac.md)).
 - **Exit codes.** `0` pass or warn, `1` fail, `2` usage or internal error,
   `3` unavailable, only with `--strict`. The script almost always exited 0.
-- **Redaction.** Opaque driver parameters, CEL selectors, last-applied
-  annotations, `managedFields` and VMI cloud-init data are never printed and
-  are removed from snapshots unless `snapshot capture --no-redact` is given.
+- **Redaction.** Opaque driver parameters, last-applied annotations,
+  `managedFields` and VMI cloud-init data are never printed and are removed from
+  snapshots unless `snapshot capture --no-redact` is given. CEL selector text
+  is not printed by `inspect`, but CEL selector text is kept in snapshots for
+  replay fidelity: review a snapshot before sharing it (see
+  [SECURITY.md](../SECURITY.md)).
   Opaque parameters and `PartitionConfig` contents that the old
   `claims`/`deviceclasses` output showed are no longer displayed.
 - **JSON envelope.** `-o json` prints

@@ -16,6 +16,11 @@ Golden files under `testdata/golden/` are regenerated with
 Keep the default tool behavior read-only. New checks should include fixture
 tests and stable JSON output where automation may consume the result.
 
+## Platforms
+
+Host adapter code is unix-only (`O_NOFOLLOW`/`O_NONBLOCK`), so Windows builds
+are not supported.
+
 ## Helm chart
 
 `hack/check-chart.sh` needs helm, python3 and PyYAML. Helm 3 and 4 are
