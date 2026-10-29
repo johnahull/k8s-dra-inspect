@@ -31,7 +31,7 @@ func Capacity() Check {
 		if r, ok := need(snap, NameCapacity, "resourceslices", "resourceclaims"); ok {
 			return r
 		}
-		idx, _ := newDeviceIndex(snap)
+		idx := newDeviceIndex(snap)
 		devs := map[string]*capDevice{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {

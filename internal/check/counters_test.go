@@ -234,3 +234,21 @@ func TestCountersAllocatedByIsEmptyListNotNull(t *testing.T) {
 		t.Errorf("allocatedBy = %#v, want empty non-nil list", r.Details["allocatedBy"])
 	}
 }
+
+func TestCountersSubUnitQuantitiesAreExact(t *testing.T) {
+	sl := []resourcev1.ResourceSlice{
+		counterSlice("c", "p", 1, 2, cset("pf-0", map[string]string{"frac": "1500m"})),
+		slice("d", "p", 1, 2, cdev("a", consume("pf-0", map[string]string{"frac": "500m"})),
+			cdev("b", consume("pf-0", map[string]string{"frac": "500m"})), cdev("c", consume("pf-0", map[string]string{"frac": "500m"})),
+			cdev("d", consume("pf-0", map[string]string{"frac": "500m"}))),
+	}
+	r := counters(t, snapOf(sl, claim("ns", "c", nil, res("r", "a"), res("r", "b"), res("r", "c"))))
+	if got := counterVals(t, r, "frac"); r.Status != model.StatusPass || got["used"] != "1500m" || got["remaining"] != "0" {
+		t.Fatalf("1500m of 1500m: %v %+v", got, r)
+	}
+	r = counters(t, snapOf(sl, claim("ns", "c", nil, res("r", "a"), res("r", "b"), res("r", "c"), res("r", "d"))))
+	wantStatus(t, r, model.StatusFail, "frac")
+	if got := counterVals(t, r, "frac"); got["used"] != "2" || got["remaining"] != "-500m" {
+		t.Errorf("counter = %v", got)
+	}
+}

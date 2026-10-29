@@ -39,6 +39,38 @@ func AttrSet(a resourcev1.DeviceAttribute) []string {
 	return slices.Compact(v)
 }
 
+// AttrTypedSet is AttrSet with each value prefixed by its type ("int:1",
+// "string:1"), because the API matches only equal values of the same type.
+func AttrTypedSet(a resourcev1.DeviceAttribute) []string {
+	var v []string
+	if a.IntValue != nil {
+		v = append(v, "int:"+strconv.FormatInt(*a.IntValue, 10))
+	}
+	if a.BoolValue != nil {
+		v = append(v, "bool:"+strconv.FormatBool(*a.BoolValue))
+	}
+	if a.StringValue != nil {
+		v = append(v, "string:"+*a.StringValue)
+	}
+	if a.VersionValue != nil {
+		v = append(v, "version:"+*a.VersionValue)
+	}
+	for _, i := range a.IntValues {
+		v = append(v, "int:"+strconv.FormatInt(i, 10))
+	}
+	for _, b := range a.BoolValues {
+		v = append(v, "bool:"+strconv.FormatBool(b))
+	}
+	for _, s := range a.StringValues {
+		v = append(v, "string:"+s)
+	}
+	for _, s := range a.VersionValues {
+		v = append(v, "version:"+s)
+	}
+	sort.Strings(v)
+	return slices.Compact(v)
+}
+
 // Resolved is the outcome of resolving one topology attribute on a device.
 type Resolved struct {
 	Values   []string // sorted set; empty when the attribute is absent

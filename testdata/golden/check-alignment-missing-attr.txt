@@ -1,1 +1,1 @@
-UNAVAILABLE: check.alignment: NUMA node not published by gpu.example.com/node-a.example.com/gpu-1
+UNAVAILABLE: check.alignment demo/two-gpus: NUMA node not published by gpu.example.com/node-a.example.com/gpu-1

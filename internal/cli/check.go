@@ -31,10 +31,24 @@ func detail(r model.Result) string {
 	return "-"
 }
 
+const alignmentHelp = `Check allocated devices against claim constraints and NUMA/PCIe placement.
+
+Only matchAttribute constraints are evaluated. distinctAttribute constraints
+and derived attributes (alpha, declared on a request) are not evaluated; they
+are reported as unavailable.
+
+A claim's status is the worst of its findings, in this order:
+error > fail > unavailable > warn > pass.`
+
+const capacityHelp = `Check consumable-capacity allocations against published capacity.
+
+Of a capacity requestPolicy, only the validRange min and max are validated;
+step, validValues and default are not.`
+
 func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
-	add := func(use, short string, args cobra.PositionalArgs, build func(args []string) check.Check) {
+	add := func(use, short, long string, args cobra.PositionalArgs, build func(args []string) check.Check) {
 		parent.AddCommand(&cobra.Command{
-			Use: use, Short: short, Args: args,
+			Use: use, Short: short, Long: long, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				c := build(args)
 				return runResults(cmd, opts, d,
@@ -43,7 +57,7 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 			},
 		})
 	}
-	add("alignment [POD|CLAIM]", "Check allocated devices against claim constraints and NUMA/PCIe placement", cobra.MaximumNArgs(1),
+	add("alignment [POD|CLAIM]", "Check allocated devices against claim constraints and NUMA/PCIe placement", alignmentHelp, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
 			target := ""
 			if len(args) == 1 {
@@ -51,7 +65,7 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 			}
 			return check.Alignment(target, opts.Namespace)
 		})
-	add("counters", "Check shared-counter capacity against allocated claims", cobra.NoArgs, func([]string) check.Check { return check.Counters() })
-	add("capacity", "Check consumable-capacity allocations against published capacity", cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
-	add("topology", "Validate published NUMA and PCIe-root attributes", cobra.NoArgs, func([]string) check.Check { return check.Topology() })
+	add("counters", "Check shared-counter capacity against allocated claims", "", cobra.NoArgs, func([]string) check.Check { return check.Counters() })
+	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
+	add("topology", "Validate published NUMA and PCIe-root attributes", "", cobra.NoArgs, func([]string) check.Check { return check.Topology() })
 }

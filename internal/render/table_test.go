@@ -67,8 +67,9 @@ func TestUnavailable(t *testing.T) {
 	_ = Unavailable(&buf, []model.Result{
 		{Check: "c", Status: model.StatusPass},
 		{Check: "inspect.x", Status: model.StatusUnavailable, Details: map[string]any{"reason": "forbidden"}},
+		{Check: "check.alignment", Status: model.StatusUnavailable, Subject: "ns/c", Details: map[string]any{"reason": "claim is not allocated"}},
 	})
-	if buf.String() != "UNAVAILABLE: inspect.x: forbidden\n" {
+	if buf.String() != "UNAVAILABLE: inspect.x: forbidden\nUNAVAILABLE: check.alignment ns/c: claim is not allocated\n" {
 		t.Fatalf("%q", buf.String())
 	}
 }

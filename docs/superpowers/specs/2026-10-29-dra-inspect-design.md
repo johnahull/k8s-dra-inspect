@@ -94,6 +94,16 @@ Every inspector and check returns `[]Result`. A `Result` has a status of `pass`,
 Precedence when several apply: error (2), then fail (1), then unavailable with
 `--strict` (3), then 0. Cobra usage errors also exit 2.
 
+### Check coverage
+
+v1 does not evaluate: `distinctAttribute` constraints, derived attributes
+(alpha `derivedAttributes` on a request), and capacity `requestPolicy` `step`,
+`validValues`, and `default` (only `validRange` min/max are validated).
+`distinctAttribute` and derived attributes are reported as `unavailable`.
+
+A claim's status is the worst of its findings: error, then fail, then
+unavailable, then warn, then pass.
+
 ## JSON Output
 
 Every JSON document is an envelope:

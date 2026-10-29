@@ -76,7 +76,8 @@ func TestCheckGolden(t *testing.T) {
 				}
 				if format == "table" {
 					for _, l := range strings.Split(strings.TrimRight(out, "\n"), "\n") {
-						if w := runewidth.StringWidth(l); w > testWidth {
+						// UNAVAILABLE diagnostics are full sentences, never truncated or fitted to the table width.
+						if w := runewidth.StringWidth(l); w > testWidth && !strings.HasPrefix(l, "UNAVAILABLE: ") {
 							t.Errorf("width %d: %q", w, l)
 						}
 					}

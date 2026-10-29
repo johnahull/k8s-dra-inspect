@@ -256,3 +256,69 @@ func TestAlignmentPCIeAlignedOrConstrainedHasNoNote(t *testing.T) {
 		t.Errorf("a constrained split is reported by the constraint, not as a note: %v", p)
 	}
 }
+
+func TestAlignmentDistinctAttributeNotEvaluated(t *testing.T) {
+	a := resourcev1.FullyQualifiedName(numa)
+	c := claim("ns", "c", []resourcev1.DeviceConstraint{{DistinctAttribute: &a}}, res("r", "a"), res("r", "b"))
+	wantStatus(t, align(t, snapOf(numaPool([]int64{0}, []int64{1}), c)), model.StatusUnavailable, "distinctAttribute "+numa+" is not evaluated")
+}
+
+func TestAlignmentDerivedAttributeNotEvaluated(t *testing.T) {
+	derived := []resourcev1.DeviceDerivedAttribute{{Name: numa, Expression: "1"}}
+	for name, req := range map[string]resourcev1.DeviceRequest{
+		"exactly":        {Name: "r", Exactly: &resourcev1.ExactDeviceRequest{DerivedAttributes: derived}},
+		"firstAvailable": {Name: "r", FirstAvailable: []resourcev1.DeviceSubRequest{{Name: "s", DerivedAttributes: derived}}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			c := claim("ns", "c", []resourcev1.DeviceConstraint{match(numa)}, res("r", "a"), res("r", "b"))
+			c.Spec.Devices.Requests = []resourcev1.DeviceRequest{req}
+			r := align(t, snapOf(numaPool([]int64{0}, []int64{0}), c))
+			wantStatus(t, r, model.StatusUnavailable, "derived attribute, not evaluated")
+			if strings.Contains(fmt.Sprint(r.Details["reason"]), "not published") {
+				t.Errorf("reason: %v", r.Details["reason"])
+			}
+		})
+	}
+}
+
+func TestAlignmentMatchAttributeComparesTypes(t *testing.T) {
+	k := "x.example.com/k"
+	sl := []resourcev1.ResourceSlice{slice("s", "p", 1, 1, dev("a", attrs{k: ints(1)}), dev("b", attrs{k: str("1")}))}
+	r := align(t, snapOf(sl, claim("ns", "c", []resourcev1.DeviceConstraint{match(k)}, res("r", "a"), res("r", "b"))))
+	wantStatus(t, r, model.StatusFail, "type mismatch")
+}
+
+func TestAlignmentResultsSortedByClaim(t *testing.T) {
+	s := snapOf(numaPool([]int64{0}), claim("b", "z", nil, res("r", "a")), claim("b", "a", nil, res("r", "a")), claim("a", "m", nil, res("r", "a")))
+	if got := subjects(run(Alignment("", ""), s)); got != "a/m=pass,b/a=pass,b/z=pass" {
+		t.Fatalf("got %s", got)
+	}
+	s.Pods = []model.PodRef{{Name: "p", Namespace: "b", ResourceClaims: []corev1.PodResourceClaim{{Name: "1", ResourceClaimName: ptr.To("z")}, {Name: "2", ResourceClaimName: ptr.To("a")}}}}
+	if got := subjects(run(Alignment("p", ""), s)); got != "b/a=pass,b/z=pass" {
+		t.Fatalf("pod path: got %s", got)
+	}
+}
+
+func TestAlignmentClaimAndPodShareName(t *testing.T) {
+	s := snapOf(numaPool([]int64{0}),
+		claim("ns", "dup", nil, res("r", "a")),
+		claim("ns", "viapod", nil, res("r", "a")),
+		claim("ns", "idle", nil))
+	s.Pods = []model.PodRef{{Name: "dup", Namespace: "ns", ResourceClaims: []corev1.PodResourceClaim{
+		{Name: "1", ResourceClaimName: ptr.To("viapod")}, {Name: "2", ResourceClaimName: ptr.To("dup")}}}}
+	rs := run(Alignment("dup", ""), s)
+	if got := subjects(rs); got != "ns/dup=pass,ns/viapod=pass" {
+		t.Fatalf("union deduplicated by claim: got %s", got)
+	}
+	for _, r := range rs {
+		if fmt.Sprint(r.Details["matched"]) != "[claim pod]" {
+			t.Errorf("%s matched = %v", r.Subject, r.Details["matched"])
+		}
+	}
+	if m := run(Alignment("viapod", ""), s)[0].Details["matched"]; m != nil {
+		t.Errorf("claim-only match carries matched = %v", m)
+	}
+	if got := subjects(run(Alignment("ns/dup", ""), s)); got != "ns/dup=pass,ns/viapod=pass" {
+		t.Errorf("ns/name: got %s", got)
+	}
+}

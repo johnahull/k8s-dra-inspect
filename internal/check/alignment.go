@@ -59,7 +59,7 @@ func intersect(sets [][]string) []string {
 	return out
 }
 
-// rollup orders statuses for a claim: error, then fail, unavailable, warn, pass.
+// rollupRank orders statuses for a claim: error, then fail, unavailable, warn, pass.
 // This differs from the exit-code precedence on purpose: the exit code ranks
 // unavailable only with --strict, but a claim that could not be verified is
 // less alarming than one proven wrong and more than one with a soft warning.
@@ -98,15 +98,19 @@ type allocDev struct {
 }
 
 // evalConstraint evaluates one matchAttribute constraint over devs.
-func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev) (map[string]any, finding) {
+func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev, derived map[string]bool) (map[string]any, finding) {
 	attr := string(*c.MatchAttribute)
 	det := map[string]any{"attribute": attr, "requests": append([]string{}, c.Requests...)}
 	if _, _, err := parseMatchAttribute(attr); err != nil {
 		det["status"] = model.StatusError
 		return det, finding{model.StatusError, err.Error()}
 	}
+	if derived[attr] {
+		det["status"] = model.StatusUnavailable
+		return det, finding{model.StatusUnavailable, attr + ": derived attribute, not evaluated"}
+	}
 	values := map[string][]string{}
-	var sets [][]string
+	var sets, typed [][]string
 	var missing []string
 	for _, d := range devs {
 		if d.ref.state == deviceMissing || !inScope(d.req, c.Requests) {
@@ -120,6 +124,7 @@ func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev) (map[string]
 		}
 		values[d.name] = set
 		sets = append(sets, set)
+		typed = append(typed, model.AttrTypedSet(a))
 	}
 	inter := intersect(sets)
 	det["valuesByDevice"], det["intersection"] = values, inter
@@ -127,6 +132,9 @@ func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev) (map[string]
 	case len(sets) > 0 && len(inter) == 0:
 		det["status"] = model.StatusFail
 		return det, finding{model.StatusFail, fmt.Sprintf("matchAttribute %s violated: no value common to all devices in scope", attr)}
+	case len(sets) > 0 && len(intersect(typed)) == 0:
+		det["status"] = model.StatusFail
+		return det, finding{model.StatusFail, fmt.Sprintf("matchAttribute %s violated: type mismatch (values are equal as text but differ in type)", attr)}
 	case len(missing) > 0:
 		det["status"] = model.StatusUnavailable
 		return det, finding{model.StatusUnavailable, fmt.Sprintf("%s not published by %s", attr, strings.Join(missing, ", "))}
@@ -201,6 +209,24 @@ func coveredBy(cons []resourcev1.DeviceConstraint, names []string, devs []allocD
 	return true
 }
 
+// derivedNames lists derived attribute names declared by the claim's requests.
+func derivedNames(c resourcev1.ResourceClaim) map[string]bool {
+	out := map[string]bool{}
+	for _, r := range c.Spec.Devices.Requests {
+		if r.Exactly != nil {
+			for _, d := range r.Exactly.DerivedAttributes {
+				out[string(d.Name)] = true
+			}
+		}
+		for _, sub := range r.FirstAvailable {
+			for _, d := range sub.DerivedAttributes {
+				out[string(d.Name)] = true
+			}
+		}
+	}
+	return out
+}
+
 func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	var devs []allocDev
 	var fs []finding
@@ -219,11 +245,15 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	}
 	det := map[string]any{"devices": deviceNames}
 	cons := []map[string]any{}
+	derived := derivedNames(c)
 	for _, c := range c.Spec.Devices.Constraints {
+		if c.DistinctAttribute != nil {
+			fs = append(fs, finding{model.StatusUnavailable, fmt.Sprintf("distinctAttribute %s is not evaluated", *c.DistinctAttribute)})
+		}
 		if c.MatchAttribute == nil {
 			continue
 		}
-		d, f := evalConstraint(c, devs)
+		d, f := evalConstraint(c, devs, derived)
 		cons = append(cons, d)
 		if f.status != "" {
 			fs = append(fs, f)
@@ -247,7 +277,9 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 				}
 			}
 		}
-		if p, err := summarize(devs, func(t model.Topology) model.Resolved { return t.PCIeRoot }); err == nil {
+		if p, err := summarize(devs, func(t model.Topology) model.Resolved { return t.PCIeRoot }); err != nil {
+			fs = append(fs, finding{model.StatusUnavailable, err.Error()})
+		} else {
 			p.det["constrained"] = coveredBy(spec, pcieNames, devs)
 			if !p.aligned && p.det["constrained"] == false {
 				p.det["note"] = "devices span PCIe roots (informational)"
@@ -289,7 +321,7 @@ func Alignment(target, namespace string) Check {
 		if r, ok := need(snap, NameAlignment, "resourceslices", "resourceclaims"); ok {
 			return r
 		}
-		idx, _ := newDeviceIndex(snap)
+		idx := newDeviceIndex(snap)
 		ns, name := namespace, target
 		if a, b, ok := strings.Cut(target, "/"); ok {
 			ns, name = a, b
@@ -297,6 +329,7 @@ func Alignment(target, namespace string) Check {
 		inNS := func(n string) bool { return ns == "" || n == ns }
 
 		var claims []resourcev1.ResourceClaim
+		var matched []string
 		if target == "" {
 			for _, c := range allocated(snap) {
 				if inNS(c.Namespace) {
@@ -304,40 +337,51 @@ func Alignment(target, namespace string) Check {
 				}
 			}
 		} else {
+			// A name may be a claim, a pod, or both; take the union of their claims.
+			want := map[[2]string]bool{}
 			for _, c := range snap.ResourceClaims {
 				if c.Name == name && inNS(c.Namespace) {
-					claims = append(claims, c)
+					want[[2]string{c.Namespace, c.Name}] = true
+					matched = []string{"claim"}
 				}
 			}
-			if len(claims) == 0 {
-				if r, ok := need(snap, NameAlignment, "pods"); ok {
+			podFound := false
+			if r, bad := need(snap, NameAlignment, "pods"); bad {
+				if len(want) == 0 {
 					return r
 				}
-				want := map[[2]string]bool{}
-				var found bool
+			} else {
 				for _, p := range snap.Pods {
 					if p.Name != name || !inNS(p.Namespace) {
 						continue
 					}
-					found = true
+					podFound = true
 					for _, cn := range podClaims(p) {
 						want[[2]string{p.Namespace, cn}] = true
 					}
 				}
-				for _, c := range snap.ResourceClaims {
-					if want[[2]string{c.Namespace, c.Name}] {
-						claims = append(claims, c)
-					}
-				}
-				if len(claims) == 0 {
-					msg := "no claim or pod named " + target
-					if found {
-						msg = "pod " + target + " has no ResourceClaims in the snapshot"
-					}
-					return single(NameAlignment, model.StatusUnavailable, "", msg)
+			}
+			if podFound && len(matched) > 0 {
+				matched = append(matched, "pod")
+			} else {
+				matched = nil
+			}
+			for _, c := range snap.ResourceClaims {
+				if want[[2]string{c.Namespace, c.Name}] {
+					claims = append(claims, c)
 				}
 			}
+			if len(claims) == 0 {
+				msg := "no claim or pod named " + target
+				if podFound {
+					msg = "pod " + target + " has no ResourceClaims in the snapshot"
+				}
+				return single(NameAlignment, model.StatusUnavailable, "", msg)
+			}
 		}
+		slices.SortFunc(claims, func(a, b resourcev1.ResourceClaim) int {
+			return strings.Compare(a.Namespace+"/"+a.Name, b.Namespace+"/"+b.Name)
+		})
 		out := []model.Result{}
 		for _, c := range claims {
 			if c.Status.Allocation == nil {
@@ -345,6 +389,11 @@ func Alignment(target, namespace string) Check {
 				continue
 			}
 			out = append(out, alignClaim(c, idx))
+		}
+		if matched != nil {
+			for _, r := range out {
+				r.Details["matched"] = matched
+			}
 		}
 		return out
 	}

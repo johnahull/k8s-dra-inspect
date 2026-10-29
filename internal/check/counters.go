@@ -83,7 +83,7 @@ func Counters() Check {
 			}
 		}
 
-		idx, _ := newDeviceIndex(snap)
+		idx := newDeviceIndex(snap)
 		seen := map[model.PoolKey]map[string]bool{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {

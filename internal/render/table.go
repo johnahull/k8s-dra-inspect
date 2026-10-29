@@ -175,7 +175,11 @@ func Unavailable(w io.Writer, results []model.Result) error {
 		if v, ok := r.Details["reason"]; ok {
 			reason = fmt.Sprint(v)
 		}
-		if _, err := fmt.Fprintf(w, "UNAVAILABLE: %s: %s\n", clean(r.Check), clean(reason)); err != nil {
+		who := clean(r.Check)
+		if r.Subject != "" {
+			who += " " + clean(r.Subject)
+		}
+		if _, err := fmt.Fprintf(w, "UNAVAILABLE: %s: %s\n", who, clean(reason)); err != nil {
 			return err
 		}
 	}

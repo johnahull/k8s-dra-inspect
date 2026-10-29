@@ -73,9 +73,8 @@ const (
 )
 
 type deviceRef struct {
-	dev    resourcev1.Device
-	state  deviceState
-	driver string
+	dev   resourcev1.Device
+	state deviceState
 }
 
 type deviceKey [3]string
@@ -85,12 +84,12 @@ type deviceKey [3]string
 // can be flagged rather than silently dropped.
 type deviceIndex struct{ cur, other map[deviceKey]deviceRef }
 
-func newDeviceIndex(snap model.Snapshot) (deviceIndex, map[model.PoolKey]model.PoolSel) {
-	cur, sel := model.CurrentSlices(snap)
+func newDeviceIndex(snap model.Snapshot) deviceIndex {
+	cur, _ := model.CurrentSlices(snap)
 	x := deviceIndex{cur: map[deviceKey]deviceRef{}, other: map[deviceKey]deviceRef{}}
 	for _, s := range cur {
 		for _, d := range s.Spec.Devices {
-			x.cur[deviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}] = deviceRef{d, deviceCurrent, s.Spec.Driver}
+			x.cur[deviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}] = deviceRef{d, deviceCurrent}
 		}
 	}
 	gen := map[deviceKey]int64{}
@@ -99,11 +98,11 @@ func newDeviceIndex(snap model.Snapshot) (deviceIndex, map[model.PoolKey]model.P
 			k := deviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}
 			if g, ok := gen[k]; !ok || s.Spec.Pool.Generation > g {
 				gen[k] = s.Spec.Pool.Generation
-				x.other[k] = deviceRef{d, deviceStale, s.Spec.Driver}
+				x.other[k] = deviceRef{d, deviceStale}
 			}
 		}
 	}
-	return x, sel
+	return x
 }
 
 func (x deviceIndex) find(driver, pool, device string) deviceRef {
@@ -114,7 +113,7 @@ func (x deviceIndex) find(driver, pool, device string) deviceRef {
 	if r, ok := x.other[k]; ok {
 		return r
 	}
-	return deviceRef{state: deviceMissing, driver: driver}
+	return deviceRef{state: deviceMissing}
 }
 
 func devName(r resourcev1.DeviceRequestAllocationResult) string {
