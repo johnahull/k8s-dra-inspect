@@ -1,0 +1,6 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  nic.example.com (2 devices, 2 in use, 0 free)
+    NUMA 0  nic-0  →claim demo/aligned-nics
+    NUMA 0  nic-1  →claim demo/aligned-nics

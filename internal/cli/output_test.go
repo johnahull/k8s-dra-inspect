@@ -30,11 +30,9 @@ func TestTextAndDefaultOutputEqualTableForEveryCommand(t *testing.T) {
 		}
 	}
 	cases := map[string]runner{
-		"inspect slices":        via(fx("xe9785l"), "inspect", "slices"),
 		"inspect drivers":       via(fx("xe9785l"), "inspect", "drivers"),
 		"inspect attributes":    via(fx("xe9785l"), "inspect", "attributes"),
 		"inspect topology":      via(fx("xe9785l"), "inspect", "topology"),
-		"inspect claims":        via(fx("classes-claims"), "inspect", "claims"),
 		"inspect deviceclasses": via(fx("classes-claims"), "inspect", "deviceclasses"),
 		"check alignment":       via(fx("numa-split"), "check", "alignment"),
 		"check counters":        via(fx("counters/overcommit"), "check", "counters"),

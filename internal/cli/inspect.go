@@ -19,6 +19,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 	"github.com/johnahull/k8s-dra-inspect/internal/snapshot"
+	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
 // Deps are the environment pieces tests replace.
@@ -86,7 +87,7 @@ func liveSource(o *Options) (model.Source, error) {
 func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	var attrs, allAttrs, capacity, compact bool
 	var selector string
-	add := func(use, short string, build func() (inspect.Inspector, error)) *cobra.Command {
+	add := func(use, short string, text textView, build func() (inspect.Inspector, error)) *cobra.Command {
 		c := &cobra.Command{
 			Use: use, Short: short, Args: cobra.NoArgs,
 			RunE: func(cmd *cobra.Command, _ []string) error {
@@ -94,7 +95,7 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 				if err != nil {
 					return err
 				}
-				return runInspector(cmd, opts, d, in)
+				return runInspector(cmd, opts, d, in, text)
 			},
 		}
 		parent.AddCommand(c)
@@ -103,14 +104,14 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	plain := func(f func() inspect.Inspector) func() (inspect.Inspector, error) {
 		return func() (inspect.Inspector, error) { return f(), nil }
 	}
-	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", plain(inspect.Slices))
-	add("drivers", "Summarize DRA drivers", plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
+	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", view.Slices, plain(inspect.Slices))
+	add("drivers", "Summarize DRA drivers", nil, plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
 		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
-	a := add("attributes", "Show device attributes", plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
-	t := add("topology", "Group devices by node, NUMA node and PCIe root", plain(func() inspect.Inspector { return inspect.Topology(compact) }))
+	a := add("attributes", "Show device attributes", nil, plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
+	t := add("topology", "Group devices by node, NUMA node and PCIe root", nil, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
 	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
-	add("claims", "List ResourceClaims with allocation, node and consumers", plain(inspect.Claims))
-	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", func() (inspect.Inspector, error) {
+	add("claims", "List ResourceClaims with allocation, node and consumers", view.Claims, plain(inspect.Claims))
+	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", nil, func() (inspect.Inspector, error) {
 		sel, err := labels.Parse(selector)
 		if err != nil {
 			return inspect.Inspector{}, fmt.Errorf("invalid --selector: %w", err)
@@ -122,12 +123,12 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	a.Flags().BoolVar(&capacity, "include-capacity", false, "also show device capacity")
 }
 
-func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspector) error {
+func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspector, text textView) error {
 	return runResults(cmd, opts, d,
 		func(_ context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
 			return snap, in.Run(snap)
 		},
-		func(results []model.Result) error { return renderTable(cmd, opts, d, in.Spec, results) }, nil)
+		func(results []model.Result) error { return renderTable(cmd, opts, d, in.Spec, results) }, text)
 }
 
 // runResults loads the snapshot, produces results (and the snapshot they were

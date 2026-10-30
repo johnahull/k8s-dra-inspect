@@ -1,0 +1,67 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  dra.cpu (4 devices, 0 in use, 4 free)
+    NUMA 0  cpudevnuma000
+    NUMA 1  cpudevnuma001
+    NUMA 2  cpudevnuma002
+    NUMA 3  cpudevnuma003
+  dra.memory (8 devices, 0 in use, 8 free)
+    NUMA 0  hugepages-2mi-vgzdk8
+    NUMA 0  memory-xnxmvm
+    NUMA 1  hugepages-2mi-wzkcsz
+    NUMA 1  memory-56xhnf
+    NUMA 2  hugepages-2mi-5s57zr
+    NUMA 2  memory-ddztgx
+    NUMA 3  hugepages-2mi-bmgj2r
+    NUMA 3  memory-nfqcrb
+  gpu.amd.com (16 devices, 0 in use, 16 free)
+    NUMA 0  gpu-33-160 (0000:1b:02.0)
+    NUMA 0  gpu-49-176 (0000:5f:02.0)
+    NUMA 0  gpu-vfio-1 (0000:1b:02.0)
+    NUMA 0  gpu-vfio-4 (0000:5f:02.0)
+    NUMA 1  gpu-17-144 (0000:4e:02.0)
+    NUMA 1  gpu-9-136 (0000:3d:02.0)
+    NUMA 1  gpu-vfio-2 (0000:3d:02.0)
+    NUMA 1  gpu-vfio-3 (0000:4e:02.0)
+    NUMA 2  gpu-25-152 (0000:dd:02.0)
+    NUMA 2  gpu-41-168 (0000:9d:02.0)
+    NUMA 2  gpu-vfio-0 (0000:dd:02.0)
+    NUMA 2  gpu-vfio-5 (0000:9d:02.0)
+    NUMA 3  gpu-1-128 (0000:cd:02.0)
+    NUMA 3  gpu-57-184 (0000:bd:02.0)
+    NUMA 3  gpu-vfio-6 (0000:bd:02.0)
+    NUMA 3  gpu-vfio-7 (0000:cd:02.0)
+  sriovnetwork.k8snetworkplumbingwg.io (32 devices, 0 in use, 32 free)
+    NUMA 0  0000-1d-00-2 (0000:1d:00.2)
+    NUMA 0  0000-1d-00-3 (0000:1d:00.3)
+    NUMA 0  0000-1d-00-4 (0000:1d:00.4)
+    NUMA 0  0000-1d-00-5 (0000:1d:00.5)
+    NUMA 0  0000-1d-00-6 (0000:1d:00.6)
+    NUMA 0  0000-1d-00-7 (0000:1d:00.7)
+    NUMA 0  0000-1d-01-0 (0000:1d:01.0)
+    NUMA 0  0000-1d-01-1 (0000:1d:01.1)
+    NUMA 0  0000-1d-01-2 (0000:1d:01.2)
+    NUMA 0  0000-1d-01-3 (0000:1d:01.3)
+    NUMA 0  0000-1d-01-4 (0000:1d:01.4)
+    NUMA 0  0000-1d-01-5 (0000:1d:01.5)
+    NUMA 0  0000-1d-01-6 (0000:1d:01.6)
+    NUMA 0  0000-1d-01-7 (0000:1d:01.7)
+    NUMA 0  0000-1d-02-0 (0000:1d:02.0)
+    NUMA 0  0000-1d-02-1 (0000:1d:02.1)
+    NUMA 2  0000-9f-00-2 (0000:9f:00.2)
+    NUMA 2  0000-9f-00-3 (0000:9f:00.3)
+    NUMA 2  0000-9f-00-4 (0000:9f:00.4)
+    NUMA 2  0000-9f-00-5 (0000:9f:00.5)
+    NUMA 2  0000-9f-00-6 (0000:9f:00.6)
+    NUMA 2  0000-9f-00-7 (0000:9f:00.7)
+    NUMA 2  0000-9f-01-0 (0000:9f:01.0)
+    NUMA 2  0000-9f-01-1 (0000:9f:01.1)
+    NUMA 2  0000-9f-01-2 (0000:9f:01.2)
+    NUMA 2  0000-9f-01-3 (0000:9f:01.3)
+    NUMA 2  0000-9f-01-4 (0000:9f:01.4)
+    NUMA 2  0000-9f-01-5 (0000:9f:01.5)
+    NUMA 2  0000-9f-01-6 (0000:9f:01.6)
+    NUMA 2  0000-9f-01-7 (0000:9f:01.7)
+    NUMA 2  0000-9f-02-0 (0000:9f:02.0)
+    NUMA 2  0000-9f-02-1 (0000:9f:02.1)

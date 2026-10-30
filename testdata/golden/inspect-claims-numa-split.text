@@ -1,0 +1,5 @@
+═══ ResourceClaims ═══
+
+demo/two-gpus → no pods
+  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00  node node-a.example.com
+  request gpu: gpu.example.com/gpu-1  NUMA 1  pcieRoot pci0000:80  node node-a.example.com

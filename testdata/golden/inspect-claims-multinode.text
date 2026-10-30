@@ -1,0 +1,5 @@
+═══ ResourceClaims ═══
+
+demo/pair-a → pod pair-pod
+  request gpu: gpu.example.com/a-gpu-0  NUMA 0,1,2,3  pcieRoot pci0000:00  node node-a.example.com
+  request gpu: gpu.example.com/a-gpu-1  NUMA 0,1,2,3  pcieRoot pci0000:00  node node-a.example.com
