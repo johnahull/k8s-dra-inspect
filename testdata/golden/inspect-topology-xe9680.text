@@ -24,10 +24,9 @@ Node: node-a.example.com
 │  ├─ pcieRoot pci0000:59
 │  │  ├─ gpu  gpu-49-176 (0000:5f:02.0)
 │  │  └─ gpu  gpu-vfio-4 (0000:5f:02.0)
-│  └─ pcieRoot unknown
-│     ├─ cpu     cpudevnuma000
-│     ├─ memory  hugepages-2mi-vgzdk8
-│     └─ memory  memory-xnxmvm
+│  ├─ cpu     cpudevnuma000
+│  ├─ memory  hugepages-2mi-vgzdk8
+│  └─ memory  memory-xnxmvm
 ├─ NUMA 1
 │  ├─ pcieRoot pci0000:37
 │  │  ├─ gpu  gpu-9-136 (0000:3d:02.0)
@@ -35,10 +34,9 @@ Node: node-a.example.com
 │  ├─ pcieRoot pci0000:48
 │  │  ├─ gpu  gpu-17-144 (0000:4e:02.0)
 │  │  └─ gpu  gpu-vfio-3 (0000:4e:02.0)
-│  └─ pcieRoot unknown
-│     ├─ cpu     cpudevnuma001
-│     ├─ memory  hugepages-2mi-wzkcsz
-│     └─ memory  memory-56xhnf
+│  ├─ cpu     cpudevnuma001
+│  ├─ memory  hugepages-2mi-wzkcsz
+│  └─ memory  memory-56xhnf
 ├─ NUMA 2
 │  ├─ pcieRoot pci0000:97
 │  │  ├─ gpu  gpu-41-168 (0000:9d:02.0)
@@ -62,10 +60,9 @@ Node: node-a.example.com
 │  ├─ pcieRoot pci0000:d7
 │  │  ├─ gpu  gpu-25-152 (0000:dd:02.0)
 │  │  └─ gpu  gpu-vfio-0 (0000:dd:02.0)
-│  └─ pcieRoot unknown
-│     ├─ cpu     cpudevnuma002
-│     ├─ memory  hugepages-2mi-5s57zr
-│     └─ memory  memory-ddztgx
+│  ├─ cpu     cpudevnuma002
+│  ├─ memory  hugepages-2mi-5s57zr
+│  └─ memory  memory-ddztgx
 └─ NUMA 3
    ├─ pcieRoot pci0000:b7
    │  ├─ gpu  gpu-57-184 (0000:bd:02.0)
@@ -73,7 +70,6 @@ Node: node-a.example.com
    ├─ pcieRoot pci0000:c7
    │  ├─ gpu  gpu-1-128 (0000:cd:02.0)
    │  └─ gpu  gpu-vfio-7 (0000:cd:02.0)
-   └─ pcieRoot unknown
-      ├─ cpu     cpudevnuma003
-      ├─ memory  hugepages-2mi-bmgj2r
-      └─ memory  memory-nfqcrb
+   ├─ cpu     cpudevnuma003
+   ├─ memory  hugepages-2mi-bmgj2r
+   └─ memory  memory-nfqcrb

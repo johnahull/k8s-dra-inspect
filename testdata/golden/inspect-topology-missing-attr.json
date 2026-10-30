@@ -20,12 +20,12 @@
         "numaKey": "-",
         "pcieKey": "-",
         "pcieRoot": [],
-        "reason": "missing attribute: numa, missing attribute: pcieRoot"
+        "reason": "missing attribute: numa"
       }
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=0/pcieRoot=-",
       "details": {
         "deviceCount": 1,
@@ -41,8 +41,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     }
   ]

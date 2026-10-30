@@ -10,7 +10,7 @@ Node: node-a.example.com
 │  ├─ pcieRoot pci0000:32,pci0000:66  cpu=1
 │  ├─ pcieRoot pci0000:96,pci0000:a0  cpu=1
 │  ├─ pcieRoot pci0000:98,pci0000:d0  cpu=1
-│  └─ pcieRoot unknown  memory=4
+│  └─ memory=4
 └─ NUMA 4,5,6,7
    ├─ pcieRoot pci0001:00  gpu=1 nic=4
    ├─ pcieRoot pci0001:32  gpu=1
@@ -20,4 +20,4 @@ Node: node-a.example.com
    ├─ pcieRoot pci0001:32,pci0001:66  cpu=1
    ├─ pcieRoot pci0001:68,pci0001:a0  cpu=1
    ├─ pcieRoot pci0001:98,pci0001:d0  cpu=1
-   └─ pcieRoot unknown  memory=4
+   └─ memory=4

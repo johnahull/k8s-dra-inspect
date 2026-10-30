@@ -14,14 +14,11 @@
         "missingNUMA": [
           "gpu-1"
         ],
-        "missingPCIeRoot": [
-          "gpu-0",
-          "gpu-1"
-        ],
-        "reason": "NUMA node missing on gpu-1; PCIe root missing on gpu-0, gpu-1",
+        "missingPCIeRoot": [],
+        "reason": "NUMA node missing on gpu-1",
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "2 devices, 1 missing NUMA, 2 missing PCIe root"
+        "summary": "2 devices, 1 missing NUMA, 0 missing PCIe root where expected"
       }
     }
   ]

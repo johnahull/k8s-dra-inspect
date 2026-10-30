@@ -4,16 +4,16 @@ Node: node-a.example.com
 ├─ NUMA 0
 │  ├─ pcieRoot pci0000:15  gpu=2 nic=16
 │  ├─ pcieRoot pci0000:59  gpu=2
-│  └─ pcieRoot unknown  cpu=1 memory=2
+│  └─ cpu=1 memory=2
 ├─ NUMA 1
 │  ├─ pcieRoot pci0000:37  gpu=2
 │  ├─ pcieRoot pci0000:48  gpu=2
-│  └─ pcieRoot unknown  cpu=1 memory=2
+│  └─ cpu=1 memory=2
 ├─ NUMA 2
 │  ├─ pcieRoot pci0000:97  gpu=2 nic=16
 │  ├─ pcieRoot pci0000:d7  gpu=2
-│  └─ pcieRoot unknown  cpu=1 memory=2
+│  └─ cpu=1 memory=2
 └─ NUMA 3
    ├─ pcieRoot pci0000:b7  gpu=2
    ├─ pcieRoot pci0000:c7  gpu=2
-   └─ pcieRoot unknown  cpu=1 memory=2
+   └─ cpu=1 memory=2

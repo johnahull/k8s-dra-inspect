@@ -45,7 +45,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=0/pcieRoot=-",
       "details": {
         "deviceCount": 2,
@@ -58,13 +58,12 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=1/pcieRoot=-",
       "details": {
         "deviceCount": 1,
@@ -77,13 +76,12 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-b.example.com/numa=0/pcieRoot=-",
       "details": {
         "deviceCount": 1,
@@ -96,8 +94,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -259,40 +256,32 @@
     },
     {
       "check": "check.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "gpu.example.com/node-a.example.com",
       "details": {
         "conflicts": [],
         "devices": 3,
         "generation": 1,
         "missingNUMA": [],
-        "missingPCIeRoot": [
-          "gpu-0",
-          "nic-0",
-          "gpu-2"
-        ],
-        "reason": "PCIe root missing on gpu-0, nic-0, gpu-2",
+        "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "3 devices, 0 missing NUMA, 3 missing PCIe root"
+        "summary": "3 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
       "check": "check.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "gpu.example.com/node-b.example.com",
       "details": {
         "conflicts": [],
         "devices": 1,
         "generation": 1,
         "missingNUMA": [],
-        "missingPCIeRoot": [
-          "gpu-b0"
-        ],
-        "reason": "PCIe root missing on gpu-b0",
+        "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "1 devices, 0 missing NUMA, 1 missing PCIe root"
+        "summary": "1 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {

@@ -18,16 +18,17 @@ type topoPool struct {
 	conflicts, invalid     []string
 }
 
-// Topology validates the published slices of each pool's current
-// generation: devices without NUMA or PCIe-root attributes, conflicting
-// vendor keys, and pools with fewer slices than Pool.ResourceSliceCount all
-// warn. One result per driver/pool.
+// Topology validates the published slices of each pool's current generation:
+// devices without NUMA attributes, rootless devices in pools that otherwise
+// publish PCIe roots, conflicting vendor keys, and pools with fewer slices than
+// Pool.ResourceSliceCount all warn. One result per driver/pool.
 func Topology() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
 		if r, ok := need(snap, NameTopology, "resourceslices"); ok {
 			return r
 		}
 		cur, sel := model.CurrentSlices(snap)
+		pcieExpected := model.PoolsWithPCIeRoot(cur)
 		pools := map[model.PoolKey]*topoPool{}
 		for _, s := range cur {
 			k := model.PoolKey{s.Spec.Driver, s.Spec.Pool.Name}
@@ -48,7 +49,7 @@ func Topology() Check {
 				if len(top.NUMA.Values) == 0 {
 					p.missingNUMA = append(p.missingNUMA, d.Name)
 				}
-				if len(top.PCIeRoot.Values) == 0 {
+				if len(top.PCIeRoot.Values) == 0 && pcieExpected[k] {
 					p.missingPC = append(p.missingPC, d.Name)
 				}
 				if top.NUMA.Conflict {
@@ -88,7 +89,7 @@ func Topology() Check {
 			det := map[string]any{
 				"generation": p.gen, "devices": p.devices, "slicesObserved": p.slices, "slicesExpected": p.expected,
 				"missingNUMA": nonNil(p.missingNUMA), "missingPCIeRoot": nonNil(p.missingPC), "conflicts": nonNil(p.conflicts),
-				"summary": fmt.Sprintf("%d devices, %d missing NUMA, %d missing PCIe root", p.devices, len(p.missingNUMA), len(p.missingPC)),
+				"summary": fmt.Sprintf("%d devices, %d missing NUMA, %d missing PCIe root where expected", p.devices, len(p.missingNUMA), len(p.missingPC)),
 			}
 			st := worst(fs)
 			res := model.Result{Check: NameTopology, Status: st, Subject: k[0] + "/" + k[1], Details: det}

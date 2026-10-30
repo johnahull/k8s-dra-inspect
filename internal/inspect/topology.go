@@ -57,7 +57,9 @@ func Topology(compact bool) Inspector {
 			}
 			groups := map[topoKey]*topoGroup{}
 			cur, sel := current(snap)
+			pcieExpected := model.PoolsWithPCIeRoot(cur)
 			for _, s := range cur {
+				pool := model.PoolKey{s.Spec.Driver, s.Spec.Pool.Name}
 				for _, d := range s.Spec.Devices {
 					top, err := model.TopologyOf(d, s.Spec.Driver)
 					reasons := map[string]model.Finding{}
@@ -71,7 +73,7 @@ func Topology(compact bool) Inspector {
 						name string
 						r    model.Resolved
 					}{{"numa", top.NUMA}, {"pcieRoot", top.PCIeRoot}} {
-						if len(x.r.Values) == 0 && err == nil {
+						if len(x.r.Values) == 0 && err == nil && (x.name != "pcieRoot" || pcieExpected[pool]) {
 							add(model.KindAttrMissing, "missing attribute: "+x.name, x.name)
 						}
 						if x.r.Conflict {

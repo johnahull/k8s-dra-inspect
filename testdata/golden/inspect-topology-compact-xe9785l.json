@@ -5,7 +5,7 @@
   "results": [
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=0,1,2,3/pcieRoot=-",
       "details": {
         "deviceCount": 4,
@@ -21,8 +21,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -216,7 +215,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=4,5,6,7/pcieRoot=-",
       "details": {
         "deviceCount": 4,
@@ -232,8 +231,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {

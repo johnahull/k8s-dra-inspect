@@ -100,6 +100,27 @@ func TopologyOf(dev resourcev1.Device, driver string) (Topology, error) {
 	return Topology{NUMA: numa, PCIeRoot: pcie}, nil
 }
 
+// PoolsWithPCIeRoot reports the current-slice pools that publish at least one
+// valid PCIe-root value. Callers use this to distinguish an optional topology
+// dimension from a root omitted by only some devices in a pool.
+func PoolsWithPCIeRoot(slices []resourcev1.ResourceSlice) map[PoolKey]bool {
+	out := map[PoolKey]bool{}
+	for _, s := range slices {
+		k := PoolKey{s.Spec.Driver, s.Spec.Pool.Name}
+		if out[k] {
+			continue
+		}
+		for _, d := range s.Spec.Devices {
+			top, err := TopologyOf(d, s.Spec.Driver)
+			if err == nil && len(top.PCIeRoot.Values) > 0 {
+				out[k] = true
+				break
+			}
+		}
+	}
+	return out
+}
+
 // resolve tries the standard key, then <driver>/<name> or <name>, then any
 // <vendor>/<name> in lexical order. The first tier with any key wins.
 func resolve(dev resourcev1.Device, driver, standard string, names []string) (Resolved, error) {

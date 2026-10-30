@@ -120,7 +120,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=0,1,2,3/pcieRoot=-",
       "details": {
         "deviceCount": 4,
@@ -136,8 +136,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -331,7 +330,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=4,5,6,7/pcieRoot=-",
       "details": {
         "deviceCount": 4,
@@ -347,8 +346,7 @@
         ],
         "numaKey": "resource.kubernetes.io/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -1589,32 +1587,22 @@
         "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
       "check": "check.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "dra.memory/node-a.example.com",
       "details": {
         "conflicts": [],
         "devices": 8,
         "generation": 1,
         "missingNUMA": [],
-        "missingPCIeRoot": [
-          "memory-rddth4",
-          "memory-fk8nlr",
-          "memory-bjd9hw",
-          "memory-t5wtkl",
-          "memory-4qhskf",
-          "memory-s9zcsf",
-          "memory-2v88wt",
-          "memory-559qbb"
-        ],
-        "reason": "PCIe root missing on memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf, memory-2v88wt, memory-559qbb",
+        "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "8 devices, 0 missing NUMA, 8 missing PCIe root"
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
@@ -1629,7 +1617,7 @@
         "missingPCIeRoot": [],
         "slicesExpected": 2,
         "slicesObserved": 2,
-        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
@@ -1644,7 +1632,7 @@
         "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     }
   ]

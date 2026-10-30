@@ -2,8 +2,6 @@
 
 Node: node-a.example.com
 ├─ NUMA 0
-│  └─ pcieRoot unknown
-│     └─ gpu  gpu-0
+│  └─ gpu  gpu-0
 └─ NUMA unknown
-   └─ pcieRoot unknown
-      └─ gpu  gpu-1 [example-gpu]
+   └─ gpu  gpu-1 [example-gpu]

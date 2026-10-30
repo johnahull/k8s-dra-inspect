@@ -1,13 +1,13 @@
 CHECK                  PASS  WARN  FAIL  UNAVAILABLE  ERROR
 inspect.slices         2     0     0     0            0
 inspect.drivers        1     0     0     0            0
-inspect.topology       0     3     0     0            0
+inspect.topology       3     0     0     0            0
 inspect.deviceclasses  0     0     0     0            0
 inspect.claims         2     0     0     0            0
 check.alignment        1     1     0     0            0
 check.counters         1     0     0     0            0
 check.capacity         1     0     0     0            0
-check.topology         0     2     0     0            0
+check.topology         2     0     0     0            0
 check.vfio             0     0     0     1            0
 check.kubevirt         3     1     3     1            0
 adapter.host           0     0     0     1            0
@@ -16,14 +16,9 @@ adapter.kubevirt       1     0     0     0            0
 UNAVAILABLE: check.vfio: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)
 UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
 UNAVAILABLE: adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)
-CHECK             SUBJECT                               STATUS  DETAIL
-inspect.topology  node-a.example.com/numa=0/pcieRoot=-  warn    missing attribute: pcieRoot
-inspect.topology  node-a.example.com/numa=1/pcieRoot=-  warn    missing attribute: pcieRoot
-inspect.topology  node-b.example.com/numa=0/pcieRoot=-  warn    missing attribute: pcieRoot
-check.alignment   demo/claim-ok                         warn    devices span NUMA nodes (no common …
-check.topology    gpu.example.com/node-a.example.com    warn    PCIe root missing on gpu-0, nic-0, …
-check.topology    gpu.example.com/node-b.example.com    warn    PCIe root missing on gpu-b0
-check.kubevirt    demo/vm-missing-claim                 fail    claim demo/no-such-claim not found
-check.kubevirt    demo/vm-no-allocation                 fail    request absent has no allocation re…
-check.kubevirt    demo/vm-split                         warn    devices span NUMA nodes 0,1 without…
-check.kubevirt    demo/vm-wrong-node                    fail    device gpu.example.com/node-b.examp…
+CHECK            SUBJECT                STATUS  DETAIL
+check.alignment  demo/claim-ok          warn    devices span NUMA nodes (no common NUMA node)
+check.kubevirt   demo/vm-missing-claim  fail    claim demo/no-such-claim not found
+check.kubevirt   demo/vm-no-allocation  fail    request absent has no allocation result in claim de…
+check.kubevirt   demo/vm-split          warn    devices span NUMA nodes 0,1 without guestMappingPas…
+check.kubevirt   demo/vm-wrong-node     fail    device gpu.example.com/node-b.example.com/gpu-b0 is…

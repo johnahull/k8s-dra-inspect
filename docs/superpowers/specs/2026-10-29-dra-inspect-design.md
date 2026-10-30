@@ -240,8 +240,10 @@ Three modes, chosen with `-o`:
   device name longer than the line stays whole. Requests, devices and their
   placement are printed one fact per indented line rather than in one long row.
   `inspect slices`, `topology`, `drivers` and `attributes` are organised by
-  node (node, then driver, then device); the claim-centred checks and `report`
-  are not.
+  node (node, then driver, then device). In the topology tree, PCIe-root
+  branches are emitted only for devices that publish a root; rootless devices
+  are direct NUMA children. The claim-centred checks and `report` are not
+  grouped by node.
 - `table`: flat rows for scripts and wide terminals. Long cells are truncated
   with `…` to fit the terminal width (JSON never truncates).
 - `json`: the versioned envelope; it is independent of the text layout.

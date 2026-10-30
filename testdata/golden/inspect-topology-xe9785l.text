@@ -22,11 +22,10 @@ Node: node-a.example.com
 │  │  └─ cpu  cpudevnuma003
 │  ├─ pcieRoot pci0000:98,pci0000:d0
 │  │  └─ cpu  cpudevnuma000
-│  └─ pcieRoot unknown
-│     ├─ memory  memory-bjd9hw
-│     ├─ memory  memory-fk8nlr
-│     ├─ memory  memory-rddth4
-│     └─ memory  memory-t5wtkl
+│  ├─ memory  memory-bjd9hw
+│  ├─ memory  memory-fk8nlr
+│  ├─ memory  memory-rddth4
+│  └─ memory  memory-t5wtkl
 └─ NUMA 4,5,6,7
    ├─ pcieRoot pci0001:00
    │  ├─ gpu  gpu-vfio-2 (0001:0d:02.0)
@@ -48,8 +47,7 @@ Node: node-a.example.com
    │  └─ cpu  cpudevnuma007
    ├─ pcieRoot pci0001:98,pci0001:d0
    │  └─ cpu  cpudevnuma004
-   └─ pcieRoot unknown
-      ├─ memory  memory-2v88wt
-      ├─ memory  memory-4qhskf
-      ├─ memory  memory-559qbb
-      └─ memory  memory-s9zcsf
+   ├─ memory  memory-2v88wt
+   ├─ memory  memory-4qhskf
+   ├─ memory  memory-559qbb
+   └─ memory  memory-s9zcsf
