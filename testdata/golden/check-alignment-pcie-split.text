@@ -1,0 +1,7 @@
+═══ Alignment Check ═══
+
+demo/aligned-nics
+  request nic: nic.example.com/nic-0  NUMA 0  pcieRoot pci0000:00
+  request nic: nic.example.com/nic-1  NUMA 0  pcieRoot pci0000:80
+  ✓ numaNode aligned: all on NUMA 0
+  ✗ matchAttribute resource.kubernetes.io/pcieRoot violated: no value common to all devices in scope (nic-0 = pci0000:00; nic-1 = pci0000:80)

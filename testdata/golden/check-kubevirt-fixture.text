@@ -1,0 +1,51 @@
+UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
+═══ KubeVirt Check ═══
+
+demo/vm-garbage
+  ! evidence: status.nodeName is not a string
+  ! evidence: status.phase is not a string
+  ! evidence: spec.domain.cpu.sockets is not an integer
+  ! evidence: spec.domain.cpu.threads is not an integer
+  ! evidence: spec.domain.cpu.dedicatedCpuPlacement is not a boolean
+  ! evidence: spec.domain.cpu.numa is not an object
+  ! evidence: spec.resourceClaims is not a list
+  ! evidence: hostDevices has an entry that is not an object
+  ! evidence: hostDevices has a DRA entry with a missing or non-string field
+  · no DRA host devices
+
+demo/vm-missing-claim
+  ✗ claim demo/no-such-claim not found
+
+demo/vm-no-allocation
+  ✗ request absent has no allocation result in claim demo/claim-ok
+
+demo/vm-ok
+  hostDevice gpu0  request gpu0: gpu.example.com/gpu-0 (0000:3b:00.0)  node node-a.example.com
+  hostDevice nic0  request nic0: gpu.example.com/nic-0 (0000:3c:00.0)  node node-a.example.com
+  hostDevice gpu2  request gpu2/sub: gpu.example.com/gpu-2 (0000:af:00.0)  node node-a.example.com
+  devices on NUMA 0,1
+  guest NUMA passthrough: yes
+  dedicated CPU placement: yes
+  ✓ 3 device(s) on node node-a.example.com
+
+demo/vm-secrets
+  hostDevice gpu0  request gpu0: gpu.example.com/gpu-0 (0000:3b:00.0)  node node-a.example.com
+  devices on NUMA 0
+  guest NUMA passthrough: no
+  dedicated CPU placement: no
+  ✓ 1 device(s) on node node-a.example.com
+
+demo/vm-split
+  hostDevice gpu0  request gpu0: gpu.example.com/gpu-0 (0000:3b:00.0)  node node-a.example.com
+  hostDevice gpu2  request gpu2/sub: gpu.example.com/gpu-2 (0000:af:00.0)  node node-a.example.com
+  devices on NUMA 0,1
+  guest NUMA passthrough: no
+  dedicated CPU placement: yes
+  ! devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology
+
+demo/vm-wrong-node
+  hostDevice gpu0  request gpu0: gpu.example.com/gpu-b0 (0000:3b:00.0)  node node-b.example.com
+  devices on NUMA 0
+  guest NUMA passthrough: no
+  dedicated CPU placement: no
+  ✗ device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com

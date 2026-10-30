@@ -13,31 +13,15 @@ import (
 )
 
 // Until a command has a text view, the default (-o text) prints exactly what
-// -o table prints, for every command family.
+// -o table prints. Only the report commands are still without one.
 func TestTextAndDefaultOutputEqualTableForEveryCommand(t *testing.T) {
 	type runner func(extra ...string) (string, int)
 	fx := func(name string) model.Snapshot { return testutil.LoadFixture(t, "testdata/fixtures/"+name) }
 	via := func(snap model.Snapshot, args ...string) runner {
 		return func(extra ...string) (string, int) { return cmdRun(t, snap, append(slicesClone(args), extra...)...) }
 	}
-	viaHost := func(snap model.Snapshot, args ...string) runner {
-		return func(extra ...string) (string, int) {
-			out, errOut, code := runHost(t, snap, noHost(t), append(slicesClone(args), extra...)...)
-			if errOut != "" {
-				t.Fatalf("stderr %q", errOut)
-			}
-			return out, code
-		}
-	}
 	cases := map[string]runner{
-		"check alignment":  via(fx("numa-split"), "check", "alignment"),
-		"check counters":   via(fx("counters/overcommit"), "check", "counters"),
-		"check capacity":   via(fx("capacity/overcommit"), "check", "capacity"),
-		"check topology":   via(fx("missing-attr"), "check", "topology"),
-		"check kubevirt":   via(kvFixture(t), "check", "kubevirt"),
-		"check vfio":       viaHost(hostSnap(t, hostFixture(t, false)), "check", "vfio", "--from", "x.json"),
-		"check cpupinning": viaHost(hostSnap(t, hostFixture(t, false)), "check", "cpupinning", "app", "-n", "demo", "--from", "x.json"),
-		"report cluster":   via(fx("pcie-split"), "report", "cluster"),
+		"report cluster": via(fx("pcie-split"), "report", "cluster"),
 		"report support": func(extra ...string) (string, int) {
 			out, errOut, code := runHost(t, kvFixture(t), (&recorder{}).New,
 				append([]string{"report", "support", "--host-root", kvHost(t).Root, "--node-name", kvNode}, extra...)...)

@@ -56,7 +56,11 @@ func (p *Printer) Banner(title string) {
 	p.emit(string(p.sgr("1;36", "═══ "+title+" ═══")))
 }
 
-// Marker is the status glyph: ✓ pass, ! warn, ✗ fail, ? unavailable, E error.
+// Info marks a neutral note that is neither a pass nor a problem (for example
+// "nothing to compare"); Note and Marker accept it like a status.
+const Info model.Status = "info"
+
+// Marker is the status glyph: ✓ pass, ! warn, ✗ fail, ? unavailable, E error, · info.
 func (p *Printer) Marker(s model.Status) Span {
 	switch s {
 	case model.StatusPass:
@@ -67,6 +71,8 @@ func (p *Printer) Marker(s model.Status) Span {
 		return p.sgr("31", "✗")
 	case model.StatusError:
 		return p.sgr("31", "E")
+	case Info:
+		return p.sgr("2", "·")
 	}
 	return p.sgr("2", "?")
 }

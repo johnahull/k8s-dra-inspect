@@ -1,0 +1,6 @@
+═══ Shared Counters ═══
+
+gpu.example.com (pool: node-a.example.com)
+  counter set pf-0
+    vf-slots: 0 of 2 in use
+    ! claim demo/vfs allocates gpu.example.com/node-a.example.com/vf-old from a stale generation; its counters are not counted

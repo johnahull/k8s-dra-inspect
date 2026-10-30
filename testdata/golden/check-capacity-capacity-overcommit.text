@@ -1,0 +1,7 @@
+═══ Consumable Capacity ═══
+
+mem.example.com/node-a.example.com/mem-0
+  size: 120Gi of 100Gi consumed (remaining -20Gi)
+  used by demo/first
+  used by demo/second
+  ✗ total consumed 120Gi of size exceeds the published 100Gi

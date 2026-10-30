@@ -24,6 +24,7 @@ func TestMarker(t *testing.T) {
 		{model.StatusFail, "✗", "\x1b[31m✗\x1b[0m"},
 		{model.StatusUnavailable, "?", "\x1b[2m?\x1b[0m"},
 		{model.StatusError, "E", "\x1b[31mE\x1b[0m"},
+		{Info, "·", "\x1b[2m·\x1b[0m"},
 	}
 	off, _ := newP(Style{})
 	on, _ := newP(Style{Color: true})
@@ -210,6 +211,14 @@ func TestNoteColoursMarkerAndCleansText(t *testing.T) {
 	p, b := newP(Style{Color: true, Width: 12})
 	p.Note(0, model.StatusFail, "bad\x1b[2Jthing here")
 	if want := "\x1b[31m✗\x1b[0m bad�[2Jthing\n  here\n"; b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+func TestInfoNoteIsNeutralNotGreen(t *testing.T) {
+	p, b := newP(Style{Color: true})
+	p.Note(0, Info, "no shared counters published")
+	if want := "\x1b[2m·\x1b[0m no shared counters published\n"; b.String() != want || strings.Contains(b.String(), "32m") {
 		t.Errorf("got %q want %q", b.String(), want)
 	}
 }

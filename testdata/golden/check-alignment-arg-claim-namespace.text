@@ -1,0 +1,7 @@
+═══ Alignment Check ═══
+
+demo/two-gpus
+  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00
+  request gpu: gpu.example.com/gpu-1  NUMA 1  pcieRoot pci0000:80
+  ! devices span NUMA nodes (no common NUMA node): on NUMA 0: gpu-0; on NUMA 1: gpu-1
+  · devices span PCIe roots (informational): on pcieRoot pci0000:00: gpu-0; on pcieRoot pci0000:80: gpu-1

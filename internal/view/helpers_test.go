@@ -2,6 +2,8 @@ package view_test
 
 import (
 	"bytes"
+	"context"
+	"github.com/johnahull/k8s-dra-inspect/internal/check"
 	"strings"
 	"testing"
 
@@ -58,3 +60,23 @@ func slicesContains(l []string, s string) bool {
 	}
 	return false
 }
+
+// showCheck runs the check on snap and prints it through v with colour off.
+func showCheck(t *testing.T, snap model.Snapshot, c check.Check, v viewFunc) string {
+	t.Helper()
+	return showResults(t, snap, c(context.Background(), snap), v)
+}
+
+// showResults prints hand-built results through v with colour off.
+func showResults(t *testing.T, snap model.Snapshot, rs []model.Result, v viewFunc) string {
+	t.Helper()
+	var b bytes.Buffer
+	p := render.NewPrinter(&b, render.Style{})
+	v(p, snap, rs)
+	if err := p.Err(); err != nil {
+		t.Fatal(err)
+	}
+	return b.String()
+}
+
+func lines(s ...string) string { return strings.Join(s, "\n") + "\n" }

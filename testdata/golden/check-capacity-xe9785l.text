@@ -1,0 +1,31 @@
+═══ Consumable Capacity ═══
+
+dra.cpu/node-a.example.com/cpudevnuma001
+  dra.cpu/cpu: 32 of 32 consumed (remaining 0)
+  used by default/vm-final-all
+  ✓ within published capacity
+
+dra.cpu/node-a.example.com/cpudevnuma002
+  dra.cpu/cpu: 32 of 32 consumed (remaining 0)
+  used by default/vm-final-all
+  ✓ within published capacity
+
+dra.cpu/node-a.example.com/cpudevnuma003
+  dra.cpu/cpu: 32 of 32 consumed (remaining 0)
+  used by default/vm-final-all
+  ✓ within published capacity
+
+dra.memory/node-a.example.com/memory-4qhskf
+  size: 396276768Ki of 396348372Ki consumed (remaining 71604Ki)
+  used by default/vm-final-all
+  ✓ within published capacity
+
+dra.memory/node-a.example.com/memory-bjd9hw
+  size: 396276768Ki of 396348372Ki consumed (remaining 71604Ki)
+  used by default/vm-final-all
+  ✓ within published capacity
+
+dra.memory/node-a.example.com/memory-t5wtkl
+  size: 396276768Ki of 396276768Ki consumed (remaining 0)
+  used by default/vm-final-all
+  ✓ within published capacity

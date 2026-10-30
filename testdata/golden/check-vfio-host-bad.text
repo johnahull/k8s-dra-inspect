@@ -1,0 +1,10 @@
+═══ VFIO Check ═══
+
+gpu.example.com/gpu-0 (0000:3b:00.0)
+  bound driver: nvidia
+  IOMMU group: 7
+  non-vfio peer: 0000:3b:00.1 (driver snd_hda_intel, GPU audio function sharing the group)
+  /dev/vfio/7: present
+  CDI spec lists device: no
+  ✗ bound to driver nvidia, want vfio-pci
+  ! IOMMU group 7 also holds 0000:3b:00.1 (driver snd_hda_intel, GPU audio function sharing the group)

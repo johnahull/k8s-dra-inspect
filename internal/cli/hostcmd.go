@@ -13,6 +13,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/adapters/host"
 	"github.com/johnahull/k8s-dra-inspect/internal/check"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
+	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
 // NewHostFunc builds the host adapter; tests replace it with a fake root.
@@ -98,7 +99,7 @@ and never changes the status.`
 
 func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 	var root, nodeName string
-	add := func(use, short string, args cobra.PositionalArgs, build func(args []string) check.Check) {
+	add := func(use, short string, text textView, args cobra.PositionalArgs, build func(args []string) check.Check) {
 		cmd := &cobra.Command{
 			Use: use, Short: short, Long: short + "\n\n" + hostHelp, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
@@ -115,15 +116,15 @@ func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 						}
 						return snap, c(ctx, snap)
 					},
-					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, nil)
+					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, text)
 			},
 		}
 		cmd.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (live runs only)")
 		cmd.Flags().StringVar(&nodeName, "node-name", "", "cluster node name of this host (default $NODE_NAME, then the hostname; live runs only)")
 		parent.AddCommand(cmd)
 	}
-	add("cpupinning POD", "Compare a pod's pinned CPUs with its devices' NUMA nodes (host evidence)", cobra.ExactArgs(1),
+	add("cpupinning POD", "Compare a pod's pinned CPUs with its devices' NUMA nodes (host evidence)", view.CPUPinning, cobra.ExactArgs(1),
 		func(args []string) check.Check { return check.CPUPinning(args[0], opts.Namespace) })
-	add("vfio", "Check allocated PCI devices for vfio-pci binding and IOMMU groups (host evidence)", cobra.NoArgs,
+	add("vfio", "Check allocated PCI devices for vfio-pci binding and IOMMU groups (host evidence)", view.VFIO, cobra.NoArgs,
 		func([]string) check.Check { return check.VFIO() })
 }

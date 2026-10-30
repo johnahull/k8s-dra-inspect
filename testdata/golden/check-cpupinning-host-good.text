@@ -1,0 +1,7 @@
+═══ CPU Pinning Check ═══
+
+demo/app (node: node-a.example.com)
+  cpuset = 2-5
+  CPUs on NUMA 0
+  devices on NUMA 0
+  ✓ CPUs pinned within the devices' NUMA nodes

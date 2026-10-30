@@ -1,0 +1,6 @@
+═══ Topology Check ═══
+
+gpu.example.com/node-a.example.com
+  2 devices, 1 missing NUMA, 2 missing PCIe root
+  ! NUMA node missing on gpu-1
+  ! PCIe root missing on gpu-0, gpu-1

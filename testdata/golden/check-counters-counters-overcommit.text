@@ -1,0 +1,7 @@
+═══ Shared Counters ═══
+
+gpu.example.com (pool: node-a.example.com)
+  counter set pf-0
+    vf-slots: 3 of 2 in use
+    used by demo/vfs
+    ✗ counter vf-slots overcommitted: 3 used of 2

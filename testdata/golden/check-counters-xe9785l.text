@@ -1,0 +1,30 @@
+═══ Shared Counters ═══
+
+gpu.amd.com (pool: node-a.example.com)
+  counter set pf-0000-0c-00-0-counter-set
+    vf-slots: 0 of 1 in use
+    ✓ within capacity
+  counter set pf-0000-3d-00-0-counter-set
+    vf-slots: 0 of 1 in use
+    ✓ within capacity
+  counter set pf-0000-a8-00-0-counter-set
+    vf-slots: 0 of 1 in use
+    ✓ within capacity
+  counter set pf-0000-dc-00-0-counter-set
+    vf-slots: 1 of 1 in use
+    used by default/vm-final-all
+    ✓ within capacity
+  counter set pf-0001-0d-00-0-counter-set
+    vf-slots: 0 of 1 in use
+    ✓ within capacity
+  counter set pf-0001-3d-00-0-counter-set
+    vf-slots: 0 of 1 in use
+    ✓ within capacity
+  counter set pf-0001-a5-00-0-counter-set
+    vf-slots: 1 of 1 in use
+    used by default/vm-final-all
+    ✓ within capacity
+  counter set pf-0001-dc-00-0-counter-set
+    vf-slots: 1 of 1 in use
+    used by default/vm-final-all
+    ✓ within capacity

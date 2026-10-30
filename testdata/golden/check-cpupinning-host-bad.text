@@ -1,0 +1,7 @@
+═══ CPU Pinning Check ═══
+
+demo/app (node: node-a.example.com)
+  cpuset = 8-11
+  CPUs on NUMA 1
+  devices on NUMA 0
+  ! CPUs span NUMA nodes not used by the devices

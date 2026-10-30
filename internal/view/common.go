@@ -90,3 +90,11 @@ func intOf(v any) int {
 	n, _ := v.(int)
 	return n
 }
+
+// detAny reads a Details value as text, "" when absent.
+func detAny(v any) string {
+	if v == nil {
+		return ""
+	}
+	return fmt.Sprint(v)
+}
