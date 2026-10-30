@@ -3,7 +3,9 @@ package cli
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
+	"slices"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -122,13 +124,17 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 
 func runInspector(cmd *cobra.Command, opts *Options, d Deps, in inspect.Inspector) error {
 	return runResults(cmd, opts, d,
-		func(_ context.Context, snap model.Snapshot) []model.Result { return in.Run(snap) },
-		func(results []model.Result) error { return renderTable(cmd, opts, d, in.Spec, results) })
+		func(_ context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
+			return snap, in.Run(snap)
+		},
+		func(results []model.Result) error { return renderTable(cmd, opts, d, in.Spec, results) }, nil)
 }
 
-// runResults loads the snapshot, produces results, prints them as JSON or via
-// table, and maps their statuses to the exit code.
-func runResults(cmd *cobra.Command, opts *Options, d Deps, produce func(context.Context, model.Snapshot) []model.Result, table func([]model.Result) error) error {
+// runResults loads the snapshot, produces results (and the snapshot they were
+// computed from, which may carry adapter evidence), prints them as JSON, text
+// or table, and maps their statuses to the exit code. A nil text view falls
+// back to the table.
+func runResults(cmd *cobra.Command, opts *Options, d Deps, produce func(context.Context, model.Snapshot) (model.Snapshot, []model.Result), table func([]model.Result) error, text textView) error {
 	src, err := d.NewSource(opts)
 	if err != nil {
 		return err
@@ -137,10 +143,13 @@ func runResults(cmd *cobra.Command, opts *Options, d Deps, produce func(context.
 	if err != nil {
 		return err
 	}
-	results := produce(cmd.Context(), snap)
-	if opts.Output == "json" {
+	snap, results := produce(cmd.Context(), snap)
+	switch {
+	case opts.Output == "json":
 		err = render.JSON(cmd.OutOrStdout(), snap.Source, d.Now(), results)
-	} else {
+	case opts.Output == "text" && text != nil:
+		err = renderText(cmd.OutOrStdout(), render.Style{Color: ColorEnabled(opts.NoColor, os.Getenv, d.IsTTY), Width: d.Width}, snap, results, text)
+	default:
 		err = table(results)
 	}
 	if err != nil {
@@ -173,4 +182,22 @@ func renderTable(cmd *cobra.Command, opts *Options, d Deps, in inspect.Spec, res
 	return render.Table(out, in.Columns, rows, render.TableOptions{
 		Width: d.Width, Color: ColorEnabled(opts.NoColor, os.Getenv, d.IsTTY),
 	})
+}
+
+// textView prints one command's results through the Printer.
+type textView func(p *render.Printer, snap model.Snapshot, results []model.Result)
+
+// renderText prints UNAVAILABLE lines first, exactly as the table does, then
+// the view. When every result is unavailable the output is just those lines
+// (no banner, never wrapped), so scripts that grep them keep working.
+func renderText(w io.Writer, st render.Style, snap model.Snapshot, results []model.Result, view textView) error {
+	if err := render.Unavailable(w, results); err != nil {
+		return err
+	}
+	if len(results) > 0 && !slices.ContainsFunc(results, func(r model.Result) bool { return r.Status != model.StatusUnavailable }) {
+		return nil
+	}
+	p := render.NewPrinter(w, st)
+	view(p, snap, results)
+	return p.Err()
 }

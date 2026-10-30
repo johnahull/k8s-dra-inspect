@@ -107,15 +107,15 @@ func addHostChecks(parent *cobra.Command, opts *Options, d Deps) {
 				}
 				c := build(args)
 				return runResults(cmd, opts, d,
-					func(ctx context.Context, snap model.Snapshot) []model.Result {
+					func(ctx context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
 						// A snapshot (--from) is replayed as is; a live run reads this node first.
 						if opts.From == "" {
 							cfg := host.Config{Root: root, NodeName: resolveNodeName(nodeName, os.Getenv, os.Hostname)}
 							snap = attachHost(ctx, d.NewHost, cfg, snap)
 						}
-						return c(ctx, snap)
+						return snap, c(ctx, snap)
 					},
-					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) })
+					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, nil)
 			},
 		}
 		cmd.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (live runs only)")

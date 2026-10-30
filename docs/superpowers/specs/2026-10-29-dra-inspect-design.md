@@ -16,7 +16,7 @@ In scope:
 - NUMA, PCIe-root, capacity, and allocation checks (`check alignment`, `counters`, `capacity`, `topology`).
 - Offline snapshot capture and replay.
 - Optional VFIO, CDI, CPU-pinning, KubeVirt, and shared-counter adapters.
-- Human-readable tables and versioned JSON output.
+- Readable text (default), flat tables and versioned JSON output.
 - Workstation/CI execution and an optional read-only in-cluster Job.
 
 Out of scope:
@@ -36,7 +36,7 @@ Out of scope:
 - CLI framework: Cobra.
 - API target: `resource.k8s.io/v1` only, Kubernetes 1.34 or newer, client-go
   v0.34 or newer. Older API versions are not supported.
-- Default output: terminal tables; automation output: versioned JSON.
+- Default output: readable text (`-o text`); flat tables (`-o table`); automation output: versioned JSON (`-o json`).
 - Deployment: standalone binary or OCI image; optional read-only Kubernetes Job.
 - RBAC: cluster read-only profile plus a namespace-scoped workload profile.
 - Snapshots are a first-class v1 feature.

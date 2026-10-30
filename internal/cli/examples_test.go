@@ -48,7 +48,7 @@ func replayReport(t *testing.T, bundle string) string {
 	t.Helper()
 	deps := snapDeps(t, model.Snapshot{})
 	deps.NewHost = noHost(t)
-	out, errOut, _ := runSnap(t, deps, "report", "support", "--from", bundle)
+	out, errOut, _ := runSnap(t, deps, "report", "support", "--from", bundle, "-o", "table")
 	if errOut != "" {
 		t.Fatalf("stderr %q", errOut)
 	}

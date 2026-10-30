@@ -44,7 +44,7 @@ dra-inspect completion bash|zsh|fish
 dra-inspect version
 ```
 
-Global flags: `-n/--namespace`, `-o/--output table|json`, `--from FILE`,
+Global flags: `-n/--namespace`, `-o/--output text|table|json`, `--from FILE`,
 `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
 
 `--timeout` (default 30s; 0 means no deadline; negative values are a usage error) is one overall deadline for collecting from the
@@ -53,7 +53,8 @@ long in total. Kinds not collected by then are reported as unavailable
 (`timed out after <timeout>`). It applies to `inspect`, `check`, `snapshot
 capture` and `report` alike.
 
-- Tables are the default; `-o json` prints a versioned envelope
+- `-o text` is the default readable layout; `-o table` prints flat tables (the
+  wide, greppable form); `-o json` prints a versioned envelope
   (`schemaVersion`, `results[]` with `check`, `status`, `subject`, `details`).
 - Every result is `pass`, `warn`, `fail`, `unavailable` or `error`. Exit codes:
   0 pass or warn, 1 fail, 2 error, 3 unavailable (only with `--strict`).

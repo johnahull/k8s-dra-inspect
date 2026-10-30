@@ -70,7 +70,7 @@ func TestInspectTableLayout(t *testing.T) {
 	for _, fx := range []string{"xe9785l", "xe9680", "unicode-long"} {
 		snap := testutil.LoadFixture(t, "testdata/fixtures/"+fx)
 		for _, c := range inspectCases {
-			out, _ := inspectRun(t, snap, c.args...)
+			out, _ := inspectRun(t, snap, append([]string{"-o", "table"}, c.args...)...)
 			lines := strings.Split(strings.TrimRight(out, "\n"), "\n")
 			if len(lines) < 2 || strings.ToUpper(lines[0]) != lines[0] {
 				t.Fatalf("%s/%s: header missing:\n%s", c.name, fx, out)
@@ -86,7 +86,7 @@ func TestInspectTableLayout(t *testing.T) {
 		}
 	}
 	snap := testutil.LoadFixture(t, "testdata/fixtures/unicode-long")
-	out, _ := inspectRun(t, snap, "slices")
+	out, _ := inspectRun(t, snap, "-o", "table", "slices")
 	if !strings.Contains(out, "…") {
 		t.Errorf("long names should be truncated with an ellipsis:\n%s", out)
 	}
@@ -178,7 +178,7 @@ func TestInspectUnavailable(t *testing.T) {
 // Middle truncation must keep the distinguishing tail of device identifiers.
 func TestAttributesSubjectsDistinctAfterTruncation(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")
-	out, _ := inspectRun(t, snap, "attributes")
+	out, _ := inspectRun(t, snap, "-o", "table", "attributes")
 	lines := strings.Split(strings.TrimRight(out, "\n"), "\n")[1:]
 	seen := map[string]string{}
 	for _, l := range lines {
@@ -309,7 +309,7 @@ func TestDRAViewsLayout(t *testing.T) {
 			"CLAIM                 ALLOCATED  DEVICES  NODE                USED BY",
 			"demo/web-0-gpu-xyz12  yes        1        node-a.example.com  web-0"}},
 	} {
-		out, _ := inspectRun(t, snap, c.args...)
+		out, _ := inspectRun(t, snap, append([]string{"-o", "table"}, c.args...)...)
 		lines := strings.Split(out, "\n")
 		if lines[0] != c.want[0] || !slices.Contains(lines, c.want[1]) {
 			t.Errorf("%v layout:\n%s", c.args, out)

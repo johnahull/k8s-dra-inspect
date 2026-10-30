@@ -62,8 +62,10 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 			RunE: func(cmd *cobra.Command, args []string) error {
 				c := build(args)
 				return runResults(cmd, opts, d,
-					func(ctx context.Context, snap model.Snapshot) []model.Result { return c(ctx, snap) },
-					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) })
+					func(ctx context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
+						return snap, c(ctx, snap)
+					},
+					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, nil)
 			},
 		})
 	}
