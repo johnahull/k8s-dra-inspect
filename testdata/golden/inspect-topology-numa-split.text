@@ -1,0 +1,9 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0
+│  └─ pcieRoot pci0000:00
+│     └─ gpu  gpu-0
+└─ NUMA 1
+   └─ pcieRoot pci0000:80
+      └─ gpu  gpu-1

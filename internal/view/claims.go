@@ -52,7 +52,7 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			case !slicesOK:
 				p.Line(2, "request %s: %s", d["request"], id)
 			case !ok:
-				p.Line(2, "%s request %s: %s not found in ResourceSlices (pool %s)", p.Marker(model.StatusFail), d["request"], id, d["pool"])
+				p.Note(2, model.StatusFail, "request "+d["request"]+": "+id+" not found in ResourceSlices (pool "+d["pool"]+")")
 			default:
 				numa, root := topo(dev, d["driver"])
 				p.Line(2, "request %s: %s%s  NUMA %s  pcieRoot %s  node %s", d["request"], id, hardware(dev, d["driver"]),
@@ -60,10 +60,10 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			}
 		}
 		if v := detStr(r, "vmi"); strings.HasPrefix(v, "unavailable") {
-			p.Line(2, "%s vmi %s", p.Marker(model.StatusUnavailable), v)
+			p.Note(2, model.StatusUnavailable, "vmi "+v)
 		}
 		if v := detStr(r, "usedByState"); strings.HasPrefix(v, "unavailable") {
-			p.Line(2, "%s pods %s", p.Marker(model.StatusUnavailable), v)
+			p.Note(2, model.StatusUnavailable, "pods "+v)
 		}
 	}
 	if n == 0 {

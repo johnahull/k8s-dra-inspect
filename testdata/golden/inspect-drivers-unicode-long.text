@@ -1,0 +1,4 @@
+═══ DRA Drivers ═══
+
+gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com: 2 devices on node-a.example.com  (1 pool)
+other.example.com: 1 device on node-b.example.com  (1 pool)

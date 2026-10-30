@@ -1,0 +1,385 @@
+═══ DRA Device Attributes ═══
+
+dra.cpu (8 devices)
+  cpudevnuma000  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 0
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 0
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:98, pci0000:d0]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma001  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 1
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 0
+    dra.net/numaNode                = 1
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:00, pci0000:64]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma002  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 2
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 0
+    dra.net/numaNode                = 2
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:32, pci0000:66]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma003  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 3
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 0
+    dra.net/numaNode                = 3
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:96, pci0000:a0]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma004  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 4
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 1
+    dra.net/numaNode                = 4
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:98, pci0001:d0]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma005  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 5
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 1
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:00, pci0001:64]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma006  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 6
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 1
+    dra.net/numaNode                = 6
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:32, pci0001:66]
+    capacity dra.cpu/cpu            = 32
+  cpudevnuma007  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numCPUs                 = 32
+    dra.cpu/numaNodeID              = 7
+    dra.cpu/smtEnabled              = true
+    dra.cpu/socketID                = 1
+    dra.net/numaNode                = 7
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:68, pci0001:a0]
+    capacity dra.cpu/cpu            = 32
+
+dra.memory (8 devices)
+  memory-2v88wt  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 6
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 6
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 6
+    resource.kubernetes.io/cpuSocketID = 1
+    resource.kubernetes.io/numaNode    = [4, 5, 6, 7]
+    capacity size                      = 396348372Ki
+  memory-4qhskf  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 4
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 4
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 4
+    resource.kubernetes.io/cpuSocketID = 1
+    resource.kubernetes.io/numaNode    = [4, 5, 6, 7]
+    capacity size                      = 396348372Ki
+  memory-559qbb  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 7
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 7
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 7
+    resource.kubernetes.io/cpuSocketID = 1
+    resource.kubernetes.io/numaNode    = [4, 5, 6, 7]
+    capacity size                      = 396302588Ki
+  memory-bjd9hw  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 2
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 2
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 2
+    resource.kubernetes.io/cpuSocketID = 0
+    resource.kubernetes.io/numaNode    = [0, 1, 2, 3]
+    capacity size                      = 396348372Ki
+  memory-fk8nlr  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 1
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 1
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 1
+    resource.kubernetes.io/cpuSocketID = 0
+    resource.kubernetes.io/numaNode    = [0, 1, 2, 3]
+    capacity size                      = 396348372Ki
+  memory-rddth4  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 0
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 0
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 0
+    resource.kubernetes.io/cpuSocketID = 0
+    resource.kubernetes.io/numaNode    = [0, 1, 2, 3]
+    capacity size                      = 395620752Ki
+  memory-s9zcsf  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 5
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 5
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 5
+    resource.kubernetes.io/cpuSocketID = 1
+    resource.kubernetes.io/numaNode    = [4, 5, 6, 7]
+    capacity size                      = 396348372Ki
+  memory-t5wtkl  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID                 = 3
+    dra.memory/hugeTLB                 = false
+    dra.memory/numaNode                = 3
+    dra.memory/pageSize                = 4Ki
+    dra.net/numaNode                   = 3
+    resource.kubernetes.io/cpuSocketID = 0
+    resource.kubernetes.io/numaNode    = [0, 1, 2, 3]
+    capacity size                      = 396276768Ki
+
+gpu.amd.com (8 devices)
+  gpu-vfio-0  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 4
+    iommuGroup                      = 247
+    isVF                            = true
+    numaNode                        = 4
+    pciAddr                         = 0001:dc:02.0
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:dc:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:d0
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-1  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 7
+    iommuGroup                      = 248
+    isVF                            = true
+    numaNode                        = 7
+    pciAddr                         = 0001:a5:02.0
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:a5:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:a0
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-2  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 5
+    iommuGroup                      = 249
+    isVF                            = true
+    numaNode                        = 5
+    pciAddr                         = 0001:0d:02.0
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:0d:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:00
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-3  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 6
+    iommuGroup                      = 250
+    isVF                            = true
+    numaNode                        = 6
+    pciAddr                         = 0001:3d:02.0
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:3d:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:32
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-4  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 2
+    iommuGroup                      = 251
+    isVF                            = true
+    numaNode                        = 2
+    pciAddr                         = 0000:3d:02.0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:3d:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:32
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-5  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 1
+    iommuGroup                      = 252
+    isVF                            = true
+    numaNode                        = 1
+    pciAddr                         = 0000:0c:02.0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:0c:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:00
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-6  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 3
+    iommuGroup                      = 253
+    isVF                            = true
+    numaNode                        = 3
+    pciAddr                         = 0000:a8:02.0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:a8:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:a0
+    type                            = vfio
+    vendorID                        = 0x1002
+  gpu-vfio-7  (pool node-a.example.com, node node-a.example.com)
+    deviceID                        = 0x75b3
+    dra.net/numaNode                = 0
+    iommuGroup                      = 254
+    isVF                            = true
+    numaNode                        = 0
+    pciAddr                         = 0000:dc:02.0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:dc:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+    type                            = vfio
+    vendorID                        = 0x1002
+
+sriovnetwork.k8snetworkplumbingwg.io (8 devices)
+  0000-d5-00-2  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 0
+    k8s.cni.cncf.io/deviceID                          = 0000:d5:00.2
+    resource.kubernetes.io/cpuSocketID                = 0
+    resource.kubernetes.io/numaNode                   = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID                   = 0000:d5:00.2
+    resource.kubernetes.io/pcieRoot                   = pci0000:d0
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno17495np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0000:d5:00.2
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0000:d5:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 0
+  0000-d5-00-3  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 0
+    k8s.cni.cncf.io/deviceID                          = 0000:d5:00.3
+    resource.kubernetes.io/cpuSocketID                = 0
+    resource.kubernetes.io/numaNode                   = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID                   = 0000:d5:00.3
+    resource.kubernetes.io/pcieRoot                   = pci0000:d0
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno17495np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0000:d5:00.3
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0000:d5:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 1
+  0000-d5-00-4  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 0
+    k8s.cni.cncf.io/deviceID                          = 0000:d5:00.4
+    resource.kubernetes.io/cpuSocketID                = 0
+    resource.kubernetes.io/numaNode                   = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID                   = 0000:d5:00.4
+    resource.kubernetes.io/pcieRoot                   = pci0000:d0
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno17495np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0000:d5:00.4
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0000:d5:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 2
+  0000-d5-00-5  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 0
+    k8s.cni.cncf.io/deviceID                          = 0000:d5:00.5
+    resource.kubernetes.io/cpuSocketID                = 0
+    resource.kubernetes.io/numaNode                   = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID                   = 0000:d5:00.5
+    resource.kubernetes.io/pcieRoot                   = pci0000:d0
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno17495np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0000:d5:00.5
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0000:d5:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 3
+  0001-07-00-2  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 5
+    k8s.cni.cncf.io/deviceID                          = 0001:07:00.2
+    resource.kubernetes.io/cpuSocketID                = 1
+    resource.kubernetes.io/numaNode                   = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID                   = 0001:07:00.2
+    resource.kubernetes.io/pcieRoot                   = pci0001:00
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno16595np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0001:07:00.2
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0001:07:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 0
+  0001-07-00-3  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 5
+    k8s.cni.cncf.io/deviceID                          = 0001:07:00.3
+    resource.kubernetes.io/cpuSocketID                = 1
+    resource.kubernetes.io/numaNode                   = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID                   = 0001:07:00.3
+    resource.kubernetes.io/pcieRoot                   = pci0001:00
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno16595np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0001:07:00.3
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0001:07:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 1
+  0001-07-00-4  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 5
+    k8s.cni.cncf.io/deviceID                          = 0001:07:00.4
+    resource.kubernetes.io/cpuSocketID                = 1
+    resource.kubernetes.io/numaNode                   = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID                   = 0001:07:00.4
+    resource.kubernetes.io/pcieRoot                   = pci0001:00
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno16595np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0001:07:00.4
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0001:07:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 2
+  0001-07-00-5  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                                  = 5
+    k8s.cni.cncf.io/deviceID                          = 0001:07:00.5
+    resource.kubernetes.io/cpuSocketID                = 1
+    resource.kubernetes.io/numaNode                   = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID                   = 0001:07:00.5
+    resource.kubernetes.io/pcieRoot                   = pci0001:00
+    sriovnetwork.k8snetworkplumbingwg.io/EswitchMode  = legacy
+    sriovnetwork.k8snetworkplumbingwg.io/PFName       = eno16595np0
+    sriovnetwork.k8snetworkplumbingwg.io/deviceID     = 101e
+    sriovnetwork.k8snetworkplumbingwg.io/linkType     = ethernet
+    sriovnetwork.k8snetworkplumbingwg.io/pciAddress   = 0001:07:00.5
+    sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID   = 101d
+    sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress = 0001:07:00.0
+    sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable  = false
+    sriovnetwork.k8snetworkplumbingwg.io/vendor       = 15b3
+    sriovnetwork.k8snetworkplumbingwg.io/vfID         = 3

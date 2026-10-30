@@ -30,18 +30,14 @@ func TestTextAndDefaultOutputEqualTableForEveryCommand(t *testing.T) {
 		}
 	}
 	cases := map[string]runner{
-		"inspect drivers":       via(fx("xe9785l"), "inspect", "drivers"),
-		"inspect attributes":    via(fx("xe9785l"), "inspect", "attributes"),
-		"inspect topology":      via(fx("xe9785l"), "inspect", "topology"),
-		"inspect deviceclasses": via(fx("classes-claims"), "inspect", "deviceclasses"),
-		"check alignment":       via(fx("numa-split"), "check", "alignment"),
-		"check counters":        via(fx("counters/overcommit"), "check", "counters"),
-		"check capacity":        via(fx("capacity/overcommit"), "check", "capacity"),
-		"check topology":        via(fx("missing-attr"), "check", "topology"),
-		"check kubevirt":        via(kvFixture(t), "check", "kubevirt"),
-		"check vfio":            viaHost(hostSnap(t, hostFixture(t, false)), "check", "vfio", "--from", "x.json"),
-		"check cpupinning":      viaHost(hostSnap(t, hostFixture(t, false)), "check", "cpupinning", "app", "-n", "demo", "--from", "x.json"),
-		"report cluster":        via(fx("pcie-split"), "report", "cluster"),
+		"check alignment":  via(fx("numa-split"), "check", "alignment"),
+		"check counters":   via(fx("counters/overcommit"), "check", "counters"),
+		"check capacity":   via(fx("capacity/overcommit"), "check", "capacity"),
+		"check topology":   via(fx("missing-attr"), "check", "topology"),
+		"check kubevirt":   via(kvFixture(t), "check", "kubevirt"),
+		"check vfio":       viaHost(hostSnap(t, hostFixture(t, false)), "check", "vfio", "--from", "x.json"),
+		"check cpupinning": viaHost(hostSnap(t, hostFixture(t, false)), "check", "cpupinning", "app", "-n", "demo", "--from", "x.json"),
+		"report cluster":   via(fx("pcie-split"), "report", "cluster"),
 		"report support": func(extra ...string) (string, int) {
 			out, errOut, code := runHost(t, kvFixture(t), (&recorder{}).New,
 				append([]string{"report", "support", "--host-root", kvHost(t).Root, "--node-name", kvNode}, extra...)...)

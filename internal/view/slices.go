@@ -79,10 +79,10 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 
 	p.Blank()
 	if !sc.Available {
-		p.Line(0, "%s usage unavailable: %s", p.Marker(model.StatusUnavailable), sc.Reason)
+		p.Note(0, model.StatusUnavailable, "usage unavailable: "+sc.Reason)
 		p.Blank()
 	} else if !sc.PodsAvailable {
-		p.Line(0, "%s pods not collected: arrows show claims, not pods", p.Marker(model.StatusUnavailable))
+		p.Note(0, model.StatusUnavailable, "pods not collected: arrows show claims, not pods")
 		p.Blank()
 	}
 	if len(rows) == 0 {
@@ -112,7 +112,7 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			}
 		}
 		for _, n := range notes[node] {
-			p.Line(2, "%s %s", p.Marker(model.StatusWarn), n)
+			p.Note(2, model.StatusWarn, n)
 		}
 	}
 }

@@ -1,0 +1,15 @@
+═══ DRA Device Attributes ═══
+
+gpu.example.com (4 devices)
+  a-gpu-0  (pool node-a.example.com, node node-a.example.com)
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = pci0000:00
+  a-gpu-1  (pool node-a.example.com, node node-a.example.com)
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = pci0000:00
+  b-gpu-0  (pool node-b.example.com, node node-b.example.com)
+    resource.kubernetes.io/numaNode = 2
+    resource.kubernetes.io/pcieRoot = pci0000:40
+  b-gpu-1  (pool node-b.example.com, node node-b.example.com)
+    resource.kubernetes.io/numaNode = [2, 3]
+    resource.kubernetes.io/pcieRoot = pci0000:c0

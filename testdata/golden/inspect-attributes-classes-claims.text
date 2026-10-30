@@ -1,0 +1,9 @@
+═══ DRA Device Attributes ═══
+
+gpu.example.com (2 devices)
+  gpu-0  (pool node-a.example.com, node node-a.example.com)
+    resource.kubernetes.io/numaNode = 0
+    resource.kubernetes.io/pcieRoot = pci0000:00
+  gpu-1  (pool node-a.example.com, node node-a.example.com)
+    resource.kubernetes.io/numaNode = 1
+    resource.kubernetes.io/pcieRoot = pci0000:80

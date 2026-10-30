@@ -105,13 +105,13 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 		return func() (inspect.Inspector, error) { return f(), nil }
 	}
 	add("slices", "List every ResourceSlice generation (drivers and attributes use only the current generation)", view.Slices, plain(inspect.Slices))
-	add("drivers", "Summarize DRA drivers", nil, plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
+	add("drivers", "Summarize DRA drivers", view.Drivers, plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
 		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
-	a := add("attributes", "Show device attributes", nil, plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
-	t := add("topology", "Group devices by node, NUMA node and PCIe root", nil, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
+	a := add("attributes", "Show device attributes", view.Attributes, plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
+	t := add("topology", "Group devices by node, NUMA node and PCIe root", view.Topology, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
 	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
 	add("claims", "List ResourceClaims with allocation, node and consumers", view.Claims, plain(inspect.Claims))
-	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", nil, func() (inspect.Inspector, error) {
+	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", view.DeviceClasses, func() (inspect.Inspector, error) {
 		sel, err := labels.Parse(selector)
 		if err != nil {
 			return inspect.Inspector{}, fmt.Errorf("invalid --selector: %w", err)

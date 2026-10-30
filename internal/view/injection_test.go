@@ -8,6 +8,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/view"
 	resourcev1 "k8s.io/api/resource/v1"
+	"k8s.io/apimachinery/pkg/labels"
 )
 
 const evil = "x\x1b[31mRED\u202eRTL\u2028LS"
@@ -48,6 +49,10 @@ func evilSnap(t *testing.T) model.Snapshot {
 			}
 		}
 	}
+	for i := range snap.DeviceClasses {
+		snap.DeviceClasses[i].Name += evil
+		snap.DeviceClasses[i].Labels = map[string]string{"tier" + evil: "gold" + evil}
+	}
 	snap.Collection["virtualmachineinstances"] = model.CollectionStatus{State: model.StateError, Reason: "vmi" + evil}
 	return snap
 }
@@ -60,6 +65,11 @@ var views = []struct {
 }{
 	{"slices", inspect.Slices(), view.Slices},
 	{"claims", inspect.Claims(), view.Claims},
+	{"topology", inspect.Topology(false), view.Topology},
+	{"topology-compact", inspect.Topology(true), view.Topology},
+	{"drivers", inspect.Drivers(true), view.Drivers},
+	{"attributes", inspect.Attributes(true, true), view.Attributes},
+	{"deviceclasses", inspect.DeviceClasses(labels.Everything()), view.DeviceClasses},
 }
 
 func TestViewsNeutraliseHostileNames(t *testing.T) {
@@ -68,8 +78,18 @@ func TestViewsNeutraliseHostileNames(t *testing.T) {
 		if strings.ContainsAny(out, "\x1b\u202e\u2028") {
 			t.Errorf("%s: control or bidi characters survived:\n%q", c.name, out)
 		}
-		if !strings.Contains(out, "gpu-0x") {
-			t.Errorf("%s: hostile device name missing entirely (cleaned text expected):\n%s", c.name, out)
+		if c.name != "topology-compact" && !strings.Contains(out, "\ufffd") {
+			t.Errorf("%s: hostile text missing entirely (cleaned text expected):\n%s", c.name, out)
+		}
+	}
+	// Reasons that embed a hostile pool name: incomplete pools in topology, drivers and attributes.
+	for _, c := range views[2:5] {
+		snap := evilSnap(t)
+		snap.ResourceSlices[0].Spec.Pool.Name = "pool" + evil
+		snap.ResourceSlices[0].Spec.Pool.ResourceSliceCount = 2
+		out := show(t, snap, c.in, c.v)
+		if strings.ContainsAny(out, "\x1b\u202e\u2028") || !strings.Contains(out, "fewer ResourceSlices") {
+			t.Errorf("%s: reason not neutralised:\n%q", c.name, out)
 		}
 	}
 	// The reason strings come out too: usage and VMI unavailability.

@@ -41,6 +41,14 @@ var textCases = []struct {
 }{
 	{"slices", []string{"slices"}, allFixtures},
 	{"claims", []string{"claims"}, []string{"xe9785l", "classes-claims", "multinode", "numa-split", "missing-attr"}},
+	{"drivers", []string{"drivers"}, []string{"xe9785l", "xe9680", "unicode-long", "multinode", "classes-claims"}},
+	{"drivers-attributes", []string{"drivers", "--attributes"}, []string{"xe9785l", "xe9680", "unicode-long"}},
+	{"attributes", []string{"attributes"}, []string{"xe9785l", "xe9680", "unicode-long", "multinode", "classes-claims"}},
+	{"attributes-all-capacity", []string{"attributes", "--all-attributes", "--include-capacity"}, []string{"xe9785l", "xe9680", "unicode-long"}},
+	{"topology", []string{"topology"}, allFixtures},
+	{"topology-compact", []string{"topology", "--compact"}, []string{"xe9785l", "xe9680", "multinode"}},
+	{"deviceclasses", []string{"deviceclasses"}, []string{"xe9785l", "xe9680", "classes-claims"}},
+	{"deviceclasses-selector", []string{"deviceclasses", "--selector", "tier in (gold,silver),vendor=example"}, []string{"classes-claims"}},
 }
 
 func TestInspectTextGolden(t *testing.T) {

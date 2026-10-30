@@ -85,3 +85,8 @@ func detStr(r model.Result, key string) string {
 	}
 	return ""
 }
+
+func intOf(v any) int {
+	n, _ := v.(int)
+	return n
+}

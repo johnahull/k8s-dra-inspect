@@ -1,0 +1,12 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0
+│  └─ pcieRoot unknown
+│     └─ gpu  gpu-0
+└─ NUMA unknown
+   └─ pcieRoot unknown
+      └─ gpu  gpu-1 [example-gpu]
+
+! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot
+! NUMA unknown, pcieRoot unknown: missing attribute: numa, missing attribute: pcieRoot

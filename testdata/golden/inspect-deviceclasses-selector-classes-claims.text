@@ -1,0 +1,15 @@
+═══ DeviceClasses ═══
+
+gpu.example.com
+  labels:
+    tier=gold
+    vendor=example
+  selectors: 2 (expressions not shown)
+  config: present
+
+nic.example.com
+  labels:
+    tier=silver
+    vendor=example
+  selectors: 0 (expressions not shown)
+  config: present

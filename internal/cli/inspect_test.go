@@ -253,7 +253,7 @@ func TestDeviceClassesSelectorFilters(t *testing.T) {
 func TestNoSelectorOrConfigLeak(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/classes-claims")
 	for _, args := range [][]string{{"deviceclasses"}, {"claims"}, {"topology"}} {
-		for _, format := range []string{"table", "json"} {
+		for _, format := range []string{"table", "json", "text"} {
 			out, _ := inspectRun(t, snap, append([]string{"-o", format}, args...)...)
 			for _, bad := range []string{"leakmarker", "opaque-parameter-marker", "device.driver", "secretKnob", "claimKnob", "isGreaterThan"} {
 				if strings.Contains(out, bad) {

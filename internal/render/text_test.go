@@ -196,3 +196,20 @@ func TestInjectionNoExtraLines(t *testing.T) {
 		t.Errorf("got %q", b.String())
 	}
 }
+
+func TestNoteWrapsUnderTheTextNotTheMarker(t *testing.T) {
+	p, b := newP(Style{Width: 24})
+	p.Note(2, model.StatusWarn, "devices on NUMA 0,1 and NUMA 2,3 must share a numaNode")
+	want := "  ! devices on NUMA 0,1\n    and NUMA 2,3 must\n    share a numaNode\n"
+	if b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+func TestNoteColoursMarkerAndCleansText(t *testing.T) {
+	p, b := newP(Style{Color: true, Width: 12})
+	p.Note(0, model.StatusFail, "bad\x1b[2Jthing here")
+	if want := "\x1b[31m✗\x1b[0m bad�[2Jthing\n  here\n"; b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}

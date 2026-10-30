@@ -1,0 +1,84 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0
+│  ├─ pcieRoot pci0000:15
+│  │  ├─ gpu  gpu-33-160 (0000:1b:02.0)
+│  │  ├─ gpu  gpu-vfio-1 (0000:1b:02.0)
+│  │  ├─ nic  0000-1d-00-2 (0000:1d:00.2)
+│  │  ├─ nic  0000-1d-00-3 (0000:1d:00.3)
+│  │  ├─ nic  0000-1d-00-4 (0000:1d:00.4)
+│  │  ├─ nic  0000-1d-00-5 (0000:1d:00.5)
+│  │  ├─ nic  0000-1d-00-6 (0000:1d:00.6)
+│  │  ├─ nic  0000-1d-00-7 (0000:1d:00.7)
+│  │  ├─ nic  0000-1d-01-0 (0000:1d:01.0)
+│  │  ├─ nic  0000-1d-01-1 (0000:1d:01.1)
+│  │  ├─ nic  0000-1d-01-2 (0000:1d:01.2)
+│  │  ├─ nic  0000-1d-01-3 (0000:1d:01.3)
+│  │  ├─ nic  0000-1d-01-4 (0000:1d:01.4)
+│  │  ├─ nic  0000-1d-01-5 (0000:1d:01.5)
+│  │  ├─ nic  0000-1d-01-6 (0000:1d:01.6)
+│  │  ├─ nic  0000-1d-01-7 (0000:1d:01.7)
+│  │  ├─ nic  0000-1d-02-0 (0000:1d:02.0)
+│  │  └─ nic  0000-1d-02-1 (0000:1d:02.1)
+│  ├─ pcieRoot pci0000:59
+│  │  ├─ gpu  gpu-49-176 (0000:5f:02.0)
+│  │  └─ gpu  gpu-vfio-4 (0000:5f:02.0)
+│  └─ pcieRoot unknown
+│     ├─ cpu     cpudevnuma000
+│     ├─ memory  hugepages-2mi-vgzdk8
+│     └─ memory  memory-xnxmvm
+├─ NUMA 1
+│  ├─ pcieRoot pci0000:37
+│  │  ├─ gpu  gpu-9-136 (0000:3d:02.0)
+│  │  └─ gpu  gpu-vfio-2 (0000:3d:02.0)
+│  ├─ pcieRoot pci0000:48
+│  │  ├─ gpu  gpu-17-144 (0000:4e:02.0)
+│  │  └─ gpu  gpu-vfio-3 (0000:4e:02.0)
+│  └─ pcieRoot unknown
+│     ├─ cpu     cpudevnuma001
+│     ├─ memory  hugepages-2mi-wzkcsz
+│     └─ memory  memory-56xhnf
+├─ NUMA 2
+│  ├─ pcieRoot pci0000:97
+│  │  ├─ gpu  gpu-41-168 (0000:9d:02.0)
+│  │  ├─ gpu  gpu-vfio-5 (0000:9d:02.0)
+│  │  ├─ nic  0000-9f-00-2 (0000:9f:00.2)
+│  │  ├─ nic  0000-9f-00-3 (0000:9f:00.3)
+│  │  ├─ nic  0000-9f-00-4 (0000:9f:00.4)
+│  │  ├─ nic  0000-9f-00-5 (0000:9f:00.5)
+│  │  ├─ nic  0000-9f-00-6 (0000:9f:00.6)
+│  │  ├─ nic  0000-9f-00-7 (0000:9f:00.7)
+│  │  ├─ nic  0000-9f-01-0 (0000:9f:01.0)
+│  │  ├─ nic  0000-9f-01-1 (0000:9f:01.1)
+│  │  ├─ nic  0000-9f-01-2 (0000:9f:01.2)
+│  │  ├─ nic  0000-9f-01-3 (0000:9f:01.3)
+│  │  ├─ nic  0000-9f-01-4 (0000:9f:01.4)
+│  │  ├─ nic  0000-9f-01-5 (0000:9f:01.5)
+│  │  ├─ nic  0000-9f-01-6 (0000:9f:01.6)
+│  │  ├─ nic  0000-9f-01-7 (0000:9f:01.7)
+│  │  ├─ nic  0000-9f-02-0 (0000:9f:02.0)
+│  │  └─ nic  0000-9f-02-1 (0000:9f:02.1)
+│  ├─ pcieRoot pci0000:d7
+│  │  ├─ gpu  gpu-25-152 (0000:dd:02.0)
+│  │  └─ gpu  gpu-vfio-0 (0000:dd:02.0)
+│  └─ pcieRoot unknown
+│     ├─ cpu     cpudevnuma002
+│     ├─ memory  hugepages-2mi-5s57zr
+│     └─ memory  memory-ddztgx
+└─ NUMA 3
+   ├─ pcieRoot pci0000:b7
+   │  ├─ gpu  gpu-57-184 (0000:bd:02.0)
+   │  └─ gpu  gpu-vfio-6 (0000:bd:02.0)
+   ├─ pcieRoot pci0000:c7
+   │  ├─ gpu  gpu-1-128 (0000:cd:02.0)
+   │  └─ gpu  gpu-vfio-7 (0000:cd:02.0)
+   └─ pcieRoot unknown
+      ├─ cpu     cpudevnuma003
+      ├─ memory  hugepages-2mi-bmgj2r
+      └─ memory  memory-nfqcrb
+
+! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot
+! NUMA 1, pcieRoot unknown: missing attribute: pcieRoot
+! NUMA 2, pcieRoot unknown: missing attribute: pcieRoot
+! NUMA 3, pcieRoot unknown: missing attribute: pcieRoot

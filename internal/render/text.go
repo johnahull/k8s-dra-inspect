@@ -110,21 +110,29 @@ func (p *Printer) Line(indent int, format string, args ...any) {
 // Prose prints a sentence, wrapped at Style.Width (when > 0) with the
 // continuation lines indented by indent+hanging. A word wider than the line
 // overflows rather than being split.
-func (p *Printer) Prose(indent, hanging int, text string) {
-	words := strings.Fields(Clean(text))
-	pre := strings.Repeat(" ", indent)
-	line, w := pre, indent
-	has := false
-	for _, word := range words {
+func (p *Printer) Prose(indent, hanging int, text string) { p.wrap("", 0, indent, hanging, text) }
+
+// Note prints a status marker and a sentence; continuation lines align under
+// the text, not the marker.
+func (p *Printer) Note(indent int, s model.Status, text string) {
+	p.wrap(string(p.Marker(s))+" ", 2, indent, 2, text)
+}
+
+// wrap prints lead (already styled, leadW columns wide) then the words.
+func (p *Printer) wrap(lead string, leadW, indent, hanging int, text string) {
+	pad := func(n int) string { return strings.Repeat(" ", n) }
+	line, w := pad(indent)+lead, indent+leadW
+	empty := true // no word on this line yet
+	for _, word := range strings.Fields(Clean(text)) {
 		ww := cond.StringWidth(word)
-		if has && p.st.Width > 0 && w+1+ww > p.st.Width {
+		if !empty && p.st.Width > 0 && w+1+ww > p.st.Width {
 			p.emit(line)
-			line, w, has = strings.Repeat(" ", indent+hanging), indent+hanging, false
+			line, w, empty = pad(indent+hanging), indent+hanging, true
 		}
-		if has {
+		if !empty {
 			line, w = line+" ", w+1
 		}
-		line, w, has = line+word, w+ww, true
+		line, w, empty = line+word, w+ww, false
 	}
 	p.emit(line)
 }

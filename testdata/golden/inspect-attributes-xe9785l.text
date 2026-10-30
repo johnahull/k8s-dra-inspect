@@ -1,0 +1,177 @@
+═══ DRA Device Attributes ═══
+
+dra.cpu (8 devices)
+  cpudevnuma000  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 0
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:98, pci0000:d0]
+  cpudevnuma001  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 1
+    dra.net/numaNode                = 1
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:00, pci0000:64]
+  cpudevnuma002  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 2
+    dra.net/numaNode                = 2
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:32, pci0000:66]
+  cpudevnuma003  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 3
+    dra.net/numaNode                = 3
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pcieRoot = [pci0000:96, pci0000:a0]
+  cpudevnuma004  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 4
+    dra.net/numaNode                = 4
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:98, pci0001:d0]
+  cpudevnuma005  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 5
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:00, pci0001:64]
+  cpudevnuma006  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 6
+    dra.net/numaNode                = 6
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:32, pci0001:66]
+  cpudevnuma007  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 7
+    dra.net/numaNode                = 7
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pcieRoot = [pci0001:68, pci0001:a0]
+
+dra.memory (8 devices)
+  memory-2v88wt  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 6
+    dra.memory/numaNode             = 6
+    dra.net/numaNode                = 6
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+  memory-4qhskf  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 4
+    dra.memory/numaNode             = 4
+    dra.net/numaNode                = 4
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+  memory-559qbb  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 7
+    dra.memory/numaNode             = 7
+    dra.net/numaNode                = 7
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+  memory-bjd9hw  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 2
+    dra.memory/numaNode             = 2
+    dra.net/numaNode                = 2
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+  memory-fk8nlr  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 1
+    dra.memory/numaNode             = 1
+    dra.net/numaNode                = 1
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+  memory-rddth4  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 0
+    dra.memory/numaNode             = 0
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+  memory-s9zcsf  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 5
+    dra.memory/numaNode             = 5
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+  memory-t5wtkl  (pool node-a.example.com, node node-a.example.com)
+    dra.cpu/numaNodeID              = 3
+    dra.memory/numaNode             = 3
+    dra.net/numaNode                = 3
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+
+gpu.amd.com (8 devices)
+  gpu-vfio-0  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 4
+    numaNode                        = 4
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:dc:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:d0
+  gpu-vfio-1  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 7
+    numaNode                        = 7
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:a5:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:a0
+  gpu-vfio-2  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 5
+    numaNode                        = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:0d:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:00
+  gpu-vfio-3  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 6
+    numaNode                        = 6
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:3d:02.0
+    resource.kubernetes.io/pcieRoot = pci0001:32
+  gpu-vfio-4  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 2
+    numaNode                        = 2
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:3d:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:32
+  gpu-vfio-5  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 1
+    numaNode                        = 1
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:0c:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:00
+  gpu-vfio-6  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 3
+    numaNode                        = 3
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:a8:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:a0
+  gpu-vfio-7  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 0
+    numaNode                        = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:dc:02.0
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+
+sriovnetwork.k8snetworkplumbingwg.io (8 devices)
+  0000-d5-00-2  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:d5:00.2
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+  0000-d5-00-3  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:d5:00.3
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+  0000-d5-00-4  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:d5:00.4
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+  0000-d5-00-5  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 0
+    resource.kubernetes.io/numaNode = [0, 1, 2, 3]
+    resource.kubernetes.io/pciBusID = 0000:d5:00.5
+    resource.kubernetes.io/pcieRoot = pci0000:d0
+  0001-07-00-2  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:07:00.2
+    resource.kubernetes.io/pcieRoot = pci0001:00
+  0001-07-00-3  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:07:00.3
+    resource.kubernetes.io/pcieRoot = pci0001:00
+  0001-07-00-4  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:07:00.4
+    resource.kubernetes.io/pcieRoot = pci0001:00
+  0001-07-00-5  (pool node-a.example.com, node node-a.example.com)
+    dra.net/numaNode                = 5
+    resource.kubernetes.io/numaNode = [4, 5, 6, 7]
+    resource.kubernetes.io/pciBusID = 0001:07:00.5
+    resource.kubernetes.io/pcieRoot = pci0001:00
