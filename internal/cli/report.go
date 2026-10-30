@@ -14,6 +14,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
+	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
 const supportHelp = `Run the cluster report plus check.vfio, check.kubevirt and one adapter.<name>
@@ -42,7 +43,7 @@ func addReportCommands(parent *cobra.Command, opts *Options, d Deps) {
 			}
 			return runResults(cmd, opts, d, supportResults(opts, d, root, nodeName), func(rs []model.Result) error {
 				return renderReport(cmd, opts, d, supportMembers, rs)
-			}, nil)
+			}, view.Report("Support Report", supportMembers))
 		},
 	}
 	support.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (live runs only)")
@@ -55,7 +56,7 @@ func addReportCommands(parent *cobra.Command, opts *Options, d Deps) {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runResults(cmd, opts, d, clusterResults(opts), func(rs []model.Result) error {
 				return renderReport(cmd, opts, d, reportMembers, rs)
-			}, nil)
+			}, view.Report("Cluster Report", reportMembers))
 		},
 	})
 }

@@ -1,0 +1,15 @@
+═══ Cluster Report ═══
+
+Summary: 9 checks: 6 ok, 3 warnings, 0 failures, 0 unavailable, 0 errors
+
+inspect.topology
+  ! node-a.example.com/numa=0,1,2,3/pcieRoot=-: missing attribute: pcieRoot
+  ! node-a.example.com/numa=4,5,6,7/pcieRoot=-: missing attribute: pcieRoot
+
+check.alignment
+  ! default/vm-final-all: devices span NUMA nodes (no common NUMA node)
+
+check.topology
+  ! dra.memory/node-a.example.com: PCIe root missing on memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf, memory-2v88wt, memory-559qbb
+
+Details: run the individual check or inspect commands, or use -o json.

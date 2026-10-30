@@ -12,43 +12,6 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/testutil"
 )
 
-// Until a command has a text view, the default (-o text) prints exactly what
-// -o table prints. Only the report commands are still without one.
-func TestTextAndDefaultOutputEqualTableForEveryCommand(t *testing.T) {
-	type runner func(extra ...string) (string, int)
-	fx := func(name string) model.Snapshot { return testutil.LoadFixture(t, "testdata/fixtures/"+name) }
-	via := func(snap model.Snapshot, args ...string) runner {
-		return func(extra ...string) (string, int) { return cmdRun(t, snap, append(slicesClone(args), extra...)...) }
-	}
-	cases := map[string]runner{
-		"report cluster": via(fx("pcie-split"), "report", "cluster"),
-		"report support": func(extra ...string) (string, int) {
-			out, errOut, code := runHost(t, kvFixture(t), (&recorder{}).New,
-				append([]string{"report", "support", "--host-root", kvHost(t).Root, "--node-name", kvNode}, extra...)...)
-			if errOut != "" {
-				t.Fatalf("stderr %q", errOut)
-			}
-			return out, code
-		},
-	}
-	for name, r := range cases {
-		t.Run(name, func(t *testing.T) {
-			table, tcode := r("-o", "table")
-			if table == "" {
-				t.Fatal("empty table output")
-			}
-			for label, extra := range map[string][]string{"default": nil, "text": {"-o", "text"}} {
-				out, code := r(extra...)
-				if out != table || code != tcode {
-					t.Errorf("%s differs from -o table (exit %d vs %d):\n--- table\n%s\n--- %s\n%s", label, code, tcode, table, label, out)
-				}
-			}
-		})
-	}
-}
-
-func slicesClone(s []string) []string { return append([]string(nil), s...) }
-
 // B2: when every result is unavailable, text output is byte-identical to
 // render.Unavailable: no banner, never wrapped, whatever the terminal width.
 func TestTextAllUnavailableIsByteIdenticalAndNeverWrapped(t *testing.T) {

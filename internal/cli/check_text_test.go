@@ -93,6 +93,14 @@ func checkTextCases(t *testing.T) []textCase {
 		textCase{golden: "check-kubevirt-notfound", snap: noKV, host: noHost, args: []string{"check", "kubevirt", "-o", "text"}},
 		textCase{golden: "check-kubevirt-none", snap: emptyKV, host: noHost, args: []string{"check", "kubevirt", "-o", "text"}},
 	)
+	for _, fx := range []string{"xe9785l", "xe9680"} {
+		cs = append(cs, textCase{golden: "report-cluster-" + fx, snap: fixtureSnap(fx), args: []string{"report", "cluster", "-o", "text"}})
+	}
+	live := kvHost(t).Root
+	for _, sc := range []struct{ name, root string }{{"live", live}, {"nohost", "/nonexistent/host-root"}} {
+		cs = append(cs, textCase{golden: "report-support-" + sc.name, snap: kvFixture, host: func(*testing.T) NewHostFunc { return (&recorder{}).New },
+			args: []string{"report", "support", "--host-root", sc.root, "--node-name", kvNode, "-o", "text"}, exit: 1})
+	}
 	for _, good := range []bool{true, false} {
 		name, vfioExit := "bad", 1
 		if good {
@@ -196,5 +204,52 @@ func TestCheckTextMixedUnavailableThenView(t *testing.T) {
 	_, strict := c.run(t, 0, false, "--strict")
 	if _, tbl := c.run(t, 0, false, "-o", "table", "--strict"); strict != tbl {
 		t.Errorf("--strict exit %d, table %d", strict, tbl)
+	}
+}
+
+func TestReportTextSummaryCountsWorstStatusPerMember(t *testing.T) {
+	// xe9680: inspect.topology has four warn results and check.topology two; each member counts once.
+	c := textCase{snap: fixtureSnap("xe9680"), args: []string{"report", "cluster"}}
+	out, code := c.run(t, 0, false)
+	if want := "Summary: 9 checks: 7 ok, 2 warnings, 0 failures, 0 unavailable, 0 errors\n"; !strings.Contains(out, want) || code != 0 {
+		t.Errorf("exit %d\n%s", code, out)
+	}
+	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")
+	snap.Collection["resourceslices"] = model.CollectionStatus{State: model.StateForbidden, Reason: "forbidden: cannot list resourceslices"}
+	un := textCase{snap: func(*testing.T) model.Snapshot { return snap }, args: []string{"report", "cluster"}}
+	out, code = un.run(t, 0, false)
+	if !strings.HasPrefix(out, "UNAVAILABLE: ") || !strings.Contains(out, "═══ Cluster Report ═══") || !strings.Contains(out, ", 0 failures, ") {
+		t.Errorf("exit %d\n%s", code, out)
+	}
+	for _, args := range [][]string{{"report", "cluster", "--strict"}, {"report", "cluster"}} {
+		_, text := textCase{snap: un.snap, args: args}.run(t, 0, false)
+		_, tbl := textCase{snap: un.snap, args: append(append([]string{}, args...), "-o", "table")}.run(t, 0, false)
+		if text != tbl {
+			t.Errorf("%v: exit %d (text) vs %d (table)", args, text, tbl)
+		}
+	}
+	if _, strict := un.run(t, 0, false, "--strict"); strict != 3 {
+		t.Errorf("strict exit %d, want 3", strict)
+	}
+}
+
+func TestReportSupportTextAdapterRowsAndCounts(t *testing.T) {
+	for _, c := range checkTextCases(t) {
+		if c.golden != "report-support-nohost" {
+			continue
+		}
+		out, code := c.run(t, 0, false)
+		for _, want := range []string{
+			"Summary: 13 checks: 7 ok, 3 warnings, 1 failures, 2 unavailable, 0 errors\n",
+			"adapters\n  ? adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)\n  ✓ adapter.kubevirt: 8 VMIs\n",
+			"\nDetails: run the individual check or inspect commands, or use -o json.\n",
+		} {
+			if !strings.Contains(out, want) {
+				t.Errorf("missing %q in:\n%s", want, out)
+			}
+		}
+		if strict := func() int { _, c := c.run(t, 0, false, "--strict"); return c }(); code != 1 || strict != 1 {
+			t.Errorf("exit %d, strict %d", code, strict)
+		}
 	}
 }

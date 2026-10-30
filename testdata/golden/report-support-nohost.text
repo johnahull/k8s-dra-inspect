@@ -1,0 +1,30 @@
+UNAVAILABLE: check.vfio: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)
+UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
+UNAVAILABLE: adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)
+═══ Support Report ═══
+
+Summary: 13 checks: 7 ok, 3 warnings, 1 failures, 2 unavailable, 0 errors
+
+inspect.topology
+  ! node-a.example.com/numa=0/pcieRoot=-: missing attribute: pcieRoot
+  ! node-a.example.com/numa=1/pcieRoot=-: missing attribute: pcieRoot
+  ! node-b.example.com/numa=0/pcieRoot=-: missing attribute: pcieRoot
+
+check.alignment
+  ! demo/claim-ok: devices span NUMA nodes (no common NUMA node)
+
+check.topology
+  ! gpu.example.com/node-a.example.com: PCIe root missing on gpu-0, nic-0, gpu-2
+  ! gpu.example.com/node-b.example.com: PCIe root missing on gpu-b0
+
+check.kubevirt
+  ✗ demo/vm-missing-claim: claim demo/no-such-claim not found
+  ✗ demo/vm-no-allocation: request absent has no allocation result in claim demo/claim-ok
+  ! demo/vm-split: devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology
+  ✗ demo/vm-wrong-node: device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com
+
+adapters
+  ? adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)
+  ✓ adapter.kubevirt: 8 VMIs
+
+Details: run the individual check or inspect commands, or use -o json.
