@@ -101,7 +101,7 @@ jobs:
         with:
           distribution: goreleaser
           version: v2.19.0
-          args: --version
+          install-only: true
       - run: goreleaser check
       - run: hack/check-release.sh
 
