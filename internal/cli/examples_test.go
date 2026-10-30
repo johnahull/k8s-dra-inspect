@@ -43,12 +43,12 @@ func TestDocsExamples(t *testing.T) {
 	}
 }
 
-// replayReport runs `report support --from FILE` (table output) offline.
+// replayReport runs `report support --from FILE` offline, in the default text output.
 func replayReport(t *testing.T, bundle string) string {
 	t.Helper()
 	deps := snapDeps(t, model.Snapshot{})
 	deps.NewHost = noHost(t)
-	out, errOut, _ := runSnap(t, deps, "report", "support", "--from", bundle, "-o", "table")
+	out, errOut, _ := runSnap(t, deps, "report", "support", "--from", bundle)
 	if errOut != "" {
 		t.Fatalf("stderr %q", errOut)
 	}

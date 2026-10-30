@@ -230,6 +230,27 @@ the file may contain sensitive data.
 Color is disabled by `--no-color`, by the `NO_COLOR` environment variable, and
 when stdout is not a terminal.
 
+Three modes, chosen with `-o`:
+
+- `text` (default): the readable, sectioned layout. It never truncates a name
+  and never wraps a line it prints whole. The one thing that wraps is a list of
+  devices (a group such as `NUMA 0,1: gpu-0, gpu-2`): it wraps at the terminal
+  width, or at 100 columns when output is not a terminal, with a hanging indent;
+  the group's first line always starts with its key, so `grep` finds it, and a
+  device name longer than the line stays whole. Requests, devices and their
+  placement are printed one fact per indented line rather than in one long row.
+- `table`: flat rows for scripts and wide terminals. Long cells are truncated
+  with `…` to fit the terminal width (JSON never truncates).
+- `json`: the versioned envelope; it is independent of the text layout.
+
+Layering: checks and inspectors produce `Result`s whose `Details` are typed
+values and whose `Findings` (never serialized) carry the sentence, its status
+and a `Kind`. Text views read only those: they choose a layout from the `Kind`
+and the `Details` types and never match the wording of a sentence, and a
+`Details` value of an unexpected type is shown as an error note instead of
+being guessed. Only the `render.Printer` writes text, which is how every
+untrusted string is neutralised.
+
 ## RBAC
 
 | API group | Resource | Verbs | Cluster profile | Namespace profile |

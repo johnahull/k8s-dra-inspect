@@ -330,11 +330,13 @@ EOF
   echo "== C. workstation CLI against the real API (admin)"
   DI=$DI_BIN
   for c in slices drivers attributes topology deviceclasses claims; do
-    run "inspect-$c" --kubeconfig "$ADMIN" inspect "$c"
+    run "inspect-$c" --kubeconfig "$ADMIN" inspect "$c" -o table
+    run "inspect-$c-text" --kubeconfig "$ADMIN" inspect "$c" -o text
     run "inspect-$c-json" --kubeconfig "$ADMIN" inspect "$c" -o json
   done
-  for c in alignment counters capacity topology kubevirt; do run "check-$c" --kubeconfig "$ADMIN" check "$c"; done
-  run report-cluster --kubeconfig "$ADMIN" report cluster
+  for c in alignment counters capacity topology kubevirt; do run "check-$c" --kubeconfig "$ADMIN" check "$c" -o table; done
+  run report-cluster --kubeconfig "$ADMIN" report cluster -o table
+  run report-cluster-text --kubeconfig "$ADMIN" report cluster -o text
   run report-cluster-json --kubeconfig "$ADMIN" report cluster -o json
   run report-support --kubeconfig "$ADMIN" report support -o json
   for n in $(awk '$1 ~ /^inspect-/ {print $1}' "$OUT/exit-codes.txt"); do check "exit $n" 0 "$(exit_code "$n")"; done
@@ -519,11 +521,11 @@ EOF
   mk_kubeconfig "$SCRATCH/badca.kubeconfig" "$ADMIN_TOKEN" "$PKI/other.crt"
   mk_kubeconfig "$SCRATCH/badtoken.kubeconfig" not-a-token
   kill -STOP "$API_PID"
-  t0=$(now); run hang --kubeconfig "$ADMIN" --timeout 3s inspect slices; t1=$(now)
+  t0=$(now); run hang --kubeconfig "$ADMIN" --timeout 3s inspect slices -o text; t1=$(now)
   HANG_ELAPSED=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
-  t0=$(now); run hang-strict --kubeconfig "$ADMIN" --timeout 3s --strict inspect slices; t1=$(now)
+  t0=$(now); run hang-strict --kubeconfig "$ADMIN" --timeout 3s --strict inspect slices -o text; t1=$(now)
   HANG_STRICT_ELAPSED=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
-  t0=$(now); run hang-report --kubeconfig "$ADMIN" --timeout 3s report cluster; t1=$(now)
+  t0=$(now); run hang-report --kubeconfig "$ADMIN" --timeout 3s report cluster -o text; t1=$(now)
   HANG_REPORT_ELAPSED=$(awk -v a="$t0" -v b="$t1" 'BEGIN{printf "%.2f", b-a}')
   kill -CONT "$API_PID"
   echo "elapsed: inspect slices ${HANG_ELAPSED}s, strict ${HANG_STRICT_ELAPSED}s, report cluster ${HANG_REPORT_ELAPSED}s"
@@ -538,12 +540,12 @@ EOF
   check "hang: reason does not echo a URL" 0 "$(grep -cE 'https?://' "$OUT/hang.txt" || true)"
   for i in $(seq 1 20); do [ "$(curl -sk --max-time 2 "https://127.0.0.1:$API_PORT/readyz" 2>/dev/null)" = ok ] && break; sleep 1; done
   check "apiserver recovers after SIGCONT" ok "$(curl -sk --max-time 5 "https://127.0.0.1:$API_PORT/readyz")"
-  run closed --kubeconfig "$SCRATCH/closed.kubeconfig" inspect slices
-  run closed-strict --kubeconfig "$SCRATCH/closed.kubeconfig" inspect slices --strict
-  run badca --kubeconfig "$SCRATCH/badca.kubeconfig" inspect slices
-  run badca-strict --kubeconfig "$SCRATCH/badca.kubeconfig" inspect slices --strict
-  run badtoken --kubeconfig "$SCRATCH/badtoken.kubeconfig" inspect slices
-  run badtoken-strict --kubeconfig "$SCRATCH/badtoken.kubeconfig" inspect slices --strict
+  run closed --kubeconfig "$SCRATCH/closed.kubeconfig" inspect slices -o text
+  run closed-strict --kubeconfig "$SCRATCH/closed.kubeconfig" inspect slices -o text --strict
+  run badca --kubeconfig "$SCRATCH/badca.kubeconfig" inspect slices -o text
+  run badca-strict --kubeconfig "$SCRATCH/badca.kubeconfig" inspect slices -o text --strict
+  run badtoken --kubeconfig "$SCRATCH/badtoken.kubeconfig" inspect slices -o text
+  run badtoken-strict --kubeconfig "$SCRATCH/badtoken.kubeconfig" inspect slices -o text --strict
   for want in closed:0 closed-strict:3 badca:0 badca-strict:3 badtoken:0 badtoken-strict:3; do
     check "exit ${want%%:*}" "${want##*:}" "$(exit_code "${want%%:*}")"
   done
