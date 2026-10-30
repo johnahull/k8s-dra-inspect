@@ -14,7 +14,7 @@ func CheckTopology(p *render.Printer, _ model.Snapshot, results []model.Result) 
 			p.Line(2, "%s", s)
 		}
 		if notes(p, 2, r, nil) == 0 {
-			p.Note(2, model.StatusPass, "every device publishes a NUMA node and a PCIe root")
+			p.Note(2, model.StatusPass, "every device publishes a NUMA node; PCIe roots are present where expected")
 		}
 	})
 }

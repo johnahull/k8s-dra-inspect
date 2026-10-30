@@ -1,2 +1,2 @@
 SUBJECT                             STATUS  DETAIL
-gpu.example.com/node-a.example.com  pass    2 devices, 0 missing NUMA, 0 missing PCIe root
+gpu.example.com/node-a.example.com  pass    2 devices, 0 missing NUMA, 0 missing PCIe root where ex…

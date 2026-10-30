@@ -218,7 +218,7 @@ func TestTopologyNumericOrderInsideAPrefix(t *testing.T) {
 func TestTopologyHasNoFooterForWhatTheTreeShows(t *testing.T) {
 	got := topoOut(t, fx(t, "missing-attr"), false)
 	if strings.Contains(got, "missing attribute") || strings.Contains(got, "! ") {
-		t.Errorf("pcieRoot unknown is already in the tree:\n%s", got)
+		t.Errorf("rootless topology should not produce a missing-attribute footer:\n%s", got)
 	}
 	snap := fx(t, "classes-claims")
 	snap.ResourceSlices[0].Spec.Pool.ResourceSliceCount = 2

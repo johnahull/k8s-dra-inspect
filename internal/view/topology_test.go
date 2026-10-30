@@ -41,7 +41,7 @@ func TestTopologyCompactCountsOnly(t *testing.T) {
 		"├─ NUMA 0,1,2,3",
 		"│  ├─ pcieRoot pci0000:00  gpu=1",
 		"│  ├─ pcieRoot pci0000:32,pci0000:66  cpu=1",
-		"│  └─ pcieRoot unknown  memory=4",
+		"│  └─ memory=4",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
@@ -49,6 +49,52 @@ func TestTopologyCompactCountsOnly(t *testing.T) {
 	}
 	if strings.Contains(got, "gpu-vfio") || strings.Contains(got, "cpudevnuma") {
 		t.Errorf("compact must not list devices:\n%s", got)
+	}
+}
+
+func TestTopologyRootlessDevicesAreDirectChildrenOfNUMA(t *testing.T) {
+	snap := oneSliceSnap(
+		devWith("nic", []int64{0}, "pci0000:88"),
+		devWith("cpu", []int64{0}),
+		devWith("memory", []int64{0}),
+	)
+	got := topoOut(t, snap, false)
+	for _, want := range []string{
+		"└─ NUMA 0",
+		"   ├─ pcieRoot pci0000:88",
+		"   │  └─ d.example.com  nic",
+		"   ├─ d.example.com  cpu",
+		"   └─ d.example.com  memory",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+	if strings.Contains(got, "pcieRoot unknown") {
+		t.Errorf("rootless devices must not be shown under an unknown PCIe root:\n%s", got)
+	}
+}
+
+func TestTopologyCompactRootlessCountsAreDirectChildrenOfNUMA(t *testing.T) {
+	snap := oneSliceSnap(
+		devWith("nic", []int64{0}, "pci0000:88"),
+		devWith("cpu", []int64{0}),
+		devWith("memory", []int64{0}),
+	)
+	got := topoOut(t, snap, true)
+	if !hasLine(got, "   └─ d.example.com=2") || strings.Contains(got, "pcieRoot unknown") {
+		t.Errorf("compact rootless counts must be direct children:\n%s", got)
+	}
+}
+
+func TestTopologyMixedPoolReportsMissingRootAfterFlattening(t *testing.T) {
+	snap := oneSliceSnap(
+		devWith("nic", []int64{0}, "pci0000:88"),
+		devWith("cpu", []int64{0}),
+	)
+	got := topoOut(t, snap, false)
+	if !strings.Contains(got, "! NUMA 0, PCIe root not published: missing attribute: pcieRoot") {
+		t.Errorf("missing root diagnostic lost when the rootless branch is flattened:\n%s", got)
 	}
 }
 
@@ -72,9 +118,8 @@ func TestTopologyEveryDeviceExactlyOnceAndSetsExact(t *testing.T) {
 		"├─ NUMA 0,1,2,3",
 		"└─ NUMA 4,5,6,7",
 		"│  ├─ pcieRoot pci0000:32,pci0000:66",
-		"│  │  └─ cpu  cpudevnuma002",
-		"│  └─ pcieRoot unknown",
-		"│     ├─ memory  memory-bjd9hw",
+		"│  ├─ memory  memory-bjd9hw",
+		"│  ├─ memory  memory-fk8nlr",
 		"   │  └─ gpu  gpu-vfio-0 (0001:dc:02.0)",
 	} {
 		if !hasLine(got, want) {
@@ -93,11 +138,9 @@ func TestTopologyUnknownBranchesComeLast(t *testing.T) {
 		"",
 		"Node: node-a.example.com",
 		"├─ NUMA 0",
-		"│  └─ pcieRoot unknown",
-		"│     └─ gpu  gpu-0",
+		"│  └─ gpu  gpu-0",
 		"└─ NUMA unknown",
-		"   └─ pcieRoot unknown",
-		"      └─ gpu  gpu-1 [example-gpu]",
+		"   └─ gpu  gpu-1 [example-gpu]",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)

@@ -153,9 +153,11 @@ $B report cluster -o json > "$SCRATCH/live-report.json"; echo "exit=$?"
 
 Accept: slice results match `kubectl get resourceslices | wc -l` minus the
 header; `inspect drivers` device count equals the step 3 count; the topology
-tree shows `NUMA unknown` and `pcieRoot unknown` (the example driver publishes no
-NUMA attributes; `-o table` and `-o json` carry the same groups as `warn` rows
-with `missing attribute`); exit codes are 0 (warn does not fail).
+tree shows `NUMA unknown` when the example driver publishes no NUMA attributes,
+and rootless devices directly under their NUMA group. `-o table` and `-o json`
+carry the same groups; a missing PCIe-root warning is emitted only when another
+device in the same pool publishes a valid root. Exit codes are 0 (warn does not
+fail).
 
 Output modes: the readable `-o text` is the default and is what a person runs;
 `-o table` (flat rows) and `-o json` are what scripts and the comparisons below

@@ -208,10 +208,10 @@ func TestCheckTextMixedUnavailableThenView(t *testing.T) {
 }
 
 func TestReportTextSummaryCountsWorstStatusPerMember(t *testing.T) {
-	// xe9680: inspect.topology has four warn results and check.topology two; each member counts once.
+	// xe9680: rootless CPU/memory pools are not topology warnings; each member counts once.
 	c := textCase{snap: fixtureSnap("xe9680"), args: []string{"report", "cluster"}}
 	out, code := c.run(t, 0, false)
-	if want := "Summary: 9 checks: 7 ok, 2 warnings, 0 failures, 0 unavailable, 0 errors\n"; !strings.Contains(out, want) || code != 0 {
+	if want := "Summary: 9 checks: 9 ok, 0 warnings, 0 failures, 0 unavailable, 0 errors\n"; !strings.Contains(out, want) || code != 0 {
 		t.Errorf("exit %d\n%s", code, out)
 	}
 	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")
@@ -240,7 +240,7 @@ func TestReportSupportTextAdapterRowsAndCounts(t *testing.T) {
 		}
 		out, code := c.run(t, 0, false)
 		for _, want := range []string{
-			"Summary: 13 checks: 7 ok, 3 warnings, 1 failure, 2 unavailable, 0 errors\n",
+			"Summary: 13 checks: 9 ok, 1 warning, 1 failure, 2 unavailable, 0 errors\n",
 			"adapters\n  ? adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)\n  ✓ adapter.kubevirt: 8 VMIs\n",
 			"\nDetails: run the individual check or inspect commands, or use -o json.\n",
 		} {

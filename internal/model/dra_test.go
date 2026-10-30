@@ -112,6 +112,23 @@ func TestTopologyOfEmptyValueIsError(t *testing.T) {
 	}
 }
 
+func TestPoolsWithPCIeRootReportsOnlyPoolsWithValidRoots(t *testing.T) {
+	root := dev(map[string]resourcev1.DeviceAttribute{
+		"resource.kubernetes.io/pcieRoot": strAttr("pci0000:88"),
+	})
+	rootless := dev(nil)
+	withRoot := resourcev1.ResourceSlice{}
+	withRoot.Spec.Driver, withRoot.Spec.Pool.Name = "d.example.com", "with-root"
+	withRoot.Spec.Devices = []resourcev1.Device{root}
+	withoutRoot := resourcev1.ResourceSlice{}
+	withoutRoot.Spec.Driver, withoutRoot.Spec.Pool.Name = "d.example.com", "without-root"
+	withoutRoot.Spec.Devices = []resourcev1.Device{rootless}
+	got := model.PoolsWithPCIeRoot([]resourcev1.ResourceSlice{withRoot, withoutRoot})
+	if !got[model.PoolKey{"d.example.com", "with-root"}] || got[model.PoolKey{"d.example.com", "without-root"}] {
+		t.Fatalf("unexpected pool root presence: %#v", got)
+	}
+}
+
 func TestFixturesRealDevices(t *testing.T) {
 	for _, dir := range []string{"testdata/fixtures/xe9785l", "testdata/fixtures/xe9680"} {
 		snap := testutil.LoadFixture(t, dir)

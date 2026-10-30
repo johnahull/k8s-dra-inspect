@@ -1,2 +1,2 @@
 SUBJECT                             STATUS  DETAIL
-gpu.example.com/node-a.example.com  warn    NUMA node missing on gpu-1; PCIe root missing on gpu-0,…
+gpu.example.com/node-a.example.com  warn    NUMA node missing on gpu-1

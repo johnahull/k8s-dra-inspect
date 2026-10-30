@@ -1,16 +1,13 @@
 CHECK                  PASS  WARN  FAIL  UNAVAILABLE  ERROR
 inspect.slices         5     0     0     0            0
 inspect.drivers        4     0     0     0            0
-inspect.topology       16    2     0     0            0
+inspect.topology       18    0     0     0            0
 inspect.deviceclasses  31    0     0     0            0
 inspect.claims         1     0     0     0            0
 check.alignment        0     1     0     0            0
 check.counters         8     0     0     0            0
 check.capacity         6     0     0     0            0
-check.topology         3     1     0     0            0
+check.topology         4     0     0     0            0
 
-CHECK             SUBJECT                               STATUS  DETAIL
-inspect.topology  node-a.example.com…,1,2,3/pcieRoot=-  warn    missing attribute: pcieRoot
-inspect.topology  node-a.example.com…,5,6,7/pcieRoot=-  warn    missing attribute: pcieRoot
-check.alignment   default/vm-final-all                  warn    devices span NUMA nodes (no common …
-check.topology    dra.memory/node-a.example.com         warn    PCIe root missing on memory-rddth4,…
+CHECK            SUBJECT               STATUS  DETAIL
+check.alignment  default/vm-final-all  warn    devices span NUMA nodes (no common NUMA node)

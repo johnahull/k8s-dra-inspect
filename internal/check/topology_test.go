@@ -32,6 +32,28 @@ func TestTopologyMissingAttributesWarnNamingDevices(t *testing.T) {
 	wantStatus(t, r, model.StatusWarn, "PCIe root missing on c")
 }
 
+func TestTopologyRootlessPoolDoesNotRequirePCIeRoot(t *testing.T) {
+	r := one(t, Topology(), snapOf([]resourcev1.ResourceSlice{
+		slice("s", "p", 1, 1,
+			dev("cpu", attrs{numa: ints(0)}),
+			dev("memory", attrs{numa: ints(0)}),
+		),
+	}))
+	if r.Status != model.StatusPass || fmt.Sprint(r.Details["missingPCIeRoot"]) != "[]" {
+		t.Fatalf("rootless pool should not require PCIe roots: %+v", r)
+	}
+}
+
+func TestTopologyMixedPoolStillRequiresPCIeRoot(t *testing.T) {
+	r := one(t, Topology(), snapOf([]resourcev1.ResourceSlice{
+		slice("s", "p", 1, 1,
+			full("nic"),
+			dev("cpu", attrs{numa: ints(0)}),
+		),
+	}))
+	wantStatus(t, r, model.StatusWarn, "PCIe root missing on cpu")
+}
+
 func TestTopologyConflictWarns(t *testing.T) {
 	d := dev("a", attrs{"x.example.com/numaNode": ints(0), "y.example.com/numaNode": ints(1), pcie: str("r")})
 	r := one(t, Topology(), snapOf([]resourcev1.ResourceSlice{slice("s", "p", 1, 1, d)}))

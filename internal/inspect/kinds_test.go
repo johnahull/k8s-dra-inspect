@@ -5,7 +5,9 @@ import (
 	"path/filepath"
 	"testing"
 
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/labels"
+	"k8s.io/utils/ptr"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/testutil"
@@ -60,7 +62,9 @@ func TestEveryNonPassInspectResultHasKindedFindings(t *testing.T) {
 }
 
 func TestTopologyMissingAttributeFindingNamesTheAttribute(t *testing.T) {
-	snap := testutil.LoadFixture(t, "testdata/fixtures/xe9680")
+	root := numaDev("rooted", map[string]int64{"resource.kubernetes.io/numaNode": 0})
+	root.Attributes["resource.kubernetes.io/pcieRoot"] = resourcev1.DeviceAttribute{StringValue: ptr.To("pci0000:88")}
+	snap := snapOf(mkSlice("s", "p", 1, 1, root, numaDev("rootless", map[string]int64{"resource.kubernetes.io/numaNode": 0})))
 	var got []model.Finding
 	for _, r := range Topology(false).Run(snap) {
 		got = append(got, r.Findings...)

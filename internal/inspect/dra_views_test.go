@@ -29,11 +29,43 @@ func TestTopologyMissingAttributeWarns(t *testing.T) {
 		got = append(got, fmt.Sprintf("%s|%s|%s", r.Subject, r.Status, str(r, "reason")))
 	}
 	want := []string{
-		"n1/numa=-/pcieRoot=-|warn|missing attribute: numa, missing attribute: pcieRoot",
-		"n1/numa=0/pcieRoot=-|warn|missing attribute: pcieRoot",
+		"n1/numa=-/pcieRoot=-|warn|missing attribute: numa",
+		"n1/numa=0/pcieRoot=-|pass|",
 	}
 	if strings.Join(got, "\n") != strings.Join(want, "\n") {
 		t.Errorf("got\n%s", strings.Join(got, "\n"))
+	}
+}
+
+func TestTopologyDoesNotWarnForRootlessPool(t *testing.T) {
+	snap := snapOf(mkSlice("s", "p", 1, 1,
+		numaDev("cpu", map[string]int64{"resource.kubernetes.io/numaNode": 0}),
+		numaDev("memory", map[string]int64{"resource.kubernetes.io/numaNode": 0}),
+	))
+	r := Topology(false).Run(snap)[0]
+	if r.Status != model.StatusPass || r.Details["reason"] != nil || fmt.Sprint(r.Details["pcieRoot"]) != "[]" {
+		t.Fatalf("rootless pool should not warn about PCIe root: %+v", r)
+	}
+}
+
+func TestTopologyWarnsForRootlessDevicesInMixedPool(t *testing.T) {
+	root := numaDev("nic", map[string]int64{"resource.kubernetes.io/numaNode": 0})
+	root.Attributes["resource.kubernetes.io/pcieRoot"] = resourcev1.DeviceAttribute{StringValue: ptr.To("pci0000:88")}
+	snap := snapOf(mkSlice("s", "p", 1, 1, root,
+		numaDev("cpu", map[string]int64{"resource.kubernetes.io/numaNode": 0}),
+	))
+	r := Topology(false).Run(snap)
+	var warned, rootedPass bool
+	for _, x := range r {
+		if strings.Contains(str(x, "reason"), "missing attribute: pcieRoot") {
+			warned = x.Status == model.StatusWarn && strings.HasSuffix(x.Subject, "pcieRoot=-")
+		}
+		if strings.HasSuffix(x.Subject, "pcieRoot=pci0000:88") {
+			rootedPass = x.Status == model.StatusPass
+		}
+	}
+	if len(r) != 2 || !warned || !rootedPass {
+		t.Fatalf("mixed pool should warn only for rootless group: %+v", r)
 	}
 }
 
@@ -94,13 +126,22 @@ func TestClaimsWithoutSlicesStillList(t *testing.T) {
 
 func TestTopologyNoteColumn(t *testing.T) {
 	in := Topology(true)
-	snap := snapOf(mkSlice("s", "p", 1, 1, numaDev("a", map[string]int64{"resource.kubernetes.io/numaNode": 0}), dev("b")))
+	root := numaDev("a", map[string]int64{"resource.kubernetes.io/numaNode": 0})
+	root.Attributes["resource.kubernetes.io/pcieRoot"] = resourcev1.DeviceAttribute{StringValue: ptr.To("pci0000:88")}
+	snap := snapOf(mkSlice("s", "p", 1, 1, root, numaDev("b", map[string]int64{"resource.kubernetes.io/numaNode": 0})))
 	res := in.Run(snap)
 	last := in.Columns[len(in.Columns)-1]
 	if last.Header != "NOTE" || last.Truncate != render.TruncateTail {
 		t.Fatalf("last column %+v", last)
 	}
-	if row := in.Row(res[1]); row[len(row)-1] != "missing attribute: pcieRoot" {
-		t.Errorf("warn row %v", row)
+	var found bool
+	for _, r := range res {
+		if strings.HasSuffix(r.Subject, "pcieRoot=-") {
+			row := in.Row(r)
+			found = row[len(row)-1] == "missing attribute: pcieRoot"
+		}
+	}
+	if !found {
+		t.Errorf("warn row missing from %v", res)
 	}
 }

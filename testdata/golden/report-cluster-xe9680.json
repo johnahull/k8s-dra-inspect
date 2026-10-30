@@ -120,7 +120,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=0/pcieRoot=-",
       "details": {
         "deviceCount": 3,
@@ -134,8 +134,7 @@
         ],
         "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -181,7 +180,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=1/pcieRoot=-",
       "details": {
         "deviceCount": 3,
@@ -195,8 +194,7 @@
         ],
         "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -241,7 +239,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=2/pcieRoot=-",
       "details": {
         "deviceCount": 3,
@@ -255,8 +253,7 @@
         ],
         "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -302,7 +299,7 @@
     },
     {
       "check": "inspect.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "node-a.example.com/numa=3/pcieRoot=-",
       "details": {
         "deviceCount": 3,
@@ -316,8 +313,7 @@
         ],
         "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
         "pcieKey": "-",
-        "pcieRoot": [],
-        "reason": "missing attribute: pcieRoot"
+        "pcieRoot": []
       }
     },
     {
@@ -583,48 +579,32 @@
     },
     {
       "check": "check.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "dra.cpu/node-a.example.com",
       "details": {
         "conflicts": [],
         "devices": 4,
         "generation": 1,
         "missingNUMA": [],
-        "missingPCIeRoot": [
-          "cpudevnuma000",
-          "cpudevnuma001",
-          "cpudevnuma002",
-          "cpudevnuma003"
-        ],
-        "reason": "PCIe root missing on cpudevnuma000, cpudevnuma001, cpudevnuma002, cpudevnuma003",
+        "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "4 devices, 0 missing NUMA, 4 missing PCIe root"
+        "summary": "4 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
       "check": "check.topology",
-      "status": "warn",
+      "status": "pass",
       "subject": "dra.memory/node-a.example.com",
       "details": {
         "conflicts": [],
         "devices": 8,
         "generation": 1,
         "missingNUMA": [],
-        "missingPCIeRoot": [
-          "memory-xnxmvm",
-          "memory-56xhnf",
-          "memory-ddztgx",
-          "memory-nfqcrb",
-          "hugepages-2mi-vgzdk8",
-          "hugepages-2mi-wzkcsz",
-          "hugepages-2mi-5s57zr",
-          "hugepages-2mi-bmgj2r"
-        ],
-        "reason": "PCIe root missing on memory-xnxmvm, memory-56xhnf, memory-ddztgx, memory-nfqcrb, hugepages-2mi-vgzdk8, hugepages-2mi-wzkcsz, hugepages-2mi-5s57zr, hugepages-2mi-bmgj2r",
+        "missingPCIeRoot": [],
         "slicesExpected": 2,
         "slicesObserved": 2,
-        "summary": "8 devices, 0 missing NUMA, 8 missing PCIe root"
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
@@ -639,7 +619,7 @@
         "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "16 devices, 0 missing NUMA, 0 missing PCIe root"
+        "summary": "16 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     },
     {
@@ -654,7 +634,7 @@
         "missingPCIeRoot": [],
         "slicesExpected": 1,
         "slicesObserved": 1,
-        "summary": "32 devices, 0 missing NUMA, 0 missing PCIe root"
+        "summary": "32 devices, 0 missing NUMA, 0 missing PCIe root where expected"
       }
     }
   ]

@@ -158,16 +158,14 @@ func TestTopologyCheckNamesDevicesMissingAttributes(t *testing.T) {
 		"═══ Topology Check ═══",
 		"",
 		"gpu.example.com/node-a.example.com",
-		"  2 devices, 1 missing NUMA, 2 missing PCIe root",
+		"  2 devices, 1 missing NUMA, 0 missing PCIe root where expected",
 		"  ! NUMA node missing on gpu-1",
-		"  ! PCIe root missing on 2 devices",
-		"      gpu-0, gpu-1",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
 	}
 	ok := showCheck(t, fx(t, "xe9680"), check.Topology(), view.CheckTopology)
-	if !strings.Contains(ok, "  ✓ every device publishes a NUMA node and a PCIe root\n") {
+	if !strings.Contains(ok, "  ✓ every device publishes a NUMA node; PCIe roots are present where expected\n") {
 		t.Errorf("pass:\n%s", ok)
 	}
 }

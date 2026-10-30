@@ -35,7 +35,7 @@ type entry struct{ driver, name, hw string }
 
 // leaf is one PCIe-root set: its devices (or, compact, per-label counts).
 type leaf struct {
-	root    string   // exact set, "" when unknown
+	root    string   // exact set, "" when no PCIe root is published
 	roots   []string // the same set, one per root
 	notes   []model.Finding
 	devices []entry
@@ -43,24 +43,15 @@ type leaf struct {
 }
 
 type numaGroup struct {
-	numa   string // exact set, "" when unknown
-	leaves []*leaf
+	numa   string  // exact set, "" when unknown
+	leaves []*leaf // devices with a published PCIe-root set
+	direct *leaf   // devices without a published PCIe root
 }
 
-// cmpRoots orders PCIe-root sets: unknown last, then by how many roots, then
-// by their values in natural order (pci0000:20 before pci0000:100).
+// cmpRoots orders PCIe-root sets by how many roots, then by their values in
+// natural order (pci0000:20 before pci0000:100).
 func cmpRoots(a, b *leaf) int {
-	if (len(a.roots) == 0) != (len(b.roots) == 0) {
-		return cmp.Compare(boolInt(len(a.roots) == 0), boolInt(len(b.roots) == 0))
-	}
 	return cmp.Or(cmp.Compare(len(a.roots), len(b.roots)), cmpList(a.roots, b.roots))
-}
-
-func boolInt(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
 }
 
 // countsOf renders per-label device counts, labels in driver-name order.
@@ -85,9 +76,9 @@ func countsOf(byDriver map[string]int) string {
 // the topology results plus a snapshot lookup for each device's driver. A
 // result without a devices list (--compact) prints per-group counts only.
 // NUMA sets are ordered numerically (0,1 then 2,3 then 9 then 10,11), PCIe
-// roots by count and then naturally, and unknown branches go last. A device
-// without a pcieRoot or NUMA node shows as "unknown" in the tree, so that
-// finding is not repeated below it; other findings are listed after the tree.
+// roots by count and then naturally. Devices without a NUMA node show as
+// "unknown"; devices without a PCIe root are rendered directly under NUMA so
+// the tree does not imply that they belong to an unknown root.
 func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("DRA Topology")
 
@@ -133,6 +124,8 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		for _, f := range findingsOf(r) {
 			if f.Kind != model.KindAttrMissing {
 				l.notes = append(l.notes, f)
+			} else if l.root == "" && slices.Contains(f.Items, "pcieRoot") {
+				l.notes = append(l.notes, f)
 			}
 		}
 		// The inspector leaves "devices" out of Details with --compact.
@@ -155,7 +148,11 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		} else {
 			l.counts = countsOf(detail[map[string]int](&d, r, "drivers"))
 		}
-		ng.leaves = append(ng.leaves, l)
+		if l.root == "" {
+			ng.direct = l
+		} else {
+			ng.leaves = append(ng.leaves, l)
+		}
 		decodeErrs = append(decodeErrs, d.errs...)
 	}
 
@@ -176,11 +173,34 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			lastN := gi == len(groups[node])-1
 			p.Line(0, "%s%s", p.Branch(lastN), p.Bold("NUMA "+orUnknown(ng.numa)))
 			slices.SortStableFunc(ng.leaves, cmpRoots)
-			for li, l := range ng.leaves {
-				lastP := li == len(ng.leaves)-1
-				for _, f := range l.notes {
-					notes = append(notes, "NUMA "+orUnknown(ng.numa)+", pcieRoot "+orUnknown(l.root)+": "+f.Text)
+			recordNotes := func(l *leaf) {
+				prefix := "NUMA " + orUnknown(ng.numa)
+				if l.root == "" {
+					prefix += ", PCIe root not published"
+				} else {
+					prefix += ", pcieRoot " + l.root
 				}
+				for _, f := range l.notes {
+					notes = append(notes, prefix+": "+f.Text)
+				}
+			}
+			for _, l := range ng.leaves {
+				recordNotes(l)
+			}
+			if ng.direct != nil {
+				recordNotes(ng.direct)
+			}
+			hasDirect := ng.direct != nil && (len(ng.direct.devices) > 0 || ng.direct.counts != "")
+			children := len(ng.leaves)
+			if hasDirect {
+				if ng.direct.counts != "" {
+					children++
+				} else {
+					children += len(ng.direct.devices)
+				}
+			}
+			for li, l := range ng.leaves {
+				lastP := li == children-1
 				head := "pcieRoot " + orUnknown(l.root)
 				if l.counts != "" {
 					head += "  " + l.counts
@@ -193,6 +213,20 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 				for di, e := range l.devices {
 					lab := driverLabel(e.driver)
 					p.Line(0, "%s%s%s%s  %s%s", p.Trunk(lastN), p.Trunk(lastP), p.Branch(di == len(l.devices)-1), lab+strings.Repeat(" ", w-utf8.RuneCountInString(lab)), e.name, e.hw)
+				}
+			}
+			if hasDirect {
+				if ng.direct.counts != "" {
+					p.Line(0, "%s%s%s", p.Trunk(lastN), p.Branch(true), ng.direct.counts)
+				} else {
+					w := 0
+					for _, e := range ng.direct.devices {
+						w = max(w, utf8.RuneCountInString(driverLabel(e.driver)))
+					}
+					for di, e := range ng.direct.devices {
+						lab := driverLabel(e.driver)
+						p.Line(0, "%s%s%s  %s%s", p.Trunk(lastN), p.Branch(di == len(ng.direct.devices)-1), lab+strings.Repeat(" ", w-utf8.RuneCountInString(lab)), e.name, e.hw)
+					}
 				}
 			}
 		}

@@ -59,7 +59,9 @@ capture` and `report` alike.
     wraps at the terminal width (100 columns when piped); every line starts with
     what it is about, so `grep` still finds it.
     `inspect slices`, `topology`, `drivers` and `attributes` are organised by
-    node (`Node: <name>`, then driver, then device). Named nodes come first in
+    node (`Node: <name>`, then driver, then device). In `inspect topology`,
+    devices with a published PCIe root appear under that root; devices without
+    one appear directly under their NUMA group. Named nodes come first in
     plain string order (`node-10` before `node-2`, no natural sorting); devices
     not bound to one node follow under `Node: (no node)`, `Node: (all nodes)`
     or `Node: (selector)`, in all four views alike. The claim-centred
@@ -127,7 +129,7 @@ Node: node-a.example.com
 ```
 
 The PCIe topology as a tree (`inspect topology`, first lines; NUMA sets and
-PCIe roots sort numerically, unknown ones last):
+PCIe roots sort numerically):
 
 <!-- sample: inspect topology -->
 ```text
@@ -156,19 +158,10 @@ puts them on indented lines below it:
 $ dra-inspect report cluster --from testdata/snapshots/xe9785l.json
 ═══ Cluster Report ═══
 
-Summary: 9 checks: 6 ok, 3 warnings, 0 failures, 0 unavailable, 0 errors
-
-inspect.topology
-  ! node-a.example.com, NUMA 0,1,2,3: no pcieRoot published
-  ! node-a.example.com, NUMA 4,5,6,7: no pcieRoot published
+Summary: 9 checks: 8 ok, 1 warning, 0 failures, 0 unavailable, 0 errors
 
 check.alignment
   ! default/vm-final-all: devices span NUMA nodes (no common NUMA node)
-
-check.topology
-  ! dra.memory/node-a.example.com: PCIe root missing on 8 devices
-      memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf,
-        memory-2v88wt, memory-559qbb
 
 Details: run the individual check or inspect commands, or use -o json.
 ```
