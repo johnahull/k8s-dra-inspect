@@ -58,6 +58,11 @@ capture` and `report` alike.
     names and device lists never truncated. A device list that does not fit
     wraps at the terminal width (100 columns when piped); every line starts with
     what it is about, so `grep` still finds it.
+    `inspect slices`, `topology`, `drivers` and `attributes` are organised by
+    node (`Node: <name>`, then driver, then device); devices not bound to one
+    node sit under `Node: (all nodes)` or `Node: (selector)` after the named
+    nodes. The claim-centred checks (`alignment`, `kubevirt`, `cpupinning`,
+    `vfio`) and `report` are not grouped by node.
   - `table` prints flat rows, for scripts and wide terminals. Long cells are
     truncated with `…` to fit the terminal width.
   - `json` prints a versioned envelope (`schemaVersion`, `results[]` with

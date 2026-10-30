@@ -160,7 +160,7 @@ func TestNodeGroupedViewsNeutraliseHostileNodeNames(t *testing.T) {
 		name string
 		in   inspect.Inspector
 		v    viewFunc
-	}{{"drivers", inspect.Drivers(true), view.Drivers}} {
+	}{{"drivers", inspect.Drivers(true), view.Drivers}, {"attributes", inspect.Attributes(true, true), view.Attributes}} {
 		snap := evilSnap(t)
 		snap.ResourceSlices[0].Spec.NodeName = strp("node" + evil)
 		snap.ResourceSlices[0].Spec.Pool.Name = "pool" + evil

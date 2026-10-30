@@ -239,6 +239,9 @@ Three modes, chosen with `-o`:
   the group's first line always starts with its key, so `grep` finds it, and a
   device name longer than the line stays whole. Requests, devices and their
   placement are printed one fact per indented line rather than in one long row.
+  `inspect slices`, `topology`, `drivers` and `attributes` are organised by
+  node (node, then driver, then device); the claim-centred checks and `report`
+  are not.
 - `table`: flat rows for scripts and wide terminals. Long cells are truncated
   with `…` to fit the terminal width (JSON never truncates).
 - `json`: the versioned envelope; it is independent of the text layout.
