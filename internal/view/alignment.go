@@ -1,6 +1,8 @@
 package view
 
 import (
+	"fmt"
+	"maps"
 	"slices"
 	"strings"
 
@@ -10,15 +12,47 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
-// alloc is one allocated device of a claim.
-type alloc struct{ request, driver, pool, device string }
+// alloc is one allocated device of a claim, including any share capacity.
+type alloc struct {
+	request, driver, pool, device string
+	consumed                      map[string]string
+}
+
+func publishedCapacity(dev resourcev1.Device, driver, name string) (resourcev1.DeviceCapacity, bool) {
+	if capacity, ok := dev.Capacity[resourcev1.QualifiedName(name)]; ok {
+		return capacity, true
+	}
+	domain, bare, qualified := strings.Cut(name, "/")
+	if qualified && domain == driver {
+		capacity, ok := dev.Capacity[resourcev1.QualifiedName(bare)]
+		return capacity, ok
+	}
+	return resourcev1.DeviceCapacity{}, false
+}
+
+func capacityLines(dev resourcev1.Device, driver string, consumed map[string]string) []string {
+	if len(consumed) == 0 {
+		return nil
+	}
+	// ResourceSlices and ResourceClaims are collected independently, so this
+	// compares the values observed in one snapshot on a best-effort basis.
+	var out []string
+	for _, name := range slices.Sorted(maps.Keys(consumed)) {
+		value := consumed[name]
+		if published, ok := publishedCapacity(dev, driver, name); ok {
+			out = append(out, fmt.Sprintf("capacity %s: %s of %s consumed (best effort)", name, value, published.Value.String()))
+			continue
+		}
+		out = append(out, fmt.Sprintf("capacity %s: %s consumed (not published)", name, value))
+	}
+	return out
+}
 
 // printAllocs prints each request name on its own line (once for consecutive
 // devices of the same request), then per device an indented line with the
-// device, its bus ID, product and driver, and one with NUMA and PCIe root. The
-// node line is added when withNode. A device that is in no ResourceSlice is
-// handed to missing, which prints its own line; with devs nil (slices not
-// collected) only the device and driver are shown.
+// device, its bus ID, product and driver, capacity usage, and NUMA/PCIe root.
+// The node line is added when withNode. Consumed capacity is still shown when
+// the device is missing or slices were not collected.
 func printAllocs(p *render.Printer, indent int, allocs []alloc, devs model.DeviceIndex, withNode bool, missing func(a alloc)) {
 	prev, first := "", true
 	for _, a := range allocs {
@@ -32,13 +66,21 @@ func printAllocs(p *render.Printer, indent int, allocs []alloc, devs model.Devic
 		if devs != nil {
 			dev, s, ok = devs.Find(a.driver, a.pool, a.device)
 		}
+		printCapacity := func(d resourcev1.Device) {
+			for _, line := range capacityLines(d, a.driver, a.consumed) {
+				p.Line(indent+2, "%s", line)
+			}
+		}
 		switch {
 		case devs == nil:
 			p.Line(indent+2, "%s  %s", a.device, a.driver)
+			printCapacity(resourcev1.Device{})
 		case !ok:
 			missing(a)
+			printCapacity(resourcev1.Device{})
 		default:
 			p.Line(indent+2, "%s%s  %s", a.device, hardware(dev, a.driver), a.driver)
+			printCapacity(dev)
 			numa, root := topo(dev, a.driver)
 			p.Line(indent+2, "NUMA %s  pcieRoot %s", orUnknown(numa), orUnknown(root))
 			if withNode {
@@ -69,7 +111,7 @@ func Alignment(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		if c := claims[r.Subject]; c != nil && c.Status.Allocation != nil {
 			var as []alloc
 			for _, a := range c.Status.Allocation.Devices.Results {
-				as = append(as, alloc{a.Request, a.Driver, a.Pool, a.Device})
+				as = append(as, alloc{request: a.Request, driver: a.Driver, pool: a.Pool, device: a.Device})
 			}
 			printAllocs(p, 2, as, devs, false, func(a alloc) { p.Line(4, "%s  %s", a.device, a.driver) })
 		}

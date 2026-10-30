@@ -8,6 +8,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/view"
 	resourcev1 "k8s.io/api/resource/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func claimsOut(t *testing.T, snap model.Snapshot) string {
@@ -51,6 +52,87 @@ func TestClaimsDeviceShowsBusIDAndProduct(t *testing.T) {
 	want := "    gpu-0 (0000:41:00.0) [AMD MI355X]  gpu.example.com"
 	if !hasLine(got, want) {
 		t.Errorf("missing %q in:\n%s", want, got)
+	}
+}
+
+func TestClaimsConsumableDeviceShowsConsumedCapacity(t *testing.T) {
+	got := claimsOut(t, fx(t, "capacity/pass"))
+	for _, want := range []string{
+		"    capacity size: 40Gi of 100Gi consumed (best effort)",
+		"    capacity size: 60Gi of 100Gi consumed (best effort)",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+}
+
+func TestClaimsConsumableDeviceResolvesQualifiedCapacityName(t *testing.T) {
+	snap := fx(t, "capacity/pass")
+	for i := range snap.ResourceClaims {
+		for j := range snap.ResourceClaims[i].Status.Allocation.Devices.Results {
+			r := &snap.ResourceClaims[i].Status.Allocation.Devices.Results[j]
+			value := r.ConsumedCapacity["size"]
+			r.ConsumedCapacity = map[resourcev1.QualifiedName]resource.Quantity{"mem.example.com/size": value}
+		}
+	}
+	got := claimsOut(t, snap)
+	for _, want := range []string{
+		"    capacity mem.example.com/size: 40Gi of 100Gi consumed (best effort)",
+		"    capacity mem.example.com/size: 60Gi of 100Gi consumed (best effort)",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+}
+
+func TestClaimsShowsConsumedCapacityWhenPublishedCapacityIsMissing(t *testing.T) {
+	snap := fx(t, "capacity/pass")
+	for i := range snap.ResourceSlices {
+		for j := range snap.ResourceSlices[i].Spec.Devices {
+			snap.ResourceSlices[i].Spec.Devices[j].Capacity = nil
+		}
+	}
+	got := claimsOut(t, snap)
+	for _, want := range []string{
+		"    capacity size: 40Gi consumed (not published)",
+		"    capacity size: 60Gi consumed (not published)",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+}
+
+func TestClaimsShowsConsumedCapacityWhenSlicesAreUnavailable(t *testing.T) {
+	snap := fx(t, "capacity/pass")
+	snap.Collection["resourceslices"] = model.CollectionStatus{State: model.StateForbidden, Reason: "forbidden: resource slices"}
+	snap.ResourceSlices = nil
+	got := claimsOut(t, snap)
+	for _, want := range []string{
+		"    mem-0  mem.example.com",
+		"    capacity size: 40Gi consumed (not published)",
+		"    capacity size: 60Gi consumed (not published)",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+}
+
+func TestClaimsShowsConsumedCapacityWhenDeviceIsMissing(t *testing.T) {
+	snap := fx(t, "capacity/pass")
+	snap.ResourceSlices[0].Spec.Devices = nil
+	got := claimsOut(t, snap)
+	for _, want := range []string{
+		"    ! mem.example.com/mem-0 not found in ResourceSlices (pool node-a.example.com)",
+		"    capacity size: 40Gi consumed (not published)",
+		"    capacity size: 60Gi consumed (not published)",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
 	}
 }
 
