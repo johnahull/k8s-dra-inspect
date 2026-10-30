@@ -1097,12 +1097,18 @@
             "request": "n0-gpu-amd-com"
           },
           {
+            "consumedCapacity": {
+              "dra.cpu/cpu": "32"
+            },
             "device": "cpudevnuma001",
             "driver": "dra.cpu",
             "pool": "node-a.example.com",
             "request": "n0-dra-cpu"
           },
           {
+            "consumedCapacity": {
+              "size": "396276768Ki"
+            },
             "device": "memory-bjd9hw",
             "driver": "dra.memory",
             "pool": "node-a.example.com",
@@ -1121,12 +1127,18 @@
             "request": "n1-gpu-amd-com"
           },
           {
+            "consumedCapacity": {
+              "dra.cpu/cpu": "32"
+            },
             "device": "cpudevnuma002",
             "driver": "dra.cpu",
             "pool": "node-a.example.com",
             "request": "n1-dra-cpu"
           },
           {
+            "consumedCapacity": {
+              "size": "396276768Ki"
+            },
             "device": "memory-t5wtkl",
             "driver": "dra.memory",
             "pool": "node-a.example.com",
@@ -1145,12 +1157,18 @@
             "request": "n2-gpu-amd-com"
           },
           {
+            "consumedCapacity": {
+              "dra.cpu/cpu": "32"
+            },
             "device": "cpudevnuma003",
             "driver": "dra.cpu",
             "pool": "node-a.example.com",
             "request": "n2-dra-cpu"
           },
           {
+            "consumedCapacity": {
+              "size": "396276768Ki"
+            },
             "device": "memory-4qhskf",
             "driver": "dra.memory",
             "pool": "node-a.example.com",

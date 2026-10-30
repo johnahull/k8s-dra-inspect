@@ -8,6 +8,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/view"
 	resourcev1 "k8s.io/api/resource/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 )
 
 func claimsOut(t *testing.T, snap model.Snapshot) string {
@@ -51,6 +52,38 @@ func TestClaimsDeviceShowsBusIDAndProduct(t *testing.T) {
 	want := "    gpu-0 (0000:41:00.0) [AMD MI355X]  gpu.example.com"
 	if !hasLine(got, want) {
 		t.Errorf("missing %q in:\n%s", want, got)
+	}
+}
+
+func TestClaimsConsumableDeviceShowsConsumedCapacity(t *testing.T) {
+	got := claimsOut(t, fx(t, "capacity/pass"))
+	for _, want := range []string{
+		"    capacity size: 40Gi of 100Gi consumed",
+		"    capacity size: 60Gi of 100Gi consumed",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+}
+
+func TestClaimsConsumableDeviceResolvesQualifiedCapacityName(t *testing.T) {
+	snap := fx(t, "capacity/pass")
+	for i := range snap.ResourceClaims {
+		for j := range snap.ResourceClaims[i].Status.Allocation.Devices.Results {
+			r := &snap.ResourceClaims[i].Status.Allocation.Devices.Results[j]
+			value := r.ConsumedCapacity["size"]
+			r.ConsumedCapacity = map[resourcev1.QualifiedName]resource.Quantity{"mem.example.com/size": value}
+		}
+	}
+	got := claimsOut(t, snap)
+	for _, want := range []string{
+		"    capacity mem.example.com/size: 40Gi of 100Gi consumed",
+		"    capacity mem.example.com/size: 60Gi of 100Gi consumed",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
 	}
 }
 

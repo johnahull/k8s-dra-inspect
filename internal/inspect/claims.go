@@ -7,6 +7,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
+	"k8s.io/apimachinery/pkg/api/resource"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
@@ -32,6 +33,17 @@ func nodeSelectorNames(ns *corev1.NodeSelector) []string {
 func sortedUnique(v []string) []string {
 	slices.Sort(v)
 	return append([]string{}, slices.Compact(v)...)
+}
+
+func consumedCapacityOf(v map[resourcev1.QualifiedName]resource.Quantity) map[string]string {
+	if len(v) == 0 {
+		return nil
+	}
+	out := make(map[string]string, len(v))
+	for name, value := range v {
+		out[string(name)] = value.String()
+	}
+	return out
 }
 
 // requestsOf describes claim requests without selector expressions.
@@ -124,11 +136,15 @@ func Claims() Inspector {
 			out := []model.Result{}
 			for _, c := range snap.ResourceClaims {
 				al := c.Status.Allocation
-				results := []map[string]string{}
+				results := []map[string]any{}
 				var nodes, missing []string
 				if al != nil {
 					for _, r := range al.Devices.Results {
-						results = append(results, map[string]string{"request": r.Request, "driver": r.Driver, "pool": r.Pool, "device": r.Device})
+						m := map[string]any{"request": r.Request, "driver": r.Driver, "pool": r.Pool, "device": r.Device}
+						if consumed := consumedCapacityOf(r.ConsumedCapacity); consumed != nil {
+							m["consumedCapacity"] = consumed
+						}
+						results = append(results, m)
 						if !slicesOK {
 							continue
 						}

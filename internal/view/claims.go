@@ -71,8 +71,14 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 		p.Line(0, "%s → %s", p.Bold(r.Subject), consumers(r, &d, podsDown, vmiDown))
 		var as []alloc
-		for _, m := range detail[[]map[string]string](&d, r, "results") {
-			as = append(as, alloc{m["request"], m["driver"], m["pool"], m["device"]})
+		for _, m := range detail[[]map[string]any](&d, r, "results") {
+			as = append(as, alloc{
+				request:  field[string](&d, "results[]", m, "request"),
+				driver:   field[string](&d, "results[]", m, "driver"),
+				pool:     field[string](&d, "results[]", m, "pool"),
+				device:   field[string](&d, "results[]", m, "device"),
+				consumed: field[map[string]string](&d, "results[]", m, "consumedCapacity"),
+			})
 		}
 		printAllocs(p, 2, as, devs, true, func(a alloc) {
 			p.Note(4, r.Status, a.driver+"/"+a.device+" not found in ResourceSlices (pool "+a.pool+")")
