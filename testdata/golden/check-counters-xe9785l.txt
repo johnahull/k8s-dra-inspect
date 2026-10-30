@@ -1,0 +1,9 @@
+SUBJECT                                                     STATUS  DETAIL
+gpu.amd.com/node-a.example.com/pf-0000-0c-00-0-counter-set  pass    vf-slots 0/1
+gpu.amd.com/node-a.example.com/pf-0000-3d-00-0-counter-set  pass    vf-slots 0/1
+gpu.amd.com/node-a.example.com/pf-0000-a8-00-0-counter-set  pass    vf-slots 0/1
+gpu.amd.com/node-a.example.com/pf-0000-dc-00-0-counter-set  pass    vf-slots 1/1
+gpu.amd.com/node-a.example.com/pf-0001-0d-00-0-counter-set  pass    vf-slots 0/1
+gpu.amd.com/node-a.example.com/pf-0001-3d-00-0-counter-set  pass    vf-slots 0/1
+gpu.amd.com/node-a.example.com/pf-0001-a5-00-0-counter-set  pass    vf-slots 1/1
+gpu.amd.com/node-a.example.com/pf-0001-dc-00-0-counter-set  pass    vf-slots 1/1

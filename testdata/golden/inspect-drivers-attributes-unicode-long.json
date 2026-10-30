@@ -1,0 +1,39 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com",
+      "details": {
+        "attributes": [
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels",
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID",
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID",
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName",
+          "resource.kubernetes.io/numaNode",
+          "resource.kubernetes.io/pcieRoot"
+        ],
+        "devices": 2,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "other.example.com",
+      "details": {
+        "attributes": [
+          "other.example.com/mtu",
+          "other.example.com/pciDevice"
+        ],
+        "devices": 1,
+        "nodes": 1,
+        "pools": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+# Synthetic: pod demo/app on node-a.example.com holds gpu-0 (NUMA 0, PCI 0000:3b:00.0).
+# Host evidence is built per test with testutil.FakeHost.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: gpu-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pciBusID: {string: "0000:3b:00.0"}
+    - name: gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 1}
+        resource.kubernetes.io/pciBusID: {string: "0000:3b:00.1"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: gpu-claim, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+- apiVersion: v1
+  kind: Pod
+  metadata: {name: app, namespace: demo, uid: 00000000-0000-4000-8000-000000000001}
+  spec:
+    nodeName: node-a.example.com
+    resourceClaims:
+    - {name: gpu, resourceClaimName: gpu-claim}

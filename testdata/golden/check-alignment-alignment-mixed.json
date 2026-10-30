@@ -1,0 +1,79 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "pass",
+      "subject": "demo/gpus-and-nic",
+      "details": {
+        "constraints": [
+          {
+            "attribute": "resource.kubernetes.io/pcieRoot",
+            "intersection": [
+              "pci0000:00"
+            ],
+            "requests": [
+              "gpu"
+            ],
+            "status": "pass",
+            "valuesByDevice": {
+              "gpu.example.com/node-a.example.com/gpu-0": [
+                "pci0000:00"
+              ],
+              "gpu.example.com/node-a.example.com/gpu-1": [
+                "pci0000:00"
+              ]
+            }
+          }
+        ],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/gpu-1",
+          "nic.example.com/node-a.example.com/nic-0"
+        ],
+        "numa": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [
+            "0"
+          ],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "0"
+            ],
+            "nic.example.com/node-a.example.com/nic-0": [
+              "0"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": false,
+          "constrained": false,
+          "intersection": [],
+          "key": "resource.kubernetes.io/pcieRoot",
+          "missing": [],
+          "note": "devices span PCIe roots (informational)",
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "pci0000:00"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "pci0000:00"
+            ],
+            "nic.example.com/node-a.example.com/nic-0": [
+              "pci0000:80"
+            ]
+          }
+        },
+        "summary": "3 devices, 1 constraints"
+      }
+    }
+  ]
+}

@@ -1,0 +1,126 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.claims",
+      "status": "warn",
+      "subject": "demo/broken",
+      "details": {
+        "allocated": true,
+        "deviceCount": 1,
+        "deviceRequests": [
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu"
+          }
+        ],
+        "missingDevices": [
+          "gpu.example.com/node-a.example.com/gpu-9"
+        ],
+        "nodes": [],
+        "reason": "allocated device not found in ResourceSlices: gpu.example.com/node-a.example.com/gpu-9",
+        "reservedFor": [],
+        "results": [
+          {
+            "device": "gpu-9",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "gpu"
+          }
+        ],
+        "usedBy": []
+      }
+    },
+    {
+      "check": "inspect.claims",
+      "status": "pass",
+      "subject": "demo/pending",
+      "details": {
+        "allocated": false,
+        "deviceCount": 0,
+        "deviceRequests": [
+          {
+            "allocationMode": "All",
+            "deviceClassName": "nic.example.com",
+            "name": "nic"
+          }
+        ],
+        "nodes": [],
+        "reservedFor": [],
+        "results": [],
+        "usedBy": []
+      }
+    },
+    {
+      "check": "inspect.claims",
+      "status": "pass",
+      "subject": "demo/shared-gpu",
+      "details": {
+        "allocated": true,
+        "deviceCount": 1,
+        "deviceRequests": [
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu"
+          }
+        ],
+        "nodes": [
+          "node-a.example.com"
+        ],
+        "reservedFor": [
+          "virt-launcher-vm1-abcde"
+        ],
+        "results": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "gpu"
+          }
+        ],
+        "usedBy": [
+          "virt-launcher-vm1-abcde"
+        ],
+        "vmi": "vm1"
+      }
+    },
+    {
+      "check": "inspect.claims",
+      "status": "pass",
+      "subject": "demo/web-0-gpu-xyz12",
+      "details": {
+        "allocated": true,
+        "deviceCount": 1,
+        "deviceRequests": [
+          {
+            "allocationMode": "ExactCount",
+            "count": 1,
+            "deviceClassName": "gpu.example.com",
+            "name": "gpu"
+          }
+        ],
+        "nodes": [
+          "node-a.example.com"
+        ],
+        "reservedFor": [],
+        "results": [
+          {
+            "device": "gpu-1",
+            "driver": "gpu.example.com",
+            "pool": "node-a.example.com",
+            "request": "gpu"
+          }
+        ],
+        "usedBy": [
+          "web-0"
+        ]
+      }
+    }
+  ]
+}

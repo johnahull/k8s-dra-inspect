@@ -1,0 +1,9 @@
+UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
+SUBJECT                STATUS  DETAIL
+demo/vm-garbage        pass    no DRA host devices
+demo/vm-missing-claim  fail    claim demo/no-such-claim not found
+demo/vm-no-allocation  fail    request absent has no allocation result in claim demo/claim-ok
+demo/vm-ok             pass    3 device(s) on node node-a.example.com
+demo/vm-secrets        pass    1 device(s) on node node-a.example.com
+demo/vm-split          warn    devices span NUMA nodes 0,1 without guestMappingPassthrough; the gue…
+demo/vm-wrong-node     fail    device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.e…

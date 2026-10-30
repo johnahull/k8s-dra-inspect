@@ -1,0 +1,2 @@
+SUBJECT                                  STATUS  DETAIL
+gpu.example.com/node-a.example.com/pf-0  fail    counter vf-slots overcommitted: 3 used of 2

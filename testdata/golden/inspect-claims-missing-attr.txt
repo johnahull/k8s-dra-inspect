@@ -1,0 +1,2 @@
+CLAIM          ALLOCATED  DEVICES  NODE                USED BY
+demo/two-gpus  yes        2        node-a.example.com  -

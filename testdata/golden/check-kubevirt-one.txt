@@ -1,0 +1,2 @@
+SUBJECT       STATUS  DETAIL
+demo/vm-ok    pass    3 device(s) on node node-a.example.com

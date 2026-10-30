@@ -1,0 +1,73 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=0/pcieRoot=-",
+      "details": {
+        "deviceCount": 1,
+        "devices": [
+          "dev-b"
+        ],
+        "drivers": {
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com": 1
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:00,pci0000:80",
+      "details": {
+        "deviceCount": 1,
+        "devices": [
+          "device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total"
+        ],
+        "drivers": {
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com": 1
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:00",
+          "pci0000:80"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-b.example.com/numa=-/pcieRoot=-",
+      "details": {
+        "deviceCount": 1,
+        "devices": [
+          "nic0"
+        ],
+        "drivers": {
+          "other.example.com": 1
+        },
+        "node": "node-b.example.com",
+        "numa": [],
+        "numaKey": "-",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: numa, missing attribute: pcieRoot"
+      }
+    }
+  ]
+}

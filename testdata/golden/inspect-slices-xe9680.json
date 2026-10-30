@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "node-a.example.com-dra.cpu-mzcdv",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.cpu",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-dra.memory-node-a.example.com5lp9m",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.memory",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00001-dra.memory-node-a.example.comf5cvv",
+      "details": {
+        "deviceCount": 4,
+        "driver": "dra.memory",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-gpu.amd.com-node-a.example.com9qqwt",
+      "details": {
+        "deviceCount": 16,
+        "driver": "gpu.amd.com",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-sriovnetwork.k8snetworkplumbingwg.io-node-a.example.comfbbkd",
+      "details": {
+        "deviceCount": 32,
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    }
+  ]
+}

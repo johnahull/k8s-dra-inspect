@@ -1,0 +1,43 @@
+# Synthetic: two claims consume 60Gi each of a 100Gi device, which fails.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: mem-slice
+  spec:
+    driver: mem.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: mem-0
+      allowMultipleAllocations: true
+      capacity:
+        size: {value: 100Gi}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: first, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: mem
+        exactly: {deviceClassName: mem.example.com, allocationMode: ExactCount, count: 1}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: mem, driver: mem.example.com, pool: node-a.example.com, device: mem-0, consumedCapacity: {size: 60Gi}}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: second, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: mem
+        exactly: {deviceClassName: mem.example.com, allocationMode: ExactCount, count: 1}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: mem, driver: mem.example.com, pool: node-a.example.com, device: mem-0, consumedCapacity: {size: 60Gi}}

@@ -1,0 +1,2 @@
+SUBJECT        STATUS  DETAIL
+demo/two-gpus  warn    devices span NUMA nodes (no common NUMA node)

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "dra.cpu/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 8,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "dra.memory/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 8,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [
+          "memory-rddth4",
+          "memory-fk8nlr",
+          "memory-bjd9hw",
+          "memory-t5wtkl",
+          "memory-4qhskf",
+          "memory-s9zcsf",
+          "memory-2v88wt",
+          "memory-559qbb"
+        ],
+        "reason": "PCIe root missing on memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf, memory-2v88wt, memory-559qbb",
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "8 devices, 0 missing NUMA, 8 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 8,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 2,
+        "slicesObserved": 2,
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    },
+    {
+      "check": "check.topology",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 8,
+        "generation": 1,
+        "missingNUMA": [],
+        "missingPCIeRoot": [],
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "8 devices, 0 missing NUMA, 0 missing PCIe root"
+      }
+    }
+  ]
+}

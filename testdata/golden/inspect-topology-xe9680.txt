@@ -1,0 +1,13 @@
+NODE                NUMA  PCIE ROOT   DRIVERS              DEVICES              NOTE
+node-a.example.com  0     -           dra.cpu=1,dra.memo…  cpudevnuma000,huge…  missing attribute: …
+node-a.example.com  0     pci0000:15  gpu.amd.com=2,srio…  0000-1d-00-2,0000-…  -
+node-a.example.com  0     pci0000:59  gpu.amd.com=2        gpu-49-176,gpu-vfi…  -
+node-a.example.com  1     -           dra.cpu=1,dra.memo…  cpudevnuma001,huge…  missing attribute: …
+node-a.example.com  1     pci0000:37  gpu.amd.com=2        gpu-9-136,gpu-vfio…  -
+node-a.example.com  1     pci0000:48  gpu.amd.com=2        gpu-17-144,gpu-vfi…  -
+node-a.example.com  2     -           dra.cpu=1,dra.memo…  cpudevnuma002,huge…  missing attribute: …
+node-a.example.com  2     pci0000:97  gpu.amd.com=2,srio…  0000-9f-00-2,0000-…  -
+node-a.example.com  2     pci0000:d7  gpu.amd.com=2        gpu-25-152,gpu-vfi…  -
+node-a.example.com  3     -           dra.cpu=1,dra.memo…  cpudevnuma003,huge…  missing attribute: …
+node-a.example.com  3     pci0000:b7  gpu.amd.com=2        gpu-57-184,gpu-vfi…  -
+node-a.example.com  3     pci0000:c7  gpu.amd.com=2        gpu-1-128,gpu-vfio…  -

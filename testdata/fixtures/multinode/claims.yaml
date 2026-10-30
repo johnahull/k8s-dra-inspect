@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: pair-a, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 2}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: a-gpu-0}
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: a-gpu-1}
+    reservedFor:
+    - {resource: pods, name: pair-pod, uid: 00000000-0000-4000-8000-000000000002}

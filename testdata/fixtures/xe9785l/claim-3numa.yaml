@@ -1,0 +1,226 @@
+apiVersion: v1
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata:
+    annotations:
+      nodepartition.dra.k8s.io/expanded-requests: '{"n0":["n0-sriovnetwork-k8snetworkplumbingwg-io","n0-gpu-amd-com","n0-dra-cpu","n0-dra-memory"],"n1":["n1-sriovnetwork-k8snetworkplumbingwg-io","n1-gpu-amd-com","n1-dra-cpu","n1-dra-memory"],"n2":["n2-sriovnetwork-k8snetworkplumbingwg-io","n2-gpu-amd-com","n2-dra-cpu","n2-dra-memory"]}'
+    finalizers:
+    - resource.kubernetes.io/delete-protection
+    name: vm-final-all
+    namespace: default
+  spec:
+    devices:
+      config:
+      - opaque:
+          driver: gpu.amd.com
+          parameters:
+            apiVersion: gpu.resource.amd.com/v1alpha1
+            kind: VfioDeviceConfig
+      - opaque:
+          driver: sriovnetwork.k8snetworkplumbingwg.io
+          parameters:
+            apiVersion: sriovnetwork.k8snetworkplumbingwg.io/v1alpha1
+            driver: vfio-pci
+            kind: VfConfig
+      requests:
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: sriovnetwork.k8snetworkplumbingwg.io
+        name: n0-sriovnetwork-k8snetworkplumbingwg-io
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: gpu.amd.com
+        name: n0-gpu-amd-com
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              dra.cpu/cpu: '32'
+          count: 1
+          deviceClassName: dra.cpu
+        name: n0-dra-cpu
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              size: 396276768Ki
+          count: 1
+          deviceClassName: dra.memory
+        name: n0-dra-memory
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: sriovnetwork.k8snetworkplumbingwg.io
+        name: n1-sriovnetwork-k8snetworkplumbingwg-io
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: gpu.amd.com
+        name: n1-gpu-amd-com
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              dra.cpu/cpu: '32'
+          count: 1
+          deviceClassName: dra.cpu
+        name: n1-dra-cpu
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              size: 396276768Ki
+          count: 1
+          deviceClassName: dra.memory
+        name: n1-dra-memory
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: sriovnetwork.k8snetworkplumbingwg.io
+        name: n2-sriovnetwork-k8snetworkplumbingwg-io
+      - exactly:
+          allocationMode: ExactCount
+          count: 1
+          deviceClassName: gpu.amd.com
+        name: n2-gpu-amd-com
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              dra.cpu/cpu: '32'
+          count: 1
+          deviceClassName: dra.cpu
+        name: n2-dra-cpu
+      - exactly:
+          allocationMode: ExactCount
+          capacity:
+            requests:
+              size: 396276768Ki
+          count: 1
+          deviceClassName: dra.memory
+        name: n2-dra-memory
+  status:
+    allocation:
+      allocationTimestamp: '2026-07-02T15:31:27Z'
+      devices:
+        config:
+        - opaque:
+            driver: gpu.amd.com
+            parameters:
+              apiVersion: gpu.resource.amd.com/v1alpha1
+              kind: VfioDeviceConfig
+          source: FromClaim
+        - opaque:
+            driver: sriovnetwork.k8snetworkplumbingwg.io
+            parameters:
+              apiVersion: sriovnetwork.k8snetworkplumbingwg.io/v1alpha1
+              driver: vfio-pci
+              kind: VfConfig
+          source: FromClaim
+        results:
+        - device: 0001-07-00-3
+          driver: sriovnetwork.k8snetworkplumbingwg.io
+          pool: node-a.example.com
+          request: n0-sriovnetwork-k8snetworkplumbingwg-io
+        - device: gpu-vfio-7
+          driver: gpu.amd.com
+          pool: node-a.example.com
+          request: n0-gpu-amd-com
+        - consumedCapacity:
+            dra.cpu/cpu: '32'
+          device: cpudevnuma001
+          driver: dra.cpu
+          pool: node-a.example.com
+          request: n0-dra-cpu
+          shareID: 00000000-0000-4000-8000-000000000001
+        - consumedCapacity:
+            size: 396276768Ki
+          device: memory-bjd9hw
+          driver: dra.memory
+          pool: node-a.example.com
+          request: n0-dra-memory
+          shareID: 00000000-0000-4000-8000-000000000002
+        - device: 0001-07-00-4
+          driver: sriovnetwork.k8snetworkplumbingwg.io
+          pool: node-a.example.com
+          request: n1-sriovnetwork-k8snetworkplumbingwg-io
+        - device: gpu-vfio-0
+          driver: gpu.amd.com
+          pool: node-a.example.com
+          request: n1-gpu-amd-com
+        - consumedCapacity:
+            dra.cpu/cpu: '32'
+          device: cpudevnuma002
+          driver: dra.cpu
+          pool: node-a.example.com
+          request: n1-dra-cpu
+          shareID: 00000000-0000-4000-8000-000000000003
+        - consumedCapacity:
+            size: 396276768Ki
+          device: memory-t5wtkl
+          driver: dra.memory
+          pool: node-a.example.com
+          request: n1-dra-memory
+          shareID: 00000000-0000-4000-8000-000000000004
+        - device: 0001-07-00-5
+          driver: sriovnetwork.k8snetworkplumbingwg.io
+          pool: node-a.example.com
+          request: n2-sriovnetwork-k8snetworkplumbingwg-io
+        - device: gpu-vfio-1
+          driver: gpu.amd.com
+          pool: node-a.example.com
+          request: n2-gpu-amd-com
+        - consumedCapacity:
+            dra.cpu/cpu: '32'
+          device: cpudevnuma003
+          driver: dra.cpu
+          pool: node-a.example.com
+          request: n2-dra-cpu
+          shareID: 00000000-0000-4000-8000-000000000005
+        - consumedCapacity:
+            size: 396276768Ki
+          device: memory-4qhskf
+          driver: dra.memory
+          pool: node-a.example.com
+          request: n2-dra-memory
+          shareID: 00000000-0000-4000-8000-000000000006
+      nodeSelector:
+        nodeSelectorTerms:
+        - matchFields:
+          - key: metadata.name
+            operator: In
+            values:
+            - node-a.example.com
+    devices:
+    - conditions: null
+      data:
+        apiVersion: sriovnetwork.k8snetworkplumbingwg.io/v1alpha1
+        driver: vfio-pci
+        kind: VfConfig
+      device: 0001-07-00-3
+      driver: sriovnetwork.k8snetworkplumbingwg.io
+      pool: node-a.example.com
+    - conditions: null
+      data:
+        apiVersion: sriovnetwork.k8snetworkplumbingwg.io/v1alpha1
+        driver: vfio-pci
+        kind: VfConfig
+      device: 0001-07-00-4
+      driver: sriovnetwork.k8snetworkplumbingwg.io
+      pool: node-a.example.com
+    - conditions: null
+      data:
+        apiVersion: sriovnetwork.k8snetworkplumbingwg.io/v1alpha1
+        driver: vfio-pci
+        kind: VfConfig
+      device: 0001-07-00-5
+      driver: sriovnetwork.k8snetworkplumbingwg.io
+      pool: node-a.example.com
+    reservedFor:
+    - name: pod-1
+      resource: pods
+      uid: 00000000-0000-4000-8000-000000000007
+kind: List

@@ -1,0 +1,5 @@
+CLAIM                 ALLOCATED  DEVICES  NODE                USED BY
+demo/broken           yes        1        -                   -
+demo/pending          no         0        -                   -
+demo/shared-gpu       yes        1        node-a.example.com  virt-launcher-vm1-abcde [vmi vm1]
+demo/web-0-gpu-xyz12  yes        1        node-a.example.com  web-0

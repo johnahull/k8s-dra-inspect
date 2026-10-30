@@ -1,0 +1,70 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "fail",
+      "subject": "demo/aligned-nics",
+      "details": {
+        "constraints": [
+          {
+            "attribute": "resource.kubernetes.io/pcieRoot",
+            "intersection": [],
+            "requests": [
+              "nic"
+            ],
+            "status": "fail",
+            "valuesByDevice": {
+              "nic.example.com/node-a.example.com/nic-0": [
+                "pci0000:00"
+              ],
+              "nic.example.com/node-a.example.com/nic-1": [
+                "pci0000:80"
+              ]
+            }
+          }
+        ],
+        "devices": [
+          "nic.example.com/node-a.example.com/nic-0",
+          "nic.example.com/node-a.example.com/nic-1"
+        ],
+        "numa": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [
+            "0"
+          ],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "nic.example.com/node-a.example.com/nic-0": [
+              "0"
+            ],
+            "nic.example.com/node-a.example.com/nic-1": [
+              "0"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": false,
+          "constrained": true,
+          "intersection": [],
+          "key": "resource.kubernetes.io/pcieRoot",
+          "missing": [],
+          "valuesByDevice": {
+            "nic.example.com/node-a.example.com/nic-0": [
+              "pci0000:00"
+            ],
+            "nic.example.com/node-a.example.com/nic-1": [
+              "pci0000:80"
+            ]
+          }
+        },
+        "reason": "matchAttribute resource.kubernetes.io/pcieRoot violated: no value common to all devices in scope",
+        "summary": "2 devices, 1 constraints"
+      }
+    }
+  ]
+}

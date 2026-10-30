@@ -1,0 +1,53 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=0/pcieRoot=pci0000:00",
+      "details": {
+        "deviceCount": 1,
+        "devices": [
+          "gpu-0"
+        ],
+        "drivers": {
+          "gpu.example.com": 1
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:00"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:80",
+      "details": {
+        "deviceCount": 1,
+        "devices": [
+          "gpu-1"
+        ],
+        "drivers": {
+          "gpu.example.com": 1
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "resource.kubernetes.io/numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:80"
+        ]
+      }
+    }
+  ]
+}

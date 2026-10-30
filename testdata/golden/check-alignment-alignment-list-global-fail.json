@@ -1,0 +1,78 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "fail",
+      "subject": "demo/three-gpus",
+      "details": {
+        "constraints": [
+          {
+            "attribute": "resource.kubernetes.io/numaNode",
+            "intersection": [],
+            "requests": [
+              "gpu"
+            ],
+            "status": "fail",
+            "valuesByDevice": {
+              "gpu.example.com/node-a.example.com/gpu-0": [
+                "0",
+                "1"
+              ],
+              "gpu.example.com/node-a.example.com/gpu-1": [
+                "1",
+                "2"
+              ],
+              "gpu.example.com/node-a.example.com/gpu-2": [
+                "0",
+                "2"
+              ]
+            }
+          }
+        ],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/gpu-1",
+          "gpu.example.com/node-a.example.com/gpu-2"
+        ],
+        "numa": {
+          "aligned": false,
+          "constrained": true,
+          "intersection": [],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0",
+              "1"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-1": [
+              "1",
+              "2"
+            ],
+            "gpu.example.com/node-a.example.com/gpu-2": [
+              "0",
+              "2"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [],
+          "key": "",
+          "missing": [
+            "gpu.example.com/node-a.example.com/gpu-0",
+            "gpu.example.com/node-a.example.com/gpu-1",
+            "gpu.example.com/node-a.example.com/gpu-2"
+          ],
+          "valuesByDevice": {}
+        },
+        "reason": "matchAttribute resource.kubernetes.io/numaNode violated: no value common to all devices in scope",
+        "summary": "3 devices, 1 constraints"
+      }
+    }
+  ]
+}

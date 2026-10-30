@@ -1,0 +1,2 @@
+SUBJECT          STATUS  DETAIL
+demo/three-gpus  pass    3 devices, 1 constraints

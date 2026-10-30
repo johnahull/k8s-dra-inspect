@@ -1,0 +1,5 @@
+DRIVER                                POOLS  NODES  DEVICES
+dra.cpu                               1      1      4
+dra.memory                            1      1      8
+gpu.amd.com                           1      1      16
+sriovnetwork.k8snetworkplumbingwg.io  1      1      32

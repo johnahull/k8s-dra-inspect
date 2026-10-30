@@ -1,0 +1,2 @@
+SUBJECT                                  STATUS  DETAIL
+gpu.example.com/node-a.example.com/pf-0  pass    vf-slots 2/2

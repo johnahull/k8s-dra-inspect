@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.cpu",
+      "details": {
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "dra.memory",
+      "details": {
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "gpu.amd.com",
+      "details": {
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    },
+    {
+      "check": "inspect.drivers",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io",
+      "details": {
+        "devices": 8,
+        "nodes": 1,
+        "pools": 1
+      }
+    }
+  ]
+}

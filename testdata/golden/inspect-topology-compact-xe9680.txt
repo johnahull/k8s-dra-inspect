@@ -1,0 +1,13 @@
+NODE                NUMA  PCIE ROOT   DRIVERS                            NOTE
+node-a.example.com  0     -           dra.cpu=1,dra.memory=2             missing attribute: pcieRoot
+node-a.example.com  0     pci0000:15  gpu.amd.com=2,sriovnetwork.k8sne…  -
+node-a.example.com  0     pci0000:59  gpu.amd.com=2                      -
+node-a.example.com  1     -           dra.cpu=1,dra.memory=2             missing attribute: pcieRoot
+node-a.example.com  1     pci0000:37  gpu.amd.com=2                      -
+node-a.example.com  1     pci0000:48  gpu.amd.com=2                      -
+node-a.example.com  2     -           dra.cpu=1,dra.memory=2             missing attribute: pcieRoot
+node-a.example.com  2     pci0000:97  gpu.amd.com=2,sriovnetwork.k8sne…  -
+node-a.example.com  2     pci0000:d7  gpu.amd.com=2                      -
+node-a.example.com  3     -           dra.cpu=1,dra.memory=2             missing attribute: pcieRoot
+node-a.example.com  3     pci0000:b7  gpu.amd.com=2                      -
+node-a.example.com  3     pci0000:c7  gpu.amd.com=2                      -

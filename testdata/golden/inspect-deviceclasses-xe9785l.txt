@@ -1,0 +1,32 @@
+NAME                                     LABELS                                   SELECTORS  CONFIG
+dra-cpu-dra-memory-…a0-pci0000-d0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a1-pci0000-00-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a2-pci0000-32-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a3-pci0000-a0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a4-pci0001-d0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a5-pci0001-00-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a6-pci0001-32-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…a7-pci0001-a0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa1-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa2-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa3-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa4-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa5-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa6-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-dra-memory-…c4-numa-numa7-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra.cpu                                                                           1          -
+dra.hugepages-1g                         app.kubernetes.io/managed-by=Helm,app.…  1          -
+dra.hugepages-2m                         app.kubernetes.io/managed-by=Helm,app.…  1          -
+dra.memory                               app.kubernetes.io/managed-by=Helm,app.…  1          -
+dra.net                                                                           1          -
+dra.nvme                                                                          1          -
+eighth                                   nodepartition.dra.k8s.io/count=8,nodep…  1          present
+full                                     nodepartition.dra.k8s.io/coupling=loos…  1          present
+gpu-nic-pair                             nodepartition.dra.k8s.io/alignment=pci…  1          present
+gpu-nic-pair-pcieroot-numa0              nodepartition.dra.k8s.io/alignment=pci…  1          present
+gpu-nic-pair-pcieroot-numa5              nodepartition.dra.k8s.io/alignment=pci…  1          present
+gpu.amd.com                                                                       1          -
+numa                                     nodepartition.dra.k8s.io/count=8,nodep…  1          present
+pcieroot                                 nodepartition.dra.k8s.io/count=8,nodep…  1          present
+sriovnetwork.k8snetworkplumbingwg.io     app.kubernetes.io/managed-by=Helm        1          -

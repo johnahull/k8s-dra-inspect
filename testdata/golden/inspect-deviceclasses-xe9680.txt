@@ -1,0 +1,16 @@
+NAME                                     LABELS                                   SELECTORS  CONFIG
+dra-cpu-4-dra-memor…quarter-numa0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-4-dra-memor…quarter-numa1-loose  nodepartition.dra.k8s.io/coupling=loos…  1          present
+dra-cpu-4-dra-memor…quarter-numa2-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-4-dra-memor…quarter-numa3-loose  nodepartition.dra.k8s.io/coupling=loos…  1          present
+dra-cpu-4-dra-memor…-eighth-numa0-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-4-dra-memor…-eighth-numa1-loose  nodepartition.dra.k8s.io/coupling=loos…  1          present
+dra-cpu-4-dra-memor…-eighth-numa2-tight  nodepartition.dra.k8s.io/coupling=tigh…  1          present
+dra-cpu-4-dra-memor…-eighth-numa3-loose  nodepartition.dra.k8s.io/coupling=loos…  1          present
+dra-cpu-4-dra-memor…da12deaf-full-loose  nodepartition.dra.k8s.io/coupling=loos…  1          present
+dra.cpu                                                                           1          -
+dra.hugepages-2m                                                                  1          -
+dra.memory                                                                        1          -
+gpu.amd.com                                                                       1          -
+gpu.amd.com-vfio                                                                  1          present
+sriovnetwork.k8snetworkplumbingwg.io     app.kubernetes.io/managed-by=Helm        1          present

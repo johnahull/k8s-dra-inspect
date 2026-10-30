@@ -1,0 +1,3 @@
+DRIVER                                                                         POOLS  NODES  DEVICES
+gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.exampl…  1      1      2
+other.example.com                                                              1      1      1

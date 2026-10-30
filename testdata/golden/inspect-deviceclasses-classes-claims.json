@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "gpu.example.com",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "tier": "gold",
+          "vendor": "example"
+        },
+        "selectorCount": 2
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "nic.example.com",
+      "details": {
+        "configPresent": true,
+        "labels": {
+          "tier": "silver",
+          "vendor": "example"
+        },
+        "selectorCount": 0
+      }
+    },
+    {
+      "check": "inspect.deviceclasses",
+      "status": "pass",
+      "subject": "plain.example.com",
+      "details": {
+        "configPresent": false,
+        "labels": {},
+        "selectorCount": 1
+      }
+    }
+  ]
+}

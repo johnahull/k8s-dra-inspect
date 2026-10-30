@@ -1,0 +1,391 @@
+{
+  "alignment": {},
+  "claims": {},
+  "deviceclassesQueried": [
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa0-tight",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa1-loose",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa2-tight",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa3-loose",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa0-tight",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa1-loose",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa2-tight",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa3-loose",
+    "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetwor-da12deaf-full-loose"
+  ],
+  "drivers": {
+    "dra.cpu": {
+      "devices": 4,
+      "nodes": [
+        "node-a.example.com"
+      ]
+    },
+    "dra.memory": {
+      "devices": 8,
+      "nodes": [
+        "node-a.example.com"
+      ]
+    },
+    "gpu.amd.com": {
+      "devices": 16,
+      "nodes": [
+        "node-a.example.com"
+      ]
+    },
+    "sriovnetwork.k8snetworkplumbingwg.io": {
+      "devices": 32,
+      "nodes": [
+        "node-a.example.com"
+      ]
+    }
+  },
+  "fixture": "xe9680",
+  "legacyExit": {
+    "alignment": 0,
+    "claims": 0,
+    "deviceclasses": 1,
+    "drivers": 0,
+    "topology": 0
+  },
+  "legacySha256": {
+    "dra-counters.py": "baa3f764692f992287c35e03d2655c3749871fd737dc93ad20f83f691228155a",
+    "dra-verify.sh": "30843a2cd2dcc23ec61fdcb652e795d371844b10c0bab246eff918afec00047e"
+  },
+  "topology": {
+    "0000-1d-00-2": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-00-3": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-00-4": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-00-5": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-00-6": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-00-7": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-0": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-1": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-2": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-3": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-4": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-5": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-6": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-01-7": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-02-0": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-1d-02-1": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "0000-9f-00-2": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-00-3": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-00-4": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-00-5": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-00-6": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-00-7": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-0": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-1": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-2": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-3": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-4": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-5": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-6": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-01-7": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-02-0": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "0000-9f-02-1": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "cpudevnuma000": {
+      "pcieRoots": [],
+      "primaryNuma": "0"
+    },
+    "cpudevnuma001": {
+      "pcieRoots": [],
+      "primaryNuma": "1"
+    },
+    "cpudevnuma002": {
+      "pcieRoots": [],
+      "primaryNuma": "2"
+    },
+    "cpudevnuma003": {
+      "pcieRoots": [],
+      "primaryNuma": "3"
+    },
+    "gpu-1-128": {
+      "pcieRoots": [
+        "pci0000:c7"
+      ],
+      "primaryNuma": "3"
+    },
+    "gpu-17-144": {
+      "pcieRoots": [
+        "pci0000:48"
+      ],
+      "primaryNuma": "1"
+    },
+    "gpu-25-152": {
+      "pcieRoots": [
+        "pci0000:d7"
+      ],
+      "primaryNuma": "2"
+    },
+    "gpu-33-160": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "gpu-41-168": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "gpu-49-176": {
+      "pcieRoots": [
+        "pci0000:59"
+      ],
+      "primaryNuma": "0"
+    },
+    "gpu-57-184": {
+      "pcieRoots": [
+        "pci0000:b7"
+      ],
+      "primaryNuma": "3"
+    },
+    "gpu-9-136": {
+      "pcieRoots": [
+        "pci0000:37"
+      ],
+      "primaryNuma": "1"
+    },
+    "gpu-vfio-0": {
+      "pcieRoots": [
+        "pci0000:d7"
+      ],
+      "primaryNuma": "2"
+    },
+    "gpu-vfio-1": {
+      "pcieRoots": [
+        "pci0000:15"
+      ],
+      "primaryNuma": "0"
+    },
+    "gpu-vfio-2": {
+      "pcieRoots": [
+        "pci0000:37"
+      ],
+      "primaryNuma": "1"
+    },
+    "gpu-vfio-3": {
+      "pcieRoots": [
+        "pci0000:48"
+      ],
+      "primaryNuma": "1"
+    },
+    "gpu-vfio-4": {
+      "pcieRoots": [
+        "pci0000:59"
+      ],
+      "primaryNuma": "0"
+    },
+    "gpu-vfio-5": {
+      "pcieRoots": [
+        "pci0000:97"
+      ],
+      "primaryNuma": "2"
+    },
+    "gpu-vfio-6": {
+      "pcieRoots": [
+        "pci0000:b7"
+      ],
+      "primaryNuma": "3"
+    },
+    "gpu-vfio-7": {
+      "pcieRoots": [
+        "pci0000:c7"
+      ],
+      "primaryNuma": "3"
+    },
+    "hugepages-2mi-5s57zr": {
+      "pcieRoots": [],
+      "primaryNuma": "2"
+    },
+    "hugepages-2mi-bmgj2r": {
+      "pcieRoots": [],
+      "primaryNuma": "3"
+    },
+    "hugepages-2mi-vgzdk8": {
+      "pcieRoots": [],
+      "primaryNuma": "0"
+    },
+    "hugepages-2mi-wzkcsz": {
+      "pcieRoots": [],
+      "primaryNuma": "1"
+    },
+    "memory-56xhnf": {
+      "pcieRoots": [],
+      "primaryNuma": "1"
+    },
+    "memory-ddztgx": {
+      "pcieRoots": [],
+      "primaryNuma": "2"
+    },
+    "memory-nfqcrb": {
+      "pcieRoots": [],
+      "primaryNuma": "3"
+    },
+    "memory-xnxmvm": {
+      "pcieRoots": [],
+      "primaryNuma": "0"
+    }
+  }
+}

@@ -1,0 +1,36 @@
+# Synthetic: two GPUs on NUMA node 0 satisfy a numaNode matchAttribute.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: gpu-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+    - name: gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: aligned-gpus, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 2}
+      constraints:
+      - requests: [gpu]
+        matchAttribute: resource.kubernetes.io/numaNode
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-1}

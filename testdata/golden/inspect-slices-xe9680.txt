@@ -1,0 +1,6 @@
+NODE               DRIVER              POOL                SLICE               GEN  DEVICES  STATE
+node-a.example.c…  dra.cpu             node-a.example.com  node-a.ex…pu-mzcdv  1    4        current
+node-a.example.c…  dra.memory          node-a.example.com  00000-dra…com5lp9m  1    4        current
+node-a.example.c…  dra.memory          node-a.example.com  00001-dra…comf5cvv  1    4        current
+node-a.example.c…  gpu.amd.com         node-a.example.com  00000-gpu…com9qqwt  1    16       current
+node-a.example.c…  sriovnetwork.k8sn…  node-a.example.com  00000-sri…comfbbkd  1    32       current

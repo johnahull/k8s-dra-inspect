@@ -1,0 +1,54 @@
+# Synthetic: a pcieRoot constraint scoped to the gpu request holds while the nic sits on another PCIe root.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: gpu-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:00"}
+    - name: gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:00"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: nic-slice
+  spec:
+    driver: nic.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: nic-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:80"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: gpus-and-nic, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 2}
+      - name: nic
+        exactly: {deviceClassName: nic.example.com, allocationMode: ExactCount, count: 1}
+      constraints:
+      - requests: [gpu]
+        matchAttribute: resource.kubernetes.io/pcieRoot
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-1}
+        - {request: nic, driver: nic.example.com, pool: node-a.example.com, device: nic-0}

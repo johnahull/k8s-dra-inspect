@@ -1,0 +1,3 @@
+NODE                NUMA  PCIE ROOT   DRIVERS            DEVICES     NOTE
+node-a.example.com  0     pci0000:00  nic.example.com=1  nic-0       -
+node-a.example.com  0     pci0000:80  nic.example.com=1  nic-1       -

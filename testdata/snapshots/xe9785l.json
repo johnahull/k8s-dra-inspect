@@ -1,0 +1,2979 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-01-01T00:00:00Z",
+  "source": "snapshot",
+  "redacted": true,
+  "collection": {
+    "deviceclasses": {
+      "state": "ok"
+    },
+    "nodes": {
+      "state": "ok"
+    },
+    "pods": {
+      "state": "ok"
+    },
+    "resourceclaims": {
+      "state": "ok"
+    },
+    "resourceslices": {
+      "state": "ok"
+    },
+    "virtualmachineinstances": {
+      "state": "ok"
+    }
+  },
+  "resourceSlices": [
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "00000-dra.cpu-node-a.example.com-7cq7g",
+        "generateName": "00000-dra.cpu-node-a.example.com-",
+        "generation": 1
+      },
+      "spec": {
+        "driver": "dra.cpu",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 1
+        },
+        "nodeName": "node-a.example.com",
+        "devices": [
+          {
+            "name": "cpudevnuma000",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 0
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 0
+              },
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0000:98",
+                  "pci0000:d0"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma001",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 1
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 0
+              },
+              "dra.net/numaNode": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  1,
+                  0,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0000:00",
+                  "pci0000:64"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma002",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 2
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 0
+              },
+              "dra.net/numaNode": {
+                "int": 2
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  2,
+                  0,
+                  1,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0000:32",
+                  "pci0000:66"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma003",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 3
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 0
+              },
+              "dra.net/numaNode": {
+                "int": 3
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  3,
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0000:96",
+                  "pci0000:a0"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma004",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 4
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 1
+              },
+              "dra.net/numaNode": {
+                "int": 4
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0001:98",
+                  "pci0001:d0"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma005",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 5
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 1
+              },
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0001:00",
+                  "pci0001:64"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma006",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 6
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 1
+              },
+              "dra.net/numaNode": {
+                "int": 6
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  6,
+                  4,
+                  5,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0001:32",
+                  "pci0001:66"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "cpudevnuma007",
+            "attributes": {
+              "dra.cpu/numCPUs": {
+                "int": 32
+              },
+              "dra.cpu/numaNodeID": {
+                "int": 7
+              },
+              "dra.cpu/smtEnabled": {
+                "bool": true
+              },
+              "dra.cpu/socketID": {
+                "int": 1
+              },
+              "dra.net/numaNode": {
+                "int": 7
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  7,
+                  4,
+                  5,
+                  6
+                ]
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "strings": [
+                  "pci0001:68",
+                  "pci0001:a0"
+                ]
+              }
+            },
+            "capacity": {
+              "dra.cpu/cpu": {
+                "value": "32"
+              }
+            },
+            "allowMultipleAllocations": true
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "00000-dra.memory-node-a.example.com-pzkcs",
+        "generateName": "00000-dra.memory-node-a.example.com-",
+        "generation": 1
+      },
+      "spec": {
+        "driver": "dra.memory",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 1
+        },
+        "nodeName": "node-a.example.com",
+        "devices": [
+          {
+            "name": "memory-rddth4",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 0
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 0
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "395620752Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "395620752Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-fk8nlr",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 1
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 1
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 1
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  1,
+                  0,
+                  2,
+                  3
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396348372Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396348372Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-bjd9hw",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 2
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 2
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 2
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  2,
+                  0,
+                  1,
+                  3
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396348372Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396348372Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-t5wtkl",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 3
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 3
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 3
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  3,
+                  0,
+                  1,
+                  2
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396276768Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396276768Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-4qhskf",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 4
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 4
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 4
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396348372Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396348372Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-s9zcsf",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 5
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 5
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396348372Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396348372Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-2v88wt",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 6
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 6
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 6
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  6,
+                  4,
+                  5,
+                  7
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396348372Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396348372Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          },
+          {
+            "name": "memory-559qbb",
+            "attributes": {
+              "dra.cpu/numaNodeID": {
+                "int": 7
+              },
+              "dra.memory/hugeTLB": {
+                "bool": false
+              },
+              "dra.memory/numaNode": {
+                "int": 7
+              },
+              "dra.memory/pageSize": {
+                "string": "4Ki"
+              },
+              "dra.net/numaNode": {
+                "int": 7
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  7,
+                  4,
+                  5,
+                  6
+                ]
+              }
+            },
+            "capacity": {
+              "size": {
+                "value": "396302588Ki",
+                "requestPolicy": {
+                  "default": "1Mi",
+                  "validRange": {
+                    "min": "4Ki",
+                    "max": "396302588Ki",
+                    "step": "4Ki"
+                  }
+                }
+              }
+            },
+            "allowMultipleAllocations": true
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "00000-gpu.amd.com-node-a.example.com-jkb6v",
+        "generateName": "00000-gpu.amd.com-node-a.example.com-",
+        "generation": 1
+      },
+      "spec": {
+        "driver": "gpu.amd.com",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 2
+        },
+        "nodeName": "node-a.example.com",
+        "sharedCounters": [
+          {
+            "name": "pf-0000-0c-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0000-3d-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0000-a8-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0000-dc-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0001-0d-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0001-3d-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0001-a5-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          },
+          {
+            "name": "pf-0001-dc-00-0-counter-set",
+            "counters": {
+              "vf-slots": {
+                "value": "1"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "00000-sriovnetwork.k8snetworkplumbingwg.io-node-a.example.comwzhm4",
+        "generateName": "00000-sriovnetwork.k8snetworkplumbingwg.io-node-a.example.com-",
+        "generation": 2
+      },
+      "spec": {
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 1
+        },
+        "nodeName": "node-a.example.com",
+        "devices": [
+          {
+            "name": "0001-07-00-3",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0001:07:00.3"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:07:00.3"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:00"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno16595np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0001:07:00.3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0001:07:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 1
+              }
+            }
+          },
+          {
+            "name": "0001-07-00-4",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0001:07:00.4"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:07:00.4"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:00"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno16595np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0001:07:00.4"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0001:07:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 2
+              }
+            }
+          },
+          {
+            "name": "0001-07-00-5",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0001:07:00.5"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:07:00.5"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:00"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno16595np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0001:07:00.5"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0001:07:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 3
+              }
+            }
+          },
+          {
+            "name": "0000-d5-00-2",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0000:d5:00.2"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:d5:00.2"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:d0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno17495np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0000:d5:00.2"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0000:d5:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 0
+              }
+            }
+          },
+          {
+            "name": "0000-d5-00-3",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0000:d5:00.3"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:d5:00.3"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:d0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno17495np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0000:d5:00.3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0000:d5:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 1
+              }
+            }
+          },
+          {
+            "name": "0000-d5-00-4",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0000:d5:00.4"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:d5:00.4"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:d0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno17495np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0000:d5:00.4"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0000:d5:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 2
+              }
+            }
+          },
+          {
+            "name": "0000-d5-00-5",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0000:d5:00.5"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 0
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:d5:00.5"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:d0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno17495np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0000:d5:00.5"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0000:d5:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 3
+              }
+            }
+          },
+          {
+            "name": "0001-07-00-2",
+            "attributes": {
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "k8s.cni.cncf.io/deviceID": {
+                "string": "0001:07:00.2"
+              },
+              "resource.kubernetes.io/cpuSocketID": {
+                "int": 1
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:07:00.2"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:00"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": {
+                "string": "legacy"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/PFName": {
+                "string": "eno16595np0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/deviceID": {
+                "string": "101e"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/linkType": {
+                "string": "ethernet"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": {
+                "string": "0001:07:00.2"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": {
+                "string": "101d"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": {
+                "string": "0001:07:00.0"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": {
+                "bool": false
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vendor": {
+                "string": "15b3"
+              },
+              "sriovnetwork.k8snetworkplumbingwg.io/vfID": {
+                "int": 0
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "00001-gpu.amd.com-node-a.example.com-ml5q5",
+        "generateName": "00001-gpu.amd.com-node-a.example.com-",
+        "generation": 256
+      },
+      "spec": {
+        "driver": "gpu.amd.com",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 2
+        },
+        "nodeName": "node-a.example.com",
+        "devices": [
+          {
+            "name": "gpu-vfio-6",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 3
+              },
+              "iommuGroup": {
+                "string": "253"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 3
+              },
+              "pciAddr": {
+                "string": "0000:a8:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  3,
+                  0,
+                  1,
+                  2
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:a8:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:a0"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0000-a8-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-7",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 0
+              },
+              "iommuGroup": {
+                "string": "254"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 0
+              },
+              "pciAddr": {
+                "string": "0000:dc:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  0,
+                  1,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:dc:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:d0"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0000-dc-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-0",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 4
+              },
+              "iommuGroup": {
+                "string": "247"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 4
+              },
+              "pciAddr": {
+                "string": "0001:dc:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  4,
+                  5,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:dc:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:d0"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0001-dc-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-1",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 7
+              },
+              "iommuGroup": {
+                "string": "248"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 7
+              },
+              "pciAddr": {
+                "string": "0001:a5:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  7,
+                  4,
+                  5,
+                  6
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:a5:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:a0"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0001-a5-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-2",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 5
+              },
+              "iommuGroup": {
+                "string": "249"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 5
+              },
+              "pciAddr": {
+                "string": "0001:0d:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  5,
+                  4,
+                  6,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:0d:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:00"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0001-0d-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-3",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 6
+              },
+              "iommuGroup": {
+                "string": "250"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 6
+              },
+              "pciAddr": {
+                "string": "0001:3d:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  6,
+                  4,
+                  5,
+                  7
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0001:3d:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0001:32"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0001-3d-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-4",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 2
+              },
+              "iommuGroup": {
+                "string": "251"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 2
+              },
+              "pciAddr": {
+                "string": "0000:3d:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  2,
+                  0,
+                  1,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:3d:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:32"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0000-3d-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          },
+          {
+            "name": "gpu-vfio-5",
+            "attributes": {
+              "deviceID": {
+                "string": "0x75b3"
+              },
+              "dra.net/numaNode": {
+                "int": 1
+              },
+              "iommuGroup": {
+                "string": "252"
+              },
+              "isVF": {
+                "bool": true
+              },
+              "numaNode": {
+                "int": 1
+              },
+              "pciAddr": {
+                "string": "0000:0c:02.0"
+              },
+              "resource.kubernetes.io/numaNode": {
+                "ints": [
+                  1,
+                  0,
+                  2,
+                  3
+                ]
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:0c:02.0"
+              },
+              "resource.kubernetes.io/pcieRoot": {
+                "string": "pci0000:00"
+              },
+              "type": {
+                "string": "vfio"
+              },
+              "vendorID": {
+                "string": "0x1002"
+              }
+            },
+            "consumesCounters": [
+              {
+                "counterSet": "pf-0000-0c-00-0-counter-set",
+                "counters": {
+                  "vf-slots": {
+                    "value": "1"
+                  }
+                }
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "deviceClasses": [
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa0-pci0000-d0-tight",
+        "generation": 46,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa0-pci0000-d0",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa1-pci0000-00-tight",
+        "generation": 38,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa1-pci0000-00",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa2-pci0000-32-tight",
+        "generation": 40,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa2-pci0000-32",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa3-pci0000-a0-tight",
+        "generation": 37,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa3-pci0000-a0",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa4-pci0001-d0-tight",
+        "generation": 40,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa4-pci0001-d0",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa5-pci0001-00-tight",
+        "generation": 46,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa5-pci0001-00",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa6-pci0001-32-tight",
+        "generation": 42,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa6-pci0001-32",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa7-pci0001-a0-tight",
+        "generation": 37,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa7-pci0001-a0",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa0-tight",
+        "generation": 48,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa0",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa1-tight",
+        "generation": 41,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa1",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa2-tight",
+        "generation": 40,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa2",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa3-tight",
+        "generation": 37,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa3",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa4-tight",
+        "generation": 39,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa4",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa5-tight",
+        "generation": 53,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa5",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa6-tight",
+        "generation": 41,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa6",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa7-tight",
+        "generation": 40,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "tight",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "numa7",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.cpu",
+        "generation": 2
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"dra.cpu\""
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.hugepages-1g",
+        "generation": 1,
+        "labels": {
+          "app.kubernetes.io/managed-by": "Helm",
+          "app.kubernetes.io/part-of": "dra-topology-drivers",
+          "helm.sh/chart": "dra-topology-drivers-0.1.0"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'dra.memory' \u0026\u0026 device.attributes['dra.memory'].hugeTLB == true \u0026\u0026 device.attributes['dra.memory'].pageSize == '1Gi'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.hugepages-2m",
+        "generation": 1,
+        "labels": {
+          "app.kubernetes.io/managed-by": "Helm",
+          "app.kubernetes.io/part-of": "dra-topology-drivers",
+          "helm.sh/chart": "dra-topology-drivers-0.1.0"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'dra.memory' \u0026\u0026 device.attributes['dra.memory'].hugeTLB == true \u0026\u0026 device.attributes['dra.memory'].pageSize == '2Mi'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.memory",
+        "generation": 1,
+        "labels": {
+          "app.kubernetes.io/managed-by": "Helm",
+          "app.kubernetes.io/part-of": "dra-topology-drivers",
+          "helm.sh/chart": "dra-topology-drivers-0.1.0"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'dra.memory'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.net",
+        "generation": 1
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'dra.net'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "dra.nvme",
+        "generation": 1
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'dra.nvme'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "eighth",
+        "generation": 248,
+        "labels": {
+          "nodepartition.dra.k8s.io/count": "8",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3",
+          "nodepartition.dra.k8s.io/tierName": "eighth"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "full",
+        "generation": 219,
+        "labels": {
+          "nodepartition.dra.k8s.io/coupling": "loose",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/partitionType": "full",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"full\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "gpu-nic-pair",
+        "generation": 25,
+        "labels": {
+          "nodepartition.dra.k8s.io/alignment": "pcieRoot",
+          "nodepartition.dra.k8s.io/count": "2",
+          "nodepartition.dra.k8s.io/grouping": "gpu-nic-pair",
+          "nodepartition.dra.k8s.io/managed": "true"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].grouping == \"gpu-nic-pair\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "gpu-nic-pair-pcieroot-numa0",
+        "generation": 22,
+        "labels": {
+          "nodepartition.dra.k8s.io/alignment": "pcieRoot",
+          "nodepartition.dra.k8s.io/grouping": "gpu-nic-pair",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "0"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].grouping == \"gpu-nic-pair\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "gpu-nic-pair-pcieroot-numa5",
+        "generation": 25,
+        "labels": {
+          "nodepartition.dra.k8s.io/alignment": "pcieRoot",
+          "nodepartition.dra.k8s.io/grouping": "gpu-nic-pair",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/numa": "5"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].grouping == \"gpu-nic-pair\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "gpu.amd.com",
+        "generation": 6
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'gpu.amd.com'"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "numa",
+        "generation": 264,
+        "labels": {
+          "nodepartition.dra.k8s.io/count": "8",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/partitionType": "numa",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"numa\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "pcieroot",
+        "generation": 251,
+        "labels": {
+          "nodepartition.dra.k8s.io/count": "8",
+          "nodepartition.dra.k8s.io/managed": "true",
+          "nodepartition.dra.k8s.io/partitionType": "pcieroot",
+          "nodepartition.dra.k8s.io/profile": "dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == \"nodepartition.dra.k8s.io\" \u0026\u0026 device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"pcieroot\""
+            }
+          }
+        ],
+        "config": [
+          {
+            "opaque": {
+              "driver": "nodepartition.dra.k8s.io",
+              "parameters": null
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "DeviceClass",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "sriovnetwork.k8snetworkplumbingwg.io",
+        "generation": 3,
+        "labels": {
+          "app.kubernetes.io/managed-by": "Helm"
+        },
+        "annotations": {
+          "meta.helm.sh/release-name": "dra-driver-sriov",
+          "meta.helm.sh/release-namespace": "dra-driver-sriov"
+        }
+      },
+      "spec": {
+        "selectors": [
+          {
+            "cel": {
+              "expression": "device.driver == 'sriovnetwork.k8snetworkplumbingwg.io'"
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "resourceClaims": [
+    {
+      "kind": "ResourceClaim",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "vm-final-all",
+        "namespace": "default",
+        "annotations": {
+          "nodepartition.dra.k8s.io/expanded-requests": "{\"n0\":[\"n0-sriovnetwork-k8snetworkplumbingwg-io\",\"n0-gpu-amd-com\",\"n0-dra-cpu\",\"n0-dra-memory\"],\"n1\":[\"n1-sriovnetwork-k8snetworkplumbingwg-io\",\"n1-gpu-amd-com\",\"n1-dra-cpu\",\"n1-dra-memory\"],\"n2\":[\"n2-sriovnetwork-k8snetworkplumbingwg-io\",\"n2-gpu-amd-com\",\"n2-dra-cpu\",\"n2-dra-memory\"]}"
+        },
+        "finalizers": [
+          "resource.kubernetes.io/delete-protection"
+        ]
+      },
+      "spec": {
+        "devices": {
+          "requests": [
+            {
+              "name": "n0-sriovnetwork-k8snetworkplumbingwg-io",
+              "exactly": {
+                "deviceClassName": "sriovnetwork.k8snetworkplumbingwg.io",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n0-gpu-amd-com",
+              "exactly": {
+                "deviceClassName": "gpu.amd.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n0-dra-cpu",
+              "exactly": {
+                "deviceClassName": "dra.cpu",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "dra.cpu/cpu": "32"
+                  }
+                }
+              }
+            },
+            {
+              "name": "n0-dra-memory",
+              "exactly": {
+                "deviceClassName": "dra.memory",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "size": "396276768Ki"
+                  }
+                }
+              }
+            },
+            {
+              "name": "n1-sriovnetwork-k8snetworkplumbingwg-io",
+              "exactly": {
+                "deviceClassName": "sriovnetwork.k8snetworkplumbingwg.io",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n1-gpu-amd-com",
+              "exactly": {
+                "deviceClassName": "gpu.amd.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n1-dra-cpu",
+              "exactly": {
+                "deviceClassName": "dra.cpu",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "dra.cpu/cpu": "32"
+                  }
+                }
+              }
+            },
+            {
+              "name": "n1-dra-memory",
+              "exactly": {
+                "deviceClassName": "dra.memory",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "size": "396276768Ki"
+                  }
+                }
+              }
+            },
+            {
+              "name": "n2-sriovnetwork-k8snetworkplumbingwg-io",
+              "exactly": {
+                "deviceClassName": "sriovnetwork.k8snetworkplumbingwg.io",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n2-gpu-amd-com",
+              "exactly": {
+                "deviceClassName": "gpu.amd.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "n2-dra-cpu",
+              "exactly": {
+                "deviceClassName": "dra.cpu",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "dra.cpu/cpu": "32"
+                  }
+                }
+              }
+            },
+            {
+              "name": "n2-dra-memory",
+              "exactly": {
+                "deviceClassName": "dra.memory",
+                "allocationMode": "ExactCount",
+                "count": 1,
+                "capacity": {
+                  "requests": {
+                    "size": "396276768Ki"
+                  }
+                }
+              }
+            }
+          ],
+          "config": [
+            {
+              "opaque": {
+                "driver": "gpu.amd.com",
+                "parameters": null
+              }
+            },
+            {
+              "opaque": {
+                "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+                "parameters": null
+              }
+            }
+          ]
+        }
+      },
+      "status": {
+        "allocation": {
+          "devices": {
+            "results": [
+              {
+                "request": "n0-sriovnetwork-k8snetworkplumbingwg-io",
+                "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+                "pool": "node-a.example.com",
+                "device": "0001-07-00-3"
+              },
+              {
+                "request": "n0-gpu-amd-com",
+                "driver": "gpu.amd.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-vfio-7"
+              },
+              {
+                "request": "n0-dra-cpu",
+                "driver": "dra.cpu",
+                "pool": "node-a.example.com",
+                "device": "cpudevnuma001",
+                "shareID": "00000000-0000-4000-8000-000000000001",
+                "consumedCapacity": {
+                  "dra.cpu/cpu": "32"
+                }
+              },
+              {
+                "request": "n0-dra-memory",
+                "driver": "dra.memory",
+                "pool": "node-a.example.com",
+                "device": "memory-bjd9hw",
+                "shareID": "00000000-0000-4000-8000-000000000002",
+                "consumedCapacity": {
+                  "size": "396276768Ki"
+                }
+              },
+              {
+                "request": "n1-sriovnetwork-k8snetworkplumbingwg-io",
+                "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+                "pool": "node-a.example.com",
+                "device": "0001-07-00-4"
+              },
+              {
+                "request": "n1-gpu-amd-com",
+                "driver": "gpu.amd.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-vfio-0"
+              },
+              {
+                "request": "n1-dra-cpu",
+                "driver": "dra.cpu",
+                "pool": "node-a.example.com",
+                "device": "cpudevnuma002",
+                "shareID": "00000000-0000-4000-8000-000000000003",
+                "consumedCapacity": {
+                  "dra.cpu/cpu": "32"
+                }
+              },
+              {
+                "request": "n1-dra-memory",
+                "driver": "dra.memory",
+                "pool": "node-a.example.com",
+                "device": "memory-t5wtkl",
+                "shareID": "00000000-0000-4000-8000-000000000004",
+                "consumedCapacity": {
+                  "size": "396276768Ki"
+                }
+              },
+              {
+                "request": "n2-sriovnetwork-k8snetworkplumbingwg-io",
+                "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+                "pool": "node-a.example.com",
+                "device": "0001-07-00-5"
+              },
+              {
+                "request": "n2-gpu-amd-com",
+                "driver": "gpu.amd.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-vfio-1"
+              },
+              {
+                "request": "n2-dra-cpu",
+                "driver": "dra.cpu",
+                "pool": "node-a.example.com",
+                "device": "cpudevnuma003",
+                "shareID": "00000000-0000-4000-8000-000000000005",
+                "consumedCapacity": {
+                  "dra.cpu/cpu": "32"
+                }
+              },
+              {
+                "request": "n2-dra-memory",
+                "driver": "dra.memory",
+                "pool": "node-a.example.com",
+                "device": "memory-4qhskf",
+                "shareID": "00000000-0000-4000-8000-000000000006",
+                "consumedCapacity": {
+                  "size": "396276768Ki"
+                }
+              }
+            ],
+            "config": [
+              {
+                "source": "FromClaim",
+                "opaque": {
+                  "driver": "gpu.amd.com",
+                  "parameters": null
+                }
+              },
+              {
+                "source": "FromClaim",
+                "opaque": {
+                  "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+                  "parameters": null
+                }
+              }
+            ]
+          },
+          "nodeSelector": {
+            "nodeSelectorTerms": [
+              {
+                "matchFields": [
+                  {
+                    "key": "metadata.name",
+                    "operator": "In",
+                    "values": [
+                      "node-a.example.com"
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "allocationTimestamp": "2026-07-02T15:31:27Z"
+        },
+        "reservedFor": [
+          {
+            "resource": "pods",
+            "name": "pod-1",
+            "uid": "00000000-0000-4000-8000-000000000007"
+          }
+        ],
+        "devices": [
+          {
+            "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+            "pool": "node-a.example.com",
+            "device": "0001-07-00-3",
+            "conditions": null
+          },
+          {
+            "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+            "pool": "node-a.example.com",
+            "device": "0001-07-00-4",
+            "conditions": null
+          },
+          {
+            "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+            "pool": "node-a.example.com",
+            "device": "0001-07-00-5",
+            "conditions": null
+          }
+        ]
+      }
+    }
+  ],
+  "pods": null,
+  "nodes": null,
+  "virtualMachineInstances": null,
+  "evidence": null
+}

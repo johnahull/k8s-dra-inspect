@@ -1,0 +1,2 @@
+SUBJECT       STATUS  DETAIL
+demo/app      pass    CPUs 2-5 on NUMA node(s) 0 match the devices

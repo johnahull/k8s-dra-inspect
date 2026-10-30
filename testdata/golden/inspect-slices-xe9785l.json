@@ -1,0 +1,82 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-dra.cpu-node-a.example.com-7cq7g",
+      "details": {
+        "deviceCount": 8,
+        "driver": "dra.cpu",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-dra.memory-node-a.example.com-pzkcs",
+      "details": {
+        "deviceCount": 8,
+        "driver": "dra.memory",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-gpu.amd.com-node-a.example.com-jkb6v",
+      "details": {
+        "deviceCount": 0,
+        "driver": "gpu.amd.com",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 8,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00001-gpu.amd.com-node-a.example.com-ml5q5",
+      "details": {
+        "deviceCount": 8,
+        "driver": "gpu.amd.com",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    },
+    {
+      "check": "inspect.slices",
+      "status": "pass",
+      "subject": "00000-sriovnetwork.k8snetworkplumbingwg.io-node-a.example.comwzhm4",
+      "details": {
+        "deviceCount": 8,
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "generation": 1,
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "sharedCounterSets": 0,
+        "stale": false,
+        "state": "current"
+      }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+apiVersion: kubevirt.io/v1
+kind: VirtualMachineInstance
+metadata: {name: vm1, namespace: demo}

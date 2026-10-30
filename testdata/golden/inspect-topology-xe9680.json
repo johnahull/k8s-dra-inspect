@@ -1,0 +1,333 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=0/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "devices": [
+          "cpudevnuma000",
+          "hugepages-2mi-vgzdk8",
+          "memory-xnxmvm"
+        ],
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=0/pcieRoot=pci0000:15",
+      "details": {
+        "deviceCount": 18,
+        "devices": [
+          "0000-1d-00-2",
+          "0000-1d-00-3",
+          "0000-1d-00-4",
+          "0000-1d-00-5",
+          "0000-1d-00-6",
+          "0000-1d-00-7",
+          "0000-1d-01-0",
+          "0000-1d-01-1",
+          "0000-1d-01-2",
+          "0000-1d-01-3",
+          "0000-1d-01-4",
+          "0000-1d-01-5",
+          "0000-1d-01-6",
+          "0000-1d-01-7",
+          "0000-1d-02-0",
+          "0000-1d-02-1",
+          "gpu-33-160",
+          "gpu-vfio-1"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2,
+          "sriovnetwork.k8snetworkplumbingwg.io": 16
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "dra.net/numaNode,numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:15"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=0/pcieRoot=pci0000:59",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-49-176",
+          "gpu-vfio-4"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "0"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:59"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=1/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "devices": [
+          "cpudevnuma001",
+          "hugepages-2mi-wzkcsz",
+          "memory-56xhnf"
+        ],
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:37",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-9-136",
+          "gpu-vfio-2"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:37"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=1/pcieRoot=pci0000:48",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-17-144",
+          "gpu-vfio-3"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "1"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:48"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=2/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "devices": [
+          "cpudevnuma002",
+          "hugepages-2mi-5s57zr",
+          "memory-ddztgx"
+        ],
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=2/pcieRoot=pci0000:97",
+      "details": {
+        "deviceCount": 18,
+        "devices": [
+          "0000-9f-00-2",
+          "0000-9f-00-3",
+          "0000-9f-00-4",
+          "0000-9f-00-5",
+          "0000-9f-00-6",
+          "0000-9f-00-7",
+          "0000-9f-01-0",
+          "0000-9f-01-1",
+          "0000-9f-01-2",
+          "0000-9f-01-3",
+          "0000-9f-01-4",
+          "0000-9f-01-5",
+          "0000-9f-01-6",
+          "0000-9f-01-7",
+          "0000-9f-02-0",
+          "0000-9f-02-1",
+          "gpu-41-168",
+          "gpu-vfio-5"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2,
+          "sriovnetwork.k8snetworkplumbingwg.io": 16
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "dra.net/numaNode,numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:97"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=2/pcieRoot=pci0000:d7",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-25-152",
+          "gpu-vfio-0"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "2"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:d7"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "warn",
+      "subject": "node-a.example.com/numa=3/pcieRoot=-",
+      "details": {
+        "deviceCount": 3,
+        "devices": [
+          "cpudevnuma003",
+          "hugepages-2mi-bmgj2r",
+          "memory-nfqcrb"
+        ],
+        "drivers": {
+          "dra.cpu": 1,
+          "dra.memory": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "dra.cpu/numaNodeID,dra.memory/numaNode",
+        "pcieKey": "-",
+        "pcieRoot": [],
+        "reason": "missing attribute: pcieRoot"
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=3/pcieRoot=pci0000:b7",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-57-184",
+          "gpu-vfio-6"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:b7"
+        ]
+      }
+    },
+    {
+      "check": "inspect.topology",
+      "status": "pass",
+      "subject": "node-a.example.com/numa=3/pcieRoot=pci0000:c7",
+      "details": {
+        "deviceCount": 2,
+        "devices": [
+          "gpu-1-128",
+          "gpu-vfio-7"
+        ],
+        "drivers": {
+          "gpu.amd.com": 2
+        },
+        "node": "node-a.example.com",
+        "numa": [
+          "3"
+        ],
+        "numaKey": "numaNode",
+        "pcieKey": "resource.kubernetes.io/pcieRoot",
+        "pcieRoot": [
+          "pci0000:c7"
+        ]
+      }
+    }
+  ]
+}

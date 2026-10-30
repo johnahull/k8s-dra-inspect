@@ -1,0 +1,48 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.alignment",
+      "status": "unavailable",
+      "subject": "demo/two-gpus",
+      "details": {
+        "constraints": [],
+        "devices": [
+          "gpu.example.com/node-a.example.com/gpu-0",
+          "gpu.example.com/node-a.example.com/gpu-1"
+        ],
+        "numa": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [
+            "0"
+          ],
+          "key": "resource.kubernetes.io/numaNode",
+          "missing": [
+            "gpu.example.com/node-a.example.com/gpu-1"
+          ],
+          "valuesByDevice": {
+            "gpu.example.com/node-a.example.com/gpu-0": [
+              "0"
+            ]
+          }
+        },
+        "pcieRoot": {
+          "aligned": true,
+          "constrained": false,
+          "intersection": [],
+          "key": "",
+          "missing": [
+            "gpu.example.com/node-a.example.com/gpu-0",
+            "gpu.example.com/node-a.example.com/gpu-1"
+          ],
+          "valuesByDevice": {}
+        },
+        "reason": "NUMA node not published by gpu.example.com/node-a.example.com/gpu-1",
+        "summary": "2 devices, 0 constraints"
+      }
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+NODE               DRIVER              POOL                SLICE               GEN  DEVICES  STATE
+node-a.example.c…  gpu.accelerators.…  pool-with-an-extr…  slice-a-w…rs-total  2    2        current
+node-b.example.c…  other.example.com   node-b.example.com  slice-b             1    1        current

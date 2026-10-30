@@ -1,0 +1,791 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.cpu/node-a.example.com/cpudevnuma000",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "0",
+          "dra.net/numaNode": "0"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.cpu/node-a.example.com/cpudevnuma001",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "1",
+          "dra.net/numaNode": "1"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.cpu/node-a.example.com/cpudevnuma002",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "2",
+          "dra.net/numaNode": "2"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.cpu/node-a.example.com/cpudevnuma003",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "3",
+          "dra.net/numaNode": "3"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/hugepages-2mi-5s57zr",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "2",
+          "dra.memory/numaNode": "2",
+          "dra.net/numaNode": "2"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/hugepages-2mi-bmgj2r",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "3",
+          "dra.memory/numaNode": "3",
+          "dra.net/numaNode": "3"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/hugepages-2mi-vgzdk8",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "0",
+          "dra.memory/numaNode": "0",
+          "dra.net/numaNode": "0"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/hugepages-2mi-wzkcsz",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "1",
+          "dra.memory/numaNode": "1",
+          "dra.net/numaNode": "1"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/memory-56xhnf",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "1",
+          "dra.memory/numaNode": "1",
+          "dra.net/numaNode": "1"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/memory-ddztgx",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "2",
+          "dra.memory/numaNode": "2",
+          "dra.net/numaNode": "2"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/memory-nfqcrb",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "3",
+          "dra.memory/numaNode": "3",
+          "dra.net/numaNode": "3"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "dra.memory/node-a.example.com/memory-xnxmvm",
+      "details": {
+        "attributes": {
+          "dra.cpu/numaNodeID": "0",
+          "dra.memory/numaNode": "0",
+          "dra.net/numaNode": "0"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-1-128",
+      "details": {
+        "attributes": {
+          "numaNode": "3",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:cd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:c7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-17-144",
+      "details": {
+        "attributes": {
+          "numaNode": "1",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:4e:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:48"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-25-152",
+      "details": {
+        "attributes": {
+          "numaNode": "2",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:dd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:d7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-33-160",
+      "details": {
+        "attributes": {
+          "numaNode": "0",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:1b:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-41-168",
+      "details": {
+        "attributes": {
+          "numaNode": "2",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:9d:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-49-176",
+      "details": {
+        "attributes": {
+          "numaNode": "0",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:5f:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:59"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-57-184",
+      "details": {
+        "attributes": {
+          "numaNode": "3",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:bd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:b7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-9-136",
+      "details": {
+        "attributes": {
+          "numaNode": "1",
+          "productName": "",
+          "resource.kubernetes.io/pciBusID": "0000:3d:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:37"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-0",
+      "details": {
+        "attributes": {
+          "numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:dd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:d7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-1",
+      "details": {
+        "attributes": {
+          "numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1b:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-2",
+      "details": {
+        "attributes": {
+          "numaNode": "1",
+          "resource.kubernetes.io/pciBusID": "0000:3d:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:37"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-3",
+      "details": {
+        "attributes": {
+          "numaNode": "1",
+          "resource.kubernetes.io/pciBusID": "0000:4e:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:48"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-4",
+      "details": {
+        "attributes": {
+          "numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:5f:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:59"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-5",
+      "details": {
+        "attributes": {
+          "numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9d:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-6",
+      "details": {
+        "attributes": {
+          "numaNode": "3",
+          "resource.kubernetes.io/pciBusID": "0000:bd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:b7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-7",
+      "details": {
+        "attributes": {
+          "numaNode": "3",
+          "resource.kubernetes.io/pciBusID": "0000:cd:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:c7"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-2",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.2",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-3",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.3",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-4",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.4",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-5",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.5",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-6",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.6",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-00-7",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:00.7",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-0",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-1",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.1",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-2",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.2",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-3",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.3",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-4",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.4",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-5",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.5",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-6",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.6",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-01-7",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:01.7",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-02-0",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-1d-02-1",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "0",
+          "resource.kubernetes.io/pciBusID": "0000:1d:02.1",
+          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-2",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.2",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-3",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.3",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-4",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.4",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-5",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.5",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-6",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.6",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-00-7",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:00.7",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-0",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-1",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.1",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-2",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.2",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-3",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.3",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-4",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.4",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-5",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.5",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-6",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.6",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-01-7",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:01.7",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-02-0",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:02.0",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    },
+    {
+      "check": "inspect.attributes",
+      "status": "pass",
+      "subject": "sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com/0000-9f-02-1",
+      "details": {
+        "attributes": {
+          "dra.net/numaNode": "2",
+          "resource.kubernetes.io/pciBusID": "0000:9f:02.1",
+          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+        },
+        "node": "node-a.example.com"
+      }
+    }
+  ]
+}

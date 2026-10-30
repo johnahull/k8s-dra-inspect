@@ -1,0 +1,40 @@
+# Synthetic: list-valued numaNode sets {0,1} {1,2} {0,2} overlap pairwise but share no common value, so the constraint fails.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: gpu-slice
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [0, 1]}
+    - name: gpu-1
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [1, 2]}
+    - name: gpu-2
+      attributes:
+        resource.kubernetes.io/numaNode: {ints: [0, 2]}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: three-gpus, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: gpu
+        exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 3}
+      constraints:
+      - requests: [gpu]
+        matchAttribute: resource.kubernetes.io/numaNode
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-1}
+        - {request: gpu, driver: gpu.example.com, pool: node-a.example.com, device: gpu-2}

@@ -1,0 +1,66 @@
+{{- if .Values.job.enabled }}
+{{- $nss := include "dra-inspect.namespaces" . | fromJsonArray }}
+{{- if and (eq .Values.rbac.profile "namespace") (gt (len $nss) 1) }}
+{{- fail "job.enabled with rbac.profile=namespace queries one namespace; install one release per namespace" }}
+{{- end }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "dra-inspect.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "dra-inspect.labels" . | nindent 4 }}
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: {{ .Values.job.ttlSecondsAfterFinished }}
+  activeDeadlineSeconds: {{ .Values.job.activeDeadlineSeconds }}
+  template:
+    metadata:
+      labels:
+        {{- /* merge: the first map wins, so user labels cannot override the chart's. */}}
+        {{- merge (include "dra-inspect.labels" . | fromYaml) (deepCopy .Values.job.podLabels) | toYaml | nindent 8 }}
+      {{- with .Values.job.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      restartPolicy: Never
+      serviceAccountName: {{ include "dra-inspect.serviceAccountName" . }}
+      # The one pod that needs the API. No kubeconfig is mounted: the CLI falls
+      # back to the in-cluster config (checked against a real apiserver with the same hardening under
+      # podman, never run by a kubelet: docs/harness-test-plan.md).
+      automountServiceAccountToken: true
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # Pod Security "restricted" by construction.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: {{ .Values.job.runAsUser }}
+        runAsGroup: {{ .Values.job.runAsUser }}
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: dra-inspect
+        image: {{ include "dra-inspect.image" . | quote }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        args:
+          {{- range .Values.job.args }}
+          - {{ . | quote }}
+          {{- end }}
+          {{- if eq .Values.rbac.profile "namespace" }}
+          - "-n"
+          - {{ first $nss | quote }}
+          {{- end }}
+          {{- if .Values.job.strict }}
+          - "--strict"
+          {{- end }}
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        resources:
+          {{- toYaml .Values.job.resources | nindent 10 }}
+{{- end }}

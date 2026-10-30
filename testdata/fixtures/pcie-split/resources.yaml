@@ -1,0 +1,38 @@
+# Synthetic: matchAttribute on pcieRoot is violated by the allocation.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata:
+    name: nic-node-a-slice
+  spec:
+    driver: nic.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: nic-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:00"}
+    - name: nic-1
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pcieRoot: {string: "pci0000:80"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: aligned-nics, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - name: nic
+        exactly: {deviceClassName: nic.example.com, allocationMode: ExactCount, count: 2}
+      constraints:
+      - requests: [nic]
+        matchAttribute: resource.kubernetes.io/pcieRoot
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: nic, driver: nic.example.com, pool: node-a.example.com, device: nic-0}
+        - {request: nic, driver: nic.example.com, pool: node-a.example.com, device: nic-1}

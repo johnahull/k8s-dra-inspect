@@ -1,0 +1,4 @@
+NAME               LABELS                      SELECTORS  CONFIG
+gpu.example.com    tier=gold,vendor=example    2          present
+nic.example.com    tier=silver,vendor=example  0          present
+plain.example.com                              1          -

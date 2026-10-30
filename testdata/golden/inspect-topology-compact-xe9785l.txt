@@ -1,0 +1,19 @@
+NODE                NUMA     PCIE ROOT              DRIVERS                  NOTE
+node-a.example.com  0,1,2,3  -                      dra.memory=4             missing attribute: pci…
+node-a.example.com  0,1,2,3  pci0000:00             gpu.amd.com=1            -
+node-a.example.com  0,1,2,3  pci0000:00,pci0000:64  dra.cpu=1                -
+node-a.example.com  0,1,2,3  pci0000:32             gpu.amd.com=1            -
+node-a.example.com  0,1,2,3  pci0000:32,pci0000:66  dra.cpu=1                -
+node-a.example.com  0,1,2,3  pci0000:96,pci0000:a0  dra.cpu=1                -
+node-a.example.com  0,1,2,3  pci0000:98,pci0000:d0  dra.cpu=1                -
+node-a.example.com  0,1,2,3  pci0000:a0             gpu.amd.com=1            -
+node-a.example.com  0,1,2,3  pci0000:d0             gpu.amd.com=1,sriovnet…  -
+node-a.example.com  4,5,6,7  -                      dra.memory=4             missing attribute: pci…
+node-a.example.com  4,5,6,7  pci0001:00             gpu.amd.com=1,sriovnet…  -
+node-a.example.com  4,5,6,7  pci0001:00,pci0001:64  dra.cpu=1                -
+node-a.example.com  4,5,6,7  pci0001:32             gpu.amd.com=1            -
+node-a.example.com  4,5,6,7  pci0001:32,pci0001:66  dra.cpu=1                -
+node-a.example.com  4,5,6,7  pci0001:68,pci0001:a0  dra.cpu=1                -
+node-a.example.com  4,5,6,7  pci0001:98,pci0001:d0  dra.cpu=1                -
+node-a.example.com  4,5,6,7  pci0001:a0             gpu.amd.com=1            -
+node-a.example.com  4,5,6,7  pci0001:d0             gpu.amd.com=1            -

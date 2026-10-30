@@ -1,0 +1,2 @@
+CLAIM                 ALLOCATED  DEVICES  NODE                USED BY
+default/vm-final-all  yes        12       node-a.example.com  pod-1

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.topology",
+      "status": "warn",
+      "subject": "gpu.example.com/node-a.example.com",
+      "details": {
+        "conflicts": [],
+        "devices": 2,
+        "generation": 1,
+        "missingNUMA": [
+          "gpu-1"
+        ],
+        "missingPCIeRoot": [
+          "gpu-0",
+          "gpu-1"
+        ],
+        "reason": "NUMA node missing on gpu-1; PCIe root missing on gpu-0, gpu-1",
+        "slicesExpected": 1,
+        "slicesObserved": 1,
+        "summary": "2 devices, 1 missing NUMA, 2 missing PCIe root"
+      }
+    }
+  ]
+}

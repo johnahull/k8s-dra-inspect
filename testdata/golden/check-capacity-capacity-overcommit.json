@@ -1,0 +1,27 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.capacity",
+      "status": "fail",
+      "subject": "mem.example.com/node-a.example.com/mem-0",
+      "details": {
+        "allocatedBy": [
+          "demo/first",
+          "demo/second"
+        ],
+        "capacities": {
+          "size": {
+            "consumed": "120Gi",
+            "published": "100Gi",
+            "remaining": "-20Gi"
+          }
+        },
+        "reason": "total consumed 120Gi of size exceeds the published 100Gi",
+        "summary": "size 120Gi/100Gi"
+      }
+    }
+  ]
+}

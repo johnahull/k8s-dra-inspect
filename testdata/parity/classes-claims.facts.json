@@ -1,0 +1,58 @@
+{
+  "alignment": {
+    "demo/virt-launcher-vm1-abcde": {
+      "devices": [
+        "gpu-0"
+      ],
+      "numa": "aligned",
+      "pcieRoot": "aligned"
+    }
+  },
+  "claims": {
+    "demo/broken": [
+      "gpu-9"
+    ],
+    "demo/pending": [],
+    "demo/shared-gpu": [
+      "gpu-0"
+    ],
+    "demo/web-0-gpu-xyz12": [
+      "gpu-1"
+    ]
+  },
+  "deviceclassesQueried": [],
+  "drivers": {
+    "gpu.example.com": {
+      "devices": 2,
+      "nodes": [
+        "node-a.example.com"
+      ]
+    }
+  },
+  "fixture": "classes-claims",
+  "legacyExit": {
+    "alignment": 0,
+    "claims": 0,
+    "deviceclasses": 1,
+    "drivers": 0,
+    "topology": 0
+  },
+  "legacySha256": {
+    "dra-counters.py": "baa3f764692f992287c35e03d2655c3749871fd737dc93ad20f83f691228155a",
+    "dra-verify.sh": "30843a2cd2dcc23ec61fdcb652e795d371844b10c0bab246eff918afec00047e"
+  },
+  "topology": {
+    "gpu-0": {
+      "pcieRoots": [
+        "pci0000:00"
+      ],
+      "primaryNuma": "0"
+    },
+    "gpu-1": {
+      "pcieRoots": [
+        "pci0000:80"
+      ],
+      "primaryNuma": "1"
+    }
+  }
+}

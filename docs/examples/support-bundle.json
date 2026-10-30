@@ -1,0 +1,727 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-01-01T00:00:00Z",
+  "source": "snapshot",
+  "redacted": true,
+  "collection": {
+    "deviceclasses": {
+      "state": "ok"
+    },
+    "nodes": {
+      "state": "ok"
+    },
+    "pods": {
+      "state": "ok"
+    },
+    "resourceclaims": {
+      "state": "ok"
+    },
+    "resourceslices": {
+      "state": "ok"
+    },
+    "virtualmachineinstances": {
+      "state": "ok"
+    }
+  },
+  "resourceSlices": [
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "slice-a"
+      },
+      "spec": {
+        "driver": "gpu.example.com",
+        "pool": {
+          "name": "node-a.example.com",
+          "generation": 1,
+          "resourceSliceCount": 1
+        },
+        "nodeName": "node-a.example.com",
+        "devices": [
+          {
+            "name": "gpu-0",
+            "attributes": {
+              "resource.kubernetes.io/numaNode": {
+                "int": 0
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:3b:00.0"
+              }
+            }
+          },
+          {
+            "name": "nic-0",
+            "attributes": {
+              "resource.kubernetes.io/numaNode": {
+                "int": 0
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:3c:00.0"
+              }
+            }
+          },
+          {
+            "name": "gpu-2",
+            "attributes": {
+              "resource.kubernetes.io/numaNode": {
+                "int": 1
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:af:00.0"
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "kind": "ResourceSlice",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "slice-b"
+      },
+      "spec": {
+        "driver": "gpu.example.com",
+        "pool": {
+          "name": "node-b.example.com",
+          "generation": 1,
+          "resourceSliceCount": 1
+        },
+        "nodeName": "node-b.example.com",
+        "devices": [
+          {
+            "name": "gpu-b0",
+            "attributes": {
+              "resource.kubernetes.io/numaNode": {
+                "int": 0
+              },
+              "resource.kubernetes.io/pciBusID": {
+                "string": "0000:3b:00.0"
+              }
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "deviceClasses": null,
+  "resourceClaims": [
+    {
+      "kind": "ResourceClaim",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "claim-b",
+        "namespace": "demo"
+      },
+      "spec": {
+        "devices": {
+          "requests": [
+            {
+              "name": "gpu0",
+              "exactly": {
+                "deviceClassName": "gpu.example.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            }
+          ]
+        }
+      },
+      "status": {
+        "allocation": {
+          "devices": {
+            "results": [
+              {
+                "request": "gpu0",
+                "driver": "gpu.example.com",
+                "pool": "node-b.example.com",
+                "device": "gpu-b0"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "kind": "ResourceClaim",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "claim-ok",
+        "namespace": "demo"
+      },
+      "spec": {
+        "devices": {
+          "requests": [
+            {
+              "name": "gpu0",
+              "exactly": {
+                "deviceClassName": "gpu.example.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "nic0",
+              "exactly": {
+                "deviceClassName": "gpu.example.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            },
+            {
+              "name": "gpu2",
+              "exactly": {
+                "deviceClassName": "gpu.example.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            }
+          ]
+        }
+      },
+      "status": {
+        "allocation": {
+          "devices": {
+            "results": [
+              {
+                "request": "gpu0",
+                "driver": "gpu.example.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-0"
+              },
+              {
+                "request": "nic0",
+                "driver": "gpu.example.com",
+                "pool": "node-a.example.com",
+                "device": "nic-0"
+              },
+              {
+                "request": "gpu2/sub",
+                "driver": "gpu.example.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-2"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "pods": null,
+  "nodes": null,
+  "virtualMachineInstances": [
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-garbage",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "cpu": {
+            "threads": 1.5
+          },
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "requestName": "gpu0"
+              },
+              {
+                "name": "ok"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-missing-claim",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "no-such-claim"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Scheduled"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-no-allocation",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "absent"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-ok"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-ok",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "cpu": {
+            "cores": 4,
+            "dedicatedCpuPlacement": true,
+            "numa": {
+              "guestMappingPassthrough": {}
+            },
+            "sockets": 2,
+            "threads": 1
+          },
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              },
+              {
+                "claimName": "partitions",
+                "name": "nic0",
+                "requestName": "nic0"
+              },
+              {
+                "claimName": "partitions",
+                "name": "gpu2",
+                "requestName": "gpu2"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-ok"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-pending",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-ok"
+          }
+        ]
+      },
+      "status": {
+        "phase": "Pending"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-secrets",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "cpu": {
+            "cores": 2,
+            "sockets": 1,
+            "threads": 1
+          },
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-ok"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-split",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "cpu": {
+            "cores": 4,
+            "dedicatedCpuPlacement": true,
+            "sockets": 1,
+            "threads": 2
+          },
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              },
+              {
+                "claimName": "partitions",
+                "name": "gpu2",
+                "requestName": "gpu2"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-ok"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
+        "name": "vm-wrong-node",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimName": "claim-b"
+          }
+        ]
+      },
+      "status": {
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    }
+  ],
+  "evidence": {
+    "host": {
+      "version": 2,
+      "nodeName": "node-a.example.com",
+      "numa": {
+        "0": "0-7",
+        "1": "8-15"
+      },
+      "pci": {
+        "0000:3b:00.0": {
+          "numaNode": 0,
+          "driver": "vfio-pci",
+          "iommuGroup": "7",
+          "vendor": "0x1234",
+          "device": "0x5678"
+        },
+        "0000:3c:00.0": {
+          "numaNode": 0,
+          "driver": "vfio-pci",
+          "iommuGroup": "8",
+          "vendor": "0x1234",
+          "device": "0x5678"
+        },
+        "0000:af:00.0": {
+          "numaNode": 0,
+          "driver": "vfio-pci",
+          "iommuGroup": "9",
+          "vendor": "0x1234",
+          "device": "0x5678"
+        }
+      },
+      "iommuGroups": {
+        "7": [
+          "0000:3b:00.0"
+        ],
+        "8": [
+          "0000:3c:00.0"
+        ],
+        "9": [
+          "0000:af:00.0"
+        ]
+      },
+      "vfioDevNodes": [
+        "7",
+        "8",
+        "9",
+        "vfio"
+      ],
+      "cdi": [],
+      "cgroups": {}
+    },
+    "kubevirt": {
+      "version": 1,
+      "vmis": [
+        {
+          "namespace": "demo",
+          "name": "vm-garbage",
+          "claims": {},
+          "hostDevices": [],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false,
+          "warnings": [
+            "status.nodeName is not a string",
+            "status.phase is not a string",
+            "spec.domain.cpu.sockets is not an integer",
+            "spec.domain.cpu.threads is not an integer",
+            "spec.domain.cpu.dedicatedCpuPlacement is not a boolean",
+            "spec.domain.cpu.numa is not an object",
+            "spec.resourceClaims is not a list",
+            "hostDevices has an entry that is not an object",
+            "hostDevices has a DRA entry with a missing or non-string field"
+          ]
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-missing-claim",
+          "nodeName": "node-a.example.com",
+          "phase": "Scheduled",
+          "claims": {
+            "partitions": "no-such-claim"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "no-such-claim",
+              "requestName": "gpu0"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-no-allocation",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "claims": {
+            "partitions": "claim-ok"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "absent"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-ok",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "claims": {
+            "partitions": "claim-ok"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu0"
+            },
+            {
+              "name": "nic0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "nic0"
+            },
+            {
+              "name": "gpu2",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu2"
+            }
+          ],
+          "guestNUMAPassthrough": true,
+          "dedicatedCPUPlacement": true,
+          "sockets": 2,
+          "cores": 4,
+          "threads": 1
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-pending",
+          "phase": "Pending",
+          "claims": {
+            "partitions": "claim-ok"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu0"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-secrets",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "claims": {
+            "partitions": "claim-ok"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu0"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false,
+          "sockets": 1,
+          "cores": 2,
+          "threads": 1
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-split",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "claims": {
+            "partitions": "claim-ok"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu0"
+            },
+            {
+              "name": "gpu2",
+              "claimAlias": "partitions",
+              "claimName": "claim-ok",
+              "requestName": "gpu2"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": true,
+          "sockets": 1,
+          "cores": 4,
+          "threads": 2
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-wrong-node",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "claims": {
+            "partitions": "claim-b"
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "claimName": "claim-b",
+              "requestName": "gpu0"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false
+        }
+      ]
+    }
+  }
+}

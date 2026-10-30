@@ -1,0 +1,174 @@
+# Synthetic. Node node-a holds gpu-0, nic-0 (NUMA 0, PCI 0000:3b:00.0 / 0000:3c:00.0) and gpu-2 (NUMA 1);
+# node-b holds gpu-b0. Each vm-* VMI in namespace demo exercises one check branch.
+apiVersion: v1
+kind: List
+items:
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata: {name: slice-a}
+  spec:
+    driver: gpu.example.com
+    nodeName: node-a.example.com
+    pool: {name: node-a.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pciBusID: {string: "0000:3b:00.0"}
+    - name: nic-0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pciBusID: {string: "0000:3c:00.0"}
+    - name: gpu-2
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 1}
+        resource.kubernetes.io/pciBusID: {string: "0000:af:00.0"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceSlice
+  metadata: {name: slice-b}
+  spec:
+    driver: gpu.example.com
+    nodeName: node-b.example.com
+    pool: {name: node-b.example.com, generation: 1, resourceSliceCount: 1}
+    devices:
+    - name: gpu-b0
+      attributes:
+        resource.kubernetes.io/numaNode: {int: 0}
+        resource.kubernetes.io/pciBusID: {string: "0000:3b:00.0"}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: claim-ok, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - {name: gpu0, exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}}
+      - {name: nic0, exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}}
+      - {name: gpu2, exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu0, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+        - {request: nic0, driver: gpu.example.com, pool: node-a.example.com, device: nic-0}
+        - {request: gpu2/sub, driver: gpu.example.com, pool: node-a.example.com, device: gpu-2}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: claim-b, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - {name: gpu0, exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu0, driver: gpu.example.com, pool: node-b.example.com, device: gpu-b0}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-ok, namespace: demo}
+  spec:
+    domain:
+      cpu: {sockets: 2, cores: 4, threads: 1, dedicatedCpuPlacement: true, numa: {guestMappingPassthrough: {}}}
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+        - {name: nic0, claimName: partitions, requestName: nic0}
+        - {name: gpu2, claimName: partitions, requestName: gpu2}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-ok}
+  status: {phase: Running, nodeName: node-a.example.com}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-split, namespace: demo}
+  spec:
+    domain:
+      cpu: {sockets: 1, cores: 4, threads: 2, dedicatedCpuPlacement: true}
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+        - {name: gpu2, claimName: partitions, requestName: gpu2}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-ok}
+  status: {phase: Running, nodeName: node-a.example.com}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-missing-claim, namespace: demo}
+  spec:
+    domain:
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: no-such-claim}
+  status: {phase: Scheduled, nodeName: node-a.example.com}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-no-allocation, namespace: demo}
+  spec:
+    domain:
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: absent}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-ok}
+  status: {phase: Running, nodeName: node-a.example.com}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-wrong-node, namespace: demo}
+  spec:
+    domain:
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-b}
+  status: {phase: Running, nodeName: node-a.example.com}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-pending, namespace: demo}
+  spec:
+    domain:
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-ok}
+  status: {phase: Pending}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata:
+    name: vm-secrets
+    namespace: demo
+    annotations: {note: SECRET-ANNOTATION-MARKER}
+  spec:
+    accessCredentials:
+    - sshPublicKey: {source: {secret: {secretName: SECRET-ACCESSCRED-MARKER}}}
+    domain:
+      cpu: {sockets: 1, cores: 2, threads: 1}
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+    resourceClaims:
+    - {name: partitions, resourceClaimName: claim-ok}
+    volumes:
+    - name: cloudinit
+      cloudInitNoCloud: {userData: "#cloud-config\npassword: SECRET-CLOUDINIT-MARKER\n"}
+  status:
+    phase: Running
+    nodeName: node-a.example.com
+    interfaces: [{name: default, ipAddress: "2001:db8::7"}]
+    guestOSInfo: {name: SECRET-GUESTOS-MARKER}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-garbage, namespace: demo}
+  spec:
+    resourceClaims: SECRET-GARBAGE-MARKER
+    domain:
+      cpu: {sockets: SECRET-GARBAGE-MARKER, cores: null, threads: 1.5, dedicatedCpuPlacement: SECRET-GARBAGE-MARKER, numa: SECRET-GARBAGE-MARKER}
+      devices:
+        hostDevices:
+        - null
+        - 5
+        - {name: 7, claimName: partitions, requestName: gpu0}
+        - {name: ok, claimName: 5, requestName: [SECRET-GARBAGE-MARKER]}
+  status: {phase: 12, nodeName: 7}

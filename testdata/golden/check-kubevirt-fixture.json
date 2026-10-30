@@ -1,0 +1,202 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-garbage",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "summary": "no DRA host devices",
+        "warnings": [
+          "status.nodeName is not a string",
+          "status.phase is not a string",
+          "spec.domain.cpu.sockets is not an integer",
+          "spec.domain.cpu.threads is not an integer",
+          "spec.domain.cpu.dedicatedCpuPlacement is not a boolean",
+          "spec.domain.cpu.numa is not an object",
+          "spec.resourceClaims is not a list",
+          "hostDevices has an entry that is not an object",
+          "hostDevices has a DRA entry with a missing or non-string field"
+        ]
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-missing-claim",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "reason": "claim demo/no-such-claim not found"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-no-allocation",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [],
+        "guestNUMAPassthrough": false,
+        "numa": [],
+        "reason": "request absent has no allocation result in claim demo/claim-ok"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-ok",
+      "details": {
+        "dedicatedCPUPlacement": true,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          },
+          {
+            "device": "nic-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "nic0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3c:00.0",
+            "pool": "node-a.example.com",
+            "request": "nic0"
+          },
+          {
+            "device": "gpu-2",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu2",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:af:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu2/sub"
+          }
+        ],
+        "guestNUMAPassthrough": true,
+        "numa": [
+          "0",
+          "1"
+        ],
+        "summary": "3 device(s) on node node-a.example.com"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "unavailable",
+      "subject": "demo/vm-pending",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "reason": "VMI is not scheduled to a node"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-secrets",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "summary": "1 device(s) on node node-a.example.com"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "warn",
+      "subject": "demo/vm-split",
+      "details": {
+        "dedicatedCPUPlacement": true,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          },
+          {
+            "device": "gpu-2",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu2",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:af:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu2/sub"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0",
+          "1"
+        ],
+        "reason": "devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology"
+      }
+    },
+    {
+      "check": "check.kubevirt",
+      "status": "fail",
+      "subject": "demo/vm-wrong-node",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-b0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-b.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-b.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "reason": "device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com"
+      }
+    }
+  ]
+}
