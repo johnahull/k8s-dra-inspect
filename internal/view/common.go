@@ -157,12 +157,12 @@ func cmpNode(a, b string) int {
 	return cmp.Compare(a, b)
 }
 
-// nodeTitle is the "Node: x" line of a node block.
-func nodeTitle(p *render.Printer, n string) string {
+// nodeTitle prints the "Node: x" line of a node block.
+func nodeTitle(p *render.Printer, n string) {
 	if n == "" {
 		n = noNode
 	}
-	return fmt.Sprintf("%s %s", p.Bold("Node:"), n)
+	p.Line(0, "%s %s", p.Bold("Node:"), n)
 }
 
 // sortedNodes is the keys of a per-node map in cmpNode order, the node order of

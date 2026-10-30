@@ -1,6 +1,7 @@
 package view_test
 
 import (
+	"bytes"
 	"strings"
 	"testing"
 
@@ -9,6 +10,7 @@ import (
 
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
+	"github.com/johnahull/k8s-dra-inspect/internal/render"
 	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
@@ -62,6 +64,23 @@ func TestAllViewsOrderAndTitleNodesAlike(t *testing.T) {
 				t.Errorf("node blocks\n got %s\nwant %s\n%s", g, want, got)
 			}
 		})
+	}
+}
+
+func TestNodeTitlesPreserveColourStyling(t *testing.T) {
+	snap := fx(t, "multinode")
+	var b bytes.Buffer
+	p := render.NewPrinter(&b, render.Style{Color: true})
+	view.Drivers(p, snap, inspect.Drivers(false).Run(snap))
+	if err := p.Err(); err != nil {
+		t.Fatal(err)
+	}
+	got := b.String()
+	if !strings.Contains(got, "\x1b[1mNode:\x1b[0m node-a.example.com") {
+		t.Fatalf("node title lost ANSI styling or was sanitized: %q", got)
+	}
+	if strings.Contains(got, "�[1mNode:") {
+		t.Fatalf("node title contains sanitized ANSI escape: %q", got)
 	}
 }
 

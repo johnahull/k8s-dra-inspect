@@ -52,7 +52,7 @@ func Attributes(p *render.Printer, snap model.Snapshot, results []model.Result) 
 		if i > 0 {
 			p.Blank()
 		}
-		p.Line(0, "%s", nodeTitle(p, node))
+		nodeTitle(p, node)
 		for _, driver := range slices.Sorted(maps.Keys(byNode[node])) {
 			rs := byNode[node][driver]
 			slices.SortStableFunc(rs, func(a, b model.Result) int {

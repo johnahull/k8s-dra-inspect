@@ -76,7 +76,7 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			p.Blank()
 		}
 		first = false
-		p.Line(0, "%s", nodeTitle(p, node))
+		nodeTitle(p, node)
 		drivers := slices.Sorted(maps.Keys(cells[node]))
 		for i, name := range drivers {
 			c, r := cells[node][name], byDriver[name]

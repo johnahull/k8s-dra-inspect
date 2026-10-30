@@ -132,7 +132,7 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		if i > 0 {
 			p.Blank()
 		}
-		p.Line(0, "%s", nodeTitle(p, node))
+		nodeTitle(p, node)
 		for _, driver := range slices.Sorted(maps.Keys(rows[node])) {
 			devs := rows[node][driver]
 			slices.SortStableFunc(devs, func(a, b deviceRow) int {

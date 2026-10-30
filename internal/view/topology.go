@@ -169,7 +169,7 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		if i > 0 {
 			p.Blank()
 		}
-		p.Line(0, "%s", nodeTitle(p, node))
+		nodeTitle(p, node)
 		slices.SortStableFunc(groups[node], func(a, b *numaGroup) int { return cmpSets(a.numa, b.numa) })
 		var notes []string
 		for gi, ng := range groups[node] {
