@@ -48,7 +48,7 @@ func Attributes(p *render.Printer, snap model.Snapshot, results []model.Result) 
 		p.Line(0, "no devices")
 		return
 	}
-	for i, node := range slices.SortedFunc(maps.Keys(byNode), cmpNode) {
+	for i, node := range sortedNodes(byNode) {
 		if i > 0 {
 			p.Blank()
 		}

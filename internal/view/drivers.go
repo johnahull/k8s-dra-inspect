@@ -3,6 +3,7 @@ package view
 import (
 	"maps"
 	"slices"
+	"strings"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
@@ -61,25 +62,16 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		f       model.Finding
 	}
 	var others []other
-	errs := map[string]*decoder{} // driver -> mismatches
-	// owners[driver][i] lists the nodes that print finding i of driver.
-	owners := map[string]map[int][]string{}
-	for name, r := range byDriver {
-		owners[name] = map[int][]string{}
-		for i, f := range findingsOf(r) {
-			if f.Kind != model.KindIncomplete {
-				continue
-			}
-			for node, drv := range cells {
-				if c := drv[name]; c != nil && slices.ContainsFunc(f.Items, func(pool string) bool { return c.pools[pool] }) {
-					owners[name][i] = append(owners[name][i], node)
-				}
-			}
-		}
+	// A pool note names only the pools that node holds; a pool no node holds
+	// devices for is left for "Other notes".
+	held := func(items []string, cs ...*driverCell) []string {
+		return slices.DeleteFunc(slices.Clone(items), func(x string) bool {
+			return !slices.ContainsFunc(cs, func(c *driverCell) bool { return c != nil && c.pools[x] })
+		})
 	}
 
 	first := true
-	for _, node := range slices.SortedFunc(maps.Keys(cells), cmpNode) {
+	for _, node := range sortedNodes(cells) {
 		if !first {
 			p.Blank()
 		}
@@ -98,9 +90,11 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 					p.Line(6, "%s", k)
 				}
 			}
-			for fi, f := range findingsOf(r) {
-				if slices.Contains(owners[name][fi], node) {
-					printFinding(p, 4, f, "", nil)
+			for _, f := range findingsOf(r) {
+				if f.Kind == model.KindIncomplete {
+					if items := held(f.Items, c); len(items) > 0 {
+						printFinding(p, 4, poolNote(f, items), "", nil)
+					}
 				}
 			}
 		}
@@ -113,46 +107,53 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 	}
 	slices.Sort(empty)
+	var d decoder
 	for i, name := range empty {
 		if i == 0 && !first {
 			p.Blank()
 		}
 		r := byDriver[name]
-		d := &decoder{}
-		errs[name] = d
-		p.Line(0, "%s: %s  (%s)", p.Bold(name), model.Plural(detail[int](d, r, "devices"), "device", "devices"), model.Plural(detail[int](d, r, "pools"), "pool", "pools"))
+		p.Line(0, "%s: %s  (%s)", p.Bold(name), model.Plural(detail[int](&d, r, "devices"), "device", "devices"), model.Plural(detail[int](&d, r, "pools"), "pool", "pools"))
 	}
 	for _, name := range slices.Sorted(maps.Keys(byDriver)) {
-		for i, f := range findingsOf(byDriver[name]) {
-			if len(owners[name][i]) == 0 {
+		for _, f := range findingsOf(byDriver[name]) {
+			if f.Kind != model.KindIncomplete || len(f.Items) == 0 {
 				others = append(others, other{name, f})
+				continue
+			}
+			var all []*driverCell
+			for _, drv := range cells {
+				all = append(all, drv[name])
+			}
+			if rest := slices.DeleteFunc(slices.Clone(f.Items), func(x string) bool { return len(held([]string{x}, all...)) > 0 }); len(rest) == len(f.Items) {
+				others = append(others, other{name, f})
+			} else if len(rest) > 0 {
+				others = append(others, other{name, poolNote(f, rest)})
 			}
 		}
 	}
-	if len(others) > 0 || hasErrs(errs) {
+	if len(others) > 0 || len(d.errs) > 0 {
 		p.Blank()
 		p.Line(0, "%s", p.Bold("Other notes"))
 		for _, o := range others {
 			printFinding(p, 2, o.f, o.subject, nil)
 		}
-		for _, name := range slices.Sorted(maps.Keys(errs)) {
-			errs[name].flush(p, 2)
-		}
+		d.flush(p, 2)
 	}
 }
 
-// hasAttrs reports whether --attributes was given: the inspector leaves
-// "attributes" out of Details otherwise.
+// poolNote is an incomplete-pool finding narrowed to the given pools, worded
+// by this view so the sentence always matches the list it prints.
+func poolNote(f model.Finding, pools []string) model.Finding {
+	f.Items = pools
+	f.Text = "pool has fewer ResourceSlices than expected for its newest generation: " + strings.Join(pools, ", ")
+	return f
+}
+
+// hasAttrs reports whether --attributes was given: the inspector leaves its
+// "attributes" Detail key out otherwise (the same signal as before). Per-node
+// keys come from the snapshot, as the inspector reports driver-wide keys only.
 func hasAttrs(r model.Result) bool {
 	_, ok := r.Details["attributes"]
 	return ok
-}
-
-func hasErrs(m map[string]*decoder) bool {
-	for _, d := range m {
-		if len(d.errs) > 0 {
-			return true
-		}
-	}
-	return false
 }

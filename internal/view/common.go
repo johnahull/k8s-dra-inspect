@@ -11,6 +11,7 @@ package view
 import (
 	"cmp"
 	"fmt"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -143,8 +144,9 @@ func isPlaceholder(n string) bool {
 	return n == "" || n == model.AllNodesLabel || n == model.SelectorLabel
 }
 
-// cmpNode orders node strings as plain strings (as slices.go does), except
-// that the (all nodes)/(selector) labels come after every real node name.
+// cmpNode orders node strings as plain strings (node-10 before node-2; no
+// natural sorting), except that placeholders (no node, (all nodes),
+// (selector)) come after every real node name.
 func cmpNode(a, b string) int {
 	if pa, pb := isPlaceholder(a), isPlaceholder(b); pa != pb {
 		if pa {
@@ -162,3 +164,7 @@ func nodeTitle(p *render.Printer, n string) string {
 	}
 	return fmt.Sprintf("%s %s", p.Bold("Node:"), n)
 }
+
+// sortedNodes is the keys of a per-node map in cmpNode order, the node order of
+// every view that groups by node.
+func sortedNodes[V any](m map[string]V) []string { return slices.SortedFunc(maps.Keys(m), cmpNode) }

@@ -159,6 +159,7 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		decodeErrs = append(decodeErrs, d.errs...)
 	}
 
+	slices.SortStableFunc(nodes, cmpNode)
 	p.Blank()
 	if len(nodes) == 0 {
 		p.Line(0, "no devices")
@@ -168,7 +169,7 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		if i > 0 {
 			p.Blank()
 		}
-		p.Line(0, "%s %s", p.Bold("Node:"), node)
+		p.Line(0, "%s", nodeTitle(p, node))
 		slices.SortStableFunc(groups[node], func(a, b *numaGroup) int { return cmpSets(a.numa, b.numa) })
 		var notes []string
 		for gi, ng := range groups[node] {

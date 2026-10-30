@@ -91,11 +91,11 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		p.Line(0, "no ResourceSlices")
 		return
 	}
-	for i, node := range slices.Sorted(maps.Keys(rows)) {
+	for i, node := range sortedNodes(rows) {
 		if i > 0 {
 			p.Blank()
 		}
-		p.Line(0, "%s %s", p.Bold("Node:"), node)
+		p.Line(0, "%s", nodeTitle(p, node))
 		for _, driver := range slices.Sorted(maps.Keys(rows[node])) {
 			devs := rows[node][driver]
 			slices.SortStableFunc(devs, func(a, b deviceRow) int {
