@@ -46,6 +46,29 @@ func sliceNote(d *decoder, snap model.Snapshot, sel map[model.PoolKey]model.Pool
 	return ""
 }
 
+// sliceNode names the one node (or placeholder) a slice lives on, read from
+// the snapshot; ok is false when its devices span several nodes or the slice
+// is not in the snapshot.
+func sliceNode(snap model.Snapshot, r model.Result) (node string, ok bool) {
+	for _, s := range snap.ResourceSlices {
+		if s.Name != r.Subject || s.Spec.Driver != detStr(r, "driver") || s.Spec.Pool.Name != detStr(r, "pool") {
+			continue
+		}
+		nodes := map[string]bool{}
+		for _, d := range s.Spec.Devices {
+			nodes[model.DeviceNode(s, d).String()] = true
+		}
+		if len(s.Spec.Devices) == 0 {
+			n, _ := model.NodeRefOf(s.Spec.NodeName, s.Spec.NodeSelector, s.Spec.AllNodes)
+			nodes[n.String()] = true
+		}
+		if len(nodes) == 1 {
+			return sortedNodes(nodes)[0], true
+		}
+	}
+	return "", false
+}
+
 // Slices prints, per node and driver, every current device with its NUMA
 // node, hardware label and users.
 func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
@@ -67,10 +90,15 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 	}
 	notes := map[string][]string{} // node -> sentences
+	var other []string             // notes of slices that span several nodes
 	var d decoder
 	for _, r := range results {
 		if n := sliceNote(&d, snap, sel, r); n != "" {
-			node := detStr(r, "node")
+			node, ok := sliceNode(snap, r)
+			if !ok {
+				other = append(other, r.Subject+": "+n)
+				continue
+			}
 			notes[node] = append(notes[node], n)
 			if rows[node] == nil {
 				rows[node] = map[string][]deviceRow{}
@@ -87,6 +115,15 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		p.Note(0, model.StatusUnavailable, "pods not collected: arrows show claims, not pods")
 		p.Blank()
 	}
+	defer func() {
+		if len(other) > 0 {
+			p.Blank()
+			p.Line(0, "%s", p.Bold("Other notes"))
+			for _, n := range other {
+				p.Note(2, model.StatusWarn, n)
+			}
+		}
+	}()
 	if len(rows) == 0 {
 		p.Line(0, "no ResourceSlices")
 		return
