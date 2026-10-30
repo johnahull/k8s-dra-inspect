@@ -40,7 +40,7 @@ func capacityLines(dev resourcev1.Device, driver string, consumed map[string]str
 	for _, name := range slices.Sorted(maps.Keys(consumed)) {
 		value := consumed[name]
 		if published, ok := publishedCapacity(dev, driver, name); ok {
-			out = append(out, fmt.Sprintf("capacity %s: %s of %s consumed", name, value, published.Value.String()))
+			out = append(out, fmt.Sprintf("capacity %s: %s of %s consumed (best effort)", name, value, published.Value.String()))
 			continue
 		}
 		out = append(out, fmt.Sprintf("capacity %s: %s consumed (not published)", name, value))

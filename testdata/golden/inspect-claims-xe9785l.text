@@ -11,12 +11,12 @@ default/vm-final-all → pod pod-1
     node node-a.example.com
   n0-dra-cpu
     cpudevnuma001  dra.cpu
-    capacity dra.cpu/cpu: 32 of 32 consumed
+    capacity dra.cpu/cpu: 32 of 32 consumed (best effort)
     NUMA 0,1,2,3  pcieRoot pci0000:00,pci0000:64
     node node-a.example.com
   n0-dra-memory
     memory-bjd9hw  dra.memory
-    capacity size: 396276768Ki of 396348372Ki consumed
+    capacity size: 396276768Ki of 396348372Ki consumed (best effort)
     NUMA 0,1,2,3  pcieRoot unknown
     node node-a.example.com
   n1-sriovnetwork-k8snetworkplumbingwg-io
@@ -29,12 +29,12 @@ default/vm-final-all → pod pod-1
     node node-a.example.com
   n1-dra-cpu
     cpudevnuma002  dra.cpu
-    capacity dra.cpu/cpu: 32 of 32 consumed
+    capacity dra.cpu/cpu: 32 of 32 consumed (best effort)
     NUMA 0,1,2,3  pcieRoot pci0000:32,pci0000:66
     node node-a.example.com
   n1-dra-memory
     memory-t5wtkl  dra.memory
-    capacity size: 396276768Ki of 396276768Ki consumed
+    capacity size: 396276768Ki of 396276768Ki consumed (best effort)
     NUMA 0,1,2,3  pcieRoot unknown
     node node-a.example.com
   n2-sriovnetwork-k8snetworkplumbingwg-io
@@ -47,11 +47,11 @@ default/vm-final-all → pod pod-1
     node node-a.example.com
   n2-dra-cpu
     cpudevnuma003  dra.cpu
-    capacity dra.cpu/cpu: 32 of 32 consumed
+    capacity dra.cpu/cpu: 32 of 32 consumed (best effort)
     NUMA 0,1,2,3  pcieRoot pci0000:96,pci0000:a0
     node node-a.example.com
   n2-dra-memory
     memory-4qhskf  dra.memory
-    capacity size: 396276768Ki of 396348372Ki consumed
+    capacity size: 396276768Ki of 396348372Ki consumed (best effort)
     NUMA 4,5,6,7  pcieRoot unknown
     node node-a.example.com

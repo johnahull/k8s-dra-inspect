@@ -58,8 +58,8 @@ func TestClaimsDeviceShowsBusIDAndProduct(t *testing.T) {
 func TestClaimsConsumableDeviceShowsConsumedCapacity(t *testing.T) {
 	got := claimsOut(t, fx(t, "capacity/pass"))
 	for _, want := range []string{
-		"    capacity size: 40Gi of 100Gi consumed",
-		"    capacity size: 60Gi of 100Gi consumed",
+		"    capacity size: 40Gi of 100Gi consumed (best effort)",
+		"    capacity size: 60Gi of 100Gi consumed (best effort)",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
@@ -78,8 +78,8 @@ func TestClaimsConsumableDeviceResolvesQualifiedCapacityName(t *testing.T) {
 	}
 	got := claimsOut(t, snap)
 	for _, want := range []string{
-		"    capacity mem.example.com/size: 40Gi of 100Gi consumed",
-		"    capacity mem.example.com/size: 60Gi of 100Gi consumed",
+		"    capacity mem.example.com/size: 40Gi of 100Gi consumed (best effort)",
+		"    capacity mem.example.com/size: 60Gi of 100Gi consumed (best effort)",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
