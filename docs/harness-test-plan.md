@@ -10,6 +10,13 @@ route cannot show"). Keep this kind plan as the full-fidelity path; re-run it wi
 `hack/live-kind.sh` on a host with podman 4+ (netavark). Docker is untested and not
 supported by that script.
 
+**Scope decision (2026-10-30).** The project owner accepted the API-server-level
+verification as sufficient for the initial implementation. The kind run (kubelet-run
+pods, Job controller, a real DRA driver, CDI, the host adapter on a real node) is a
+documented follow-up, not a completed item. It needs a host where rootless kind works:
+the `cpu`, `cpuset` and `io` cgroup controllers delegated to the user and podman 4+
+with netavark. Nothing in this repository claims it was run.
+
 Related: [README](../README.md), [RBAC reference](rbac.md),
 [migration guide](migration-from-dra-verify.md).
 
