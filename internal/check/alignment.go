@@ -82,6 +82,15 @@ func worst(fs []finding) model.Status {
 	return st
 }
 
+// findingsOf converts fs for Result.Findings; reasons(fs) is their joined text.
+func findingsOf(fs []finding) []model.Finding {
+	out := make([]model.Finding, len(fs))
+	for i, f := range fs {
+		out[i] = model.Finding{Status: f.status, Text: f.reason}
+	}
+	return out
+}
+
 func reasons(fs []finding) string {
 	var out []string
 	for _, f := range fs {
@@ -289,10 +298,12 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	}
 	st := worst(fs)
 	det["summary"] = fmt.Sprintf("%d devices, %d constraints", len(devs), len(cons))
+	res := model.Result{Check: NameAlignment, Status: st, Subject: c.Namespace + "/" + c.Name, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	}
-	return model.Result{Check: NameAlignment, Status: st, Subject: c.Namespace + "/" + c.Name, Details: det}
+	return res
 }
 
 // podClaims lists the claim names a pod resolves to.

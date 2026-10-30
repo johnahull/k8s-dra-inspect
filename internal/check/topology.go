@@ -89,10 +89,12 @@ func Topology() Check {
 				"summary": fmt.Sprintf("%d devices, %d missing NUMA, %d missing PCIe root", p.devices, len(p.missingNUMA), len(p.missingPC)),
 			}
 			st := worst(fs)
+			res := model.Result{Check: NameTopology, Status: st, Subject: k[0] + "/" + k[1], Details: det}
 			if st != model.StatusPass {
 				det["reason"] = reasons(fs)
+				res.Findings = findingsOf(fs)
 			}
-			out = append(out, model.Result{Check: NameTopology, Status: st, Subject: k[0] + "/" + k[1], Details: det})
+			out = append(out, res)
 		}
 		return out
 	}

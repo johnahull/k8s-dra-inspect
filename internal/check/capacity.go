@@ -102,10 +102,12 @@ func Capacity() Check {
 			}
 			det := map[string]any{"summary": strings.Join(sum, ", "), "capacities": caps, "allocatedBy": nonNil(slices.Sorted(maps.Keys(d.by)))}
 			st := worst(d.fs)
+			res := model.Result{Check: NameCapacity, Status: st, Subject: key, Details: det}
 			if st != model.StatusPass {
 				det["reason"] = reasons(d.fs)
+				res.Findings = findingsOf(d.fs)
 			}
-			out = append(out, model.Result{Check: NameCapacity, Status: st, Subject: key, Details: det})
+			out = append(out, res)
 		}
 		return out
 	}

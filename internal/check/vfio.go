@@ -6,8 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	resourcev1 "k8s.io/api/resource/v1"
-
 	"github.com/johnahull/k8s-dra-inspect/internal/adapters/host"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
@@ -15,10 +13,7 @@ import (
 // NameVFIO is the Result.Check of VFIO.
 const NameVFIO = "check.vfio"
 
-const (
-	pciBusIDKey = "resource.kubernetes.io/pciBusID"
-	vfioDriver  = "vfio-pci"
-)
+const vfioDriver = "vfio-pci"
 
 // VFIO checks every allocated device that publishes a PCI bus ID against host
 // evidence: bound to vfio-pci, IOMMU group peers, and the /dev/vfio group
@@ -44,7 +39,8 @@ func VFIO() Check {
 				if !found || seen[devName(r)] {
 					continue
 				}
-				bdf := pciBusID(d, r.Driver)
+				bdf, _ := model.AttrString(d, r.Driver, "pciBusID")
+				bdf = strings.ToLower(bdf)
 				if bdf == "" {
 					continue
 				}
@@ -75,24 +71,14 @@ func VFIO() Check {
 	}
 }
 
-// pciBusID reads the standard attribute, or the driver's own-domain one.
-func pciBusID(d resourcev1.Device, driver string) string {
-	a, ok := lookupKey(d.Attributes, driver, pciBusIDKey)
-	if !ok {
-		a, ok = lookupKey(d.Attributes, driver, driver+"/pciBusID")
-	}
-	if !ok || a.StringValue == nil {
-		return ""
-	}
-	return strings.ToLower(*a.StringValue)
-}
-
 func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 	det := map[string]any{"bdf": bdf, "cdiPresent": cdiHas(ev, device, bdf)}
 	pci, ok := ev.PCI[bdf]
 	if !ok {
-		det["reason"] = "PCI device " + bdf + " not found in host evidence"
-		return model.Result{Check: NameVFIO, Status: model.StatusUnavailable, Subject: subject, Details: det}
+		reason := "PCI device " + bdf + " not found in host evidence"
+		det["reason"] = reason
+		return model.Result{Check: NameVFIO, Status: model.StatusUnavailable, Subject: subject, Details: det,
+			Findings: []model.Finding{{Status: model.StatusUnavailable, Text: reason}}}
 	}
 	det["driver"], det["iommuGroup"] = pci.Driver, pci.IOMMUGroup
 	var fs []finding
@@ -131,12 +117,14 @@ func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 		}
 	}
 	st := worst(fs)
+	res := model.Result{Check: NameVFIO, Status: st, Subject: subject, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	} else {
 		det["summary"] = fmt.Sprintf("%s bound to %s in IOMMU group %s", bdf, vfioDriver, pci.IOMMUGroup)
 	}
-	return model.Result{Check: NameVFIO, Status: st, Subject: subject, Details: det}
+	return res
 }
 
 // cdiHas reports whether any CDI spec lists the device by name or bus ID.

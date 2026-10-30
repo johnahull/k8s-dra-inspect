@@ -184,10 +184,12 @@ func (p *counterPool) result(k model.PoolKey, set string) model.Result {
 		delete(det, "counters")
 		delete(det, "summary")
 	}
+	res := model.Result{Check: NameCounters, Status: st, Subject: k[0] + "/" + k[1] + "/" + set, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	}
-	return model.Result{Check: NameCounters, Status: st, Subject: k[0] + "/" + k[1] + "/" + set, Details: det}
+	return res
 }
 
 func incompleteReason(pool string) string {

@@ -123,8 +123,8 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 				ref := idx.find(r.Driver, r.Pool, r.Device)
 				node, tied := deviceNode(snap, r)
 				if ref.state != deviceMissing {
-					if bdf := pciBusID(ref.dev, r.Driver); bdf != "" {
-						d["pciBusID"] = bdf
+					if bdf, _ := model.AttrString(ref.dev, r.Driver, "pciBusID"); bdf != "" {
+						d["pciBusID"] = strings.ToLower(bdf)
 					}
 					top, err := model.TopologyOf(ref.dev, r.Driver)
 					if err != nil {
@@ -182,15 +182,17 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 	if len(v.Warnings) > 0 {
 		det["warnings"] = v.Warnings
 	}
+	res := model.Result{Check: NameKubeVirt, Status: st, Subject: v.Namespace + "/" + v.Name, Details: det}
 	switch {
 	case st != model.StatusPass:
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	case len(v.HostDevices) == 0:
 		det["summary"] = "no DRA host devices"
 	default:
 		det["summary"] = fmt.Sprintf("%d device(s) on node %s", len(devices), v.NodeName)
 	}
-	return model.Result{Check: NameKubeVirt, Status: st, Subject: v.Namespace + "/" + v.Name, Details: det}
+	return res
 }
 
 func claimDefined(v kubevirt.VMI, alias string) bool { _, ok := v.Claims[alias]; return ok }

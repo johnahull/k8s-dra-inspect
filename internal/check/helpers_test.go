@@ -101,6 +101,30 @@ func wantStatus(t *testing.T, r model.Result, st model.Status, reasonHas string)
 	if got, _ := r.Details["reason"].(string); !strings.Contains(got, reasonHas) {
 		t.Fatalf("reason %q lacks %q", got, reasonHas)
 	}
+	assertFindings(t, r)
+}
+
+// assertFindings checks the Findings invariant: the reason is the "; "-join of
+// the finding texts and the worst finding is the result's status.
+func assertFindings(t *testing.T, r model.Result) {
+	t.Helper()
+	if r.Status == model.StatusPass && len(r.Findings) == 0 {
+		return // informational reasons on a pass carry no finding
+	}
+	var texts []string
+	st := model.StatusPass
+	for _, f := range r.Findings {
+		texts = append(texts, f.Text)
+		if rollupRank[f.Status] > rollupRank[st] {
+			st = f.Status
+		}
+	}
+	if reason, _ := r.Details["reason"].(string); strings.Join(texts, "; ") != reason {
+		t.Errorf("%s %s: findings %q do not join to reason %q", r.Check, r.Subject, texts, reason)
+	}
+	if st != r.Status {
+		t.Errorf("%s %s: worst finding %s != status %s", r.Check, r.Subject, st, r.Status)
+	}
 }
 
 var _ = corev1.Pod{}
