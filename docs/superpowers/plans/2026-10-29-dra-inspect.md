@@ -291,7 +291,7 @@ Design: the KubeVirt adapter makes no API calls. It derives versioned evidence (
 
 ### Task 8: Migrate the lab script and validate against a live cluster
 
-Split in two. **8a (offline) is done**; **8b (live kind run) is pending explicit approval and has NOT been run.**
+Split in two. **8a (offline) is done.** **8b is done at API-server level only:** the kind run could not execute on the available host (rootless podman 3.4.4, only `memory pids` cgroup controllers delegated), and on 2026-10-30 the project owner accepted an API-server-level live run as the scope for the initial implementation. The kind run itself was NOT run and remains a documented follow-up (see `docs/harness-test-plan.md`).
 
 **Files (8a):**
 - Create: `docs/migration-from-dra-verify.md`, `docs/harness-test-plan.md`, `docs/examples/support-bundle.json`, `docs/examples/support-report.txt`, `hack/capture-legacy-facts.sh`, `testdata/parity/*.facts.json`, `internal/cli/parity_test.go`, `internal/cli/examples_test.go`
@@ -305,10 +305,11 @@ Split in two. **8a (offline) is done**; **8b (live kind run) is pending explicit
 - [x] Write the live verification plan (`docs/harness-test-plan.md`, status NOT RUN).
 - [x] Commit: `docs: document dra-verify migration and add legacy parity tests`.
 
-**8b, live (pending approval, not run):**
-- [ ] Approve the plan in `docs/harness-test-plan.md` (kind with podman, pinned node image and sample driver tag; the former harness path `devel/k8s-dra-harness` does not exist, so the sample driver is `kubernetes-sigs/dra-example-driver`).
-- [ ] Run it, fill in the results table, and record expected versus observed unavailable-adapter behavior.
-- [ ] Commit the filled results: `docs: record live-cluster verification results`.
+**8b, live verification (done at API-server level; kind run deferred by owner decision):**
+- [x] Approve the plan in `docs/harness-test-plan.md` (kind with podman, pinned node image and sample driver tag; the former harness path `devel/k8s-dra-harness` does not exist, so the sample driver is `kubernetes-sigs/dra-example-driver`).
+- [x] Run an API-server-level live verification (`hack/live-apiserver.sh`: real kube-apiserver v1.34.11 and etcd on 127.0.0.1, no kubelet) and fill in the results table (197 assertions pass; each also shown able to fail with `--red`; findings F1/F2 fixed).
+- [x] Commit the results: `docs: record API-server-level live verification`.
+- [ ] **Deferred follow-up (not part of this plan's completion):** run `hack/live-kind.sh` on a host where rootless kind works (cgroup controllers `cpu cpuset io memory pids` delegated, podman 4+ with netavark). It covers kubelet-run pods, Job controller behavior, a real DRA driver, CDI and the host adapter on a real node. Not run; nothing in this repository claims it was.
 
 ## Final Verification
 
