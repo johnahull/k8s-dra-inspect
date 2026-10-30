@@ -18,6 +18,7 @@ import (
 	resourcev1 "k8s.io/api/resource/v1"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
+	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
 func isDigit(b byte) bool { return b >= '0' && b <= '9' }
@@ -133,3 +134,31 @@ func orUnknown(s string) string {
 
 // short is a device's last path segment: driver/pool/device -> device.
 func short(full string) string { return full[strings.LastIndex(full, "/")+1:] }
+
+// noNode heads devices that have no node binding at all.
+const noNode = "(no node)"
+
+// isPlaceholder reports whether a node string is a label, not a node name.
+func isPlaceholder(n string) bool {
+	return n == "" || n == model.AllNodesLabel || n == model.SelectorLabel
+}
+
+// cmpNode orders node strings as plain strings (as slices.go does), except
+// that the (all nodes)/(selector) labels come after every real node name.
+func cmpNode(a, b string) int {
+	if pa, pb := isPlaceholder(a), isPlaceholder(b); pa != pb {
+		if pa {
+			return 1
+		}
+		return -1
+	}
+	return cmp.Compare(a, b)
+}
+
+// nodeTitle is the "Node: x" line of a node block.
+func nodeTitle(p *render.Printer, n string) string {
+	if n == "" {
+		n = noNode
+	}
+	return fmt.Sprintf("%s %s", p.Bold("Node:"), n)
+}

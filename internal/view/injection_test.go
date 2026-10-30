@@ -152,3 +152,24 @@ func TestCheckViewsNeutraliseHostileText(t *testing.T) {
 		}
 	}
 }
+
+// A hostile node name reaches the Node: heading, the driver line and, for
+// attributes, the device heading (pool differs from the node there).
+func TestNodeGroupedViewsNeutraliseHostileNodeNames(t *testing.T) {
+	for _, c := range []struct {
+		name string
+		in   inspect.Inspector
+		v    viewFunc
+	}{{"drivers", inspect.Drivers(true), view.Drivers}} {
+		snap := evilSnap(t)
+		snap.ResourceSlices[0].Spec.NodeName = strp("node" + evil)
+		snap.ResourceSlices[0].Spec.Pool.Name = "pool" + evil
+		out := show(t, snap, c.in, c.v)
+		if strings.ContainsAny(out, "\x1b\u202e\u2028") {
+			t.Errorf("%s: control or bidi characters survived:\n%q", c.name, out)
+		}
+		if !strings.Contains(out, "Node: nodex") {
+			t.Errorf("%s: cleaned hostile node heading missing:\n%s", c.name, out)
+		}
+	}
+}

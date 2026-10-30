@@ -1,6 +1,7 @@
 ═══ DRA Drivers ═══
 
-dra.cpu: 8 devices on node-a.example.com  (1 pool)
-dra.memory: 8 devices on node-a.example.com  (1 pool)
-gpu.amd.com: 8 devices on node-a.example.com  (1 pool)
-sriovnetwork.k8snetworkplumbingwg.io: 8 devices on node-a.example.com  (1 pool)
+Node: node-a.example.com
+  dra.cpu: 8 devices  (1 pool)
+  dra.memory: 8 devices  (1 pool)
+  gpu.amd.com: 8 devices  (1 pool)
+  sriovnetwork.k8snetworkplumbingwg.io: 8 devices  (1 pool)

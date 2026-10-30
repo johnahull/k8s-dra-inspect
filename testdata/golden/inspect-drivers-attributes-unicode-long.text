@@ -1,15 +1,17 @@
 ═══ DRA Drivers ═══
 
-gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com: 2 devices on node-a.example.com  (1 pool)
-  attributes:
-    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels
-    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID
-    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID
-    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName
-    resource.kubernetes.io/numaNode
-    resource.kubernetes.io/pcieRoot
+Node: node-a.example.com
+  gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com: 2 devices  (1 pool)
+    attributes:
+      gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels
+      gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID
+      gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID
+      gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName
+      resource.kubernetes.io/numaNode
+      resource.kubernetes.io/pcieRoot
 
-other.example.com: 1 device on node-b.example.com  (1 pool)
-  attributes:
-    other.example.com/mtu
-    other.example.com/pciDevice
+Node: node-b.example.com
+  other.example.com: 1 device  (1 pool)
+    attributes:
+      other.example.com/mtu
+      other.example.com/pciDevice
