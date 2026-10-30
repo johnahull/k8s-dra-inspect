@@ -1,0 +1,4 @@
+═══ DRA Drivers ═══
+
+Node: node-a.example.com
+  gpu.example.com: 2 devices  (1 pool)

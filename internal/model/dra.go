@@ -171,3 +171,40 @@ func FindDevice(list []resourcev1.ResourceSlice, driver, pool, device string) (r
 	}
 	return found, best, best != nil
 }
+
+type deviceHit struct {
+	dev   resourcev1.Device
+	slice *resourcev1.ResourceSlice
+}
+
+// DeviceIndex finds devices by key in O(1) with FindDevice's answers: the
+// slice of the highest generation that lists the device, the first one on a
+// tie, and the last entry when a slice repeats a name.
+type DeviceIndex map[DeviceKey]deviceHit
+
+// NewDeviceIndex indexes list; the slices must outlive the index.
+func NewDeviceIndex(list []resourcev1.ResourceSlice) DeviceIndex {
+	idx := DeviceIndex{}
+	for i := range list {
+		s := &list[i]
+		for _, d := range s.Spec.Devices {
+			k := DeviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}
+			if h, ok := idx[k]; ok && h.slice != s && s.Spec.Pool.Generation <= h.slice.Spec.Pool.Generation {
+				continue
+			}
+			idx[k] = deviceHit{d, s}
+		}
+	}
+	return idx
+}
+
+// Find is FindDevice over the indexed slices.
+func (x DeviceIndex) Find(driver, pool, device string) (resourcev1.Device, *resourcev1.ResourceSlice, bool) {
+	h, ok := x[DeviceKey{driver, pool, device}]
+	return h.dev, h.slice, ok
+}
+
+// IsListAttr reports whether a is a list-valued attribute.
+func IsListAttr(a resourcev1.DeviceAttribute) bool {
+	return a.IntValues != nil || a.BoolValues != nil || a.StringValues != nil || a.VersionValues != nil
+}

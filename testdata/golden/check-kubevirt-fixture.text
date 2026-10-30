@@ -1,0 +1,66 @@
+UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
+═══ KubeVirt Check ═══
+
+demo/vm-garbage
+  ! evidence: 9 warnings
+      status.nodeName is not a string
+      status.phase is not a string
+      spec.domain.cpu.sockets is not an integer
+      spec.domain.cpu.threads is not an integer
+      spec.domain.cpu.dedicatedCpuPlacement is not a boolean
+      spec.domain.cpu.numa is not an object
+      spec.resourceClaims is not a list
+      hostDevices has an entry that is not an object
+      hostDevices has a DRA entry with a missing or non-string field
+  · no DRA host devices
+
+demo/vm-missing-claim
+  ✗ claim demo/no-such-claim not found
+
+demo/vm-no-allocation
+  ✗ request absent has no allocation result in claim demo/claim-ok
+
+demo/vm-ok
+  gpu0
+    gpu-0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-a.example.com
+  nic0
+    nic-0 (0000:3c:00.0)  gpu.example.com
+    hostDevice nic0  node node-a.example.com
+  gpu2/sub
+    gpu-2 (0000:af:00.0)  gpu.example.com
+    hostDevice gpu2  node node-a.example.com
+  devices on NUMA 0,1
+  guest NUMA passthrough: yes
+  dedicated CPU placement: yes
+  ✓ 3 devices on node node-a.example.com
+
+demo/vm-secrets
+  gpu0
+    gpu-0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-a.example.com
+  devices on NUMA 0
+  guest NUMA passthrough: no
+  dedicated CPU placement: no
+  ✓ 1 device on node node-a.example.com
+
+demo/vm-split
+  gpu0
+    gpu-0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-a.example.com
+  gpu2/sub
+    gpu-2 (0000:af:00.0)  gpu.example.com
+    hostDevice gpu2  node node-a.example.com
+  devices on NUMA 0,1
+  guest NUMA passthrough: no
+  dedicated CPU placement: yes
+  ! devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology
+
+demo/vm-wrong-node
+  gpu0
+    gpu-b0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-b.example.com
+  devices on NUMA 0
+  guest NUMA passthrough: no
+  dedicated CPU placement: no
+  ✗ device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com

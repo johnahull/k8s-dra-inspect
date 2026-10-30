@@ -18,7 +18,7 @@ type topoGroup struct {
 	numaKeys, pcieKs map[string]bool
 	drivers          map[string]int
 	devices          []string
-	reasons          map[string]bool
+	reasons          map[string]model.Finding
 }
 
 func join(v []string) string {
@@ -60,28 +60,31 @@ func Topology(compact bool) Inspector {
 			for _, s := range cur {
 				for _, d := range s.Spec.Devices {
 					top, err := model.TopologyOf(d, s.Spec.Driver)
-					reasons := map[string]bool{}
+					reasons := map[string]model.Finding{}
+					add := func(k model.Kind, text string, items ...string) {
+						reasons[text] = model.Finding{Status: model.StatusWarn, Kind: k, Text: text, Items: items}
+					}
 					if err != nil {
-						reasons["invalid attribute: "+err.Error()] = true
+						add(model.KindInvalid, "invalid attribute: "+err.Error())
 					}
 					for _, x := range []struct {
 						name string
 						r    model.Resolved
 					}{{"numa", top.NUMA}, {"pcieRoot", top.PCIeRoot}} {
 						if len(x.r.Values) == 0 && err == nil {
-							reasons["missing attribute: "+x.name] = true
+							add(model.KindAttrMissing, "missing attribute: "+x.name, x.name)
 						}
 						if x.r.Conflict {
-							reasons[fmt.Sprintf("conflicting %s attributes: %s differs from another key at the same tier", x.name, x.r.Key)] = true
+							add(model.KindTopologyConflict, fmt.Sprintf("conflicting %s attributes: %s differs from another key at the same tier", x.name, x.r.Key))
 						}
 					}
 					if sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete {
-						reasons[incompleteReason(s.Spec.Pool.Name)] = true
+						add(model.KindIncomplete, incompleteReason(s.Spec.Pool.Name), s.Spec.Pool.Name)
 					}
 					k := topoKey{model.DeviceNode(s, d).String(), join(top.NUMA.Values), join(top.PCIeRoot.Values)}
 					g := groups[k]
 					if g == nil {
-						g = &topoGroup{numa: top.NUMA.Values, pcie: top.PCIeRoot.Values, numaKeys: map[string]bool{}, pcieKs: map[string]bool{}, drivers: map[string]int{}, reasons: map[string]bool{}}
+						g = &topoGroup{numa: top.NUMA.Values, pcie: top.PCIeRoot.Values, numaKeys: map[string]bool{}, pcieKs: map[string]bool{}, drivers: map[string]int{}, reasons: map[string]model.Finding{}}
 						groups[k] = g
 					}
 					if top.NUMA.Key != "" {
@@ -111,12 +114,17 @@ func Topology(compact bool) Inspector {
 					det["devices"] = g.devices
 				}
 				status := model.StatusPass
+				var findings []model.Finding
 				if len(g.reasons) > 0 {
 					status = model.StatusWarn
-					det["reason"] = strings.Join(slices.Sorted(maps.Keys(g.reasons)), ", ")
+					texts := slices.Sorted(maps.Keys(g.reasons))
+					det["reason"] = strings.Join(texts, ", ")
+					for _, text := range texts {
+						findings = append(findings, g.reasons[text])
+					}
 				}
 				out = append(out, model.Result{Check: check, Status: status,
-					Subject: fmt.Sprintf("%s/numa=%s/pcieRoot=%s", k.node, k.numa, k.pcie), Details: det})
+					Subject: fmt.Sprintf("%s/numa=%s/pcieRoot=%s", k.node, k.numa, k.pcie), Details: det, Findings: findings})
 			}
 			return out
 		},

@@ -1,0 +1,5 @@
+═══ Consumable Capacity ═══
+
+mem.example.com/node-a.example.com/mem-0
+  used by demo/odd
+  ✗ consumed capacity gpu-memory is not published by mem.example.com/node-a.example.com/mem-0

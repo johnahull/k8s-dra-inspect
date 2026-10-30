@@ -1,0 +1,275 @@
+═══ DeviceClasses ═══
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa0-pci0000-d0-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa0-pci0000-d0
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa1-pci0000-00-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa1-pci0000-00
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa2-pci0000-32-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa2-pci0000-32
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa3-pci0000-a0-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa3-pci0000-a0
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa4-pci0001-d0-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa4-pci0001-d0
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa5-pci0001-00-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa5-pci0001-00
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa6-pci0001-32-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa6-pci0001-32
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k-bbbe6cc4-pcieroot-numa7-pci0001-a0-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa7-pci0001-a0
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa0-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa0
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa1-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa1
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa2-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa2
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa3-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa3
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa4-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa4
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa5-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa5
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa6-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa6
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra-cpu-dra-memory-gpu-amd-com-sriovnetwork-k8sne-bbbe6cc4-numa-numa7-tight
+  labels:
+    nodepartition.dra.k8s.io/coupling=tight
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=numa7
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+dra.cpu
+  labels: none
+  selectors: 1 (expressions not shown)
+  config: none
+
+dra.hugepages-1g
+  labels:
+    app.kubernetes.io/managed-by=Helm
+    app.kubernetes.io/part-of=dra-topology-drivers
+    helm.sh/chart=dra-topology-drivers-0.1.0
+  selectors: 1 (expressions not shown)
+  config: none
+
+dra.hugepages-2m
+  labels:
+    app.kubernetes.io/managed-by=Helm
+    app.kubernetes.io/part-of=dra-topology-drivers
+    helm.sh/chart=dra-topology-drivers-0.1.0
+  selectors: 1 (expressions not shown)
+  config: none
+
+dra.memory
+  labels:
+    app.kubernetes.io/managed-by=Helm
+    app.kubernetes.io/part-of=dra-topology-drivers
+    helm.sh/chart=dra-topology-drivers-0.1.0
+  selectors: 1 (expressions not shown)
+  config: none
+
+dra.net
+  labels: none
+  selectors: 1 (expressions not shown)
+  config: none
+
+dra.nvme
+  labels: none
+  selectors: 1 (expressions not shown)
+  config: none
+
+eighth
+  labels:
+    nodepartition.dra.k8s.io/count=8
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+    nodepartition.dra.k8s.io/tierName=eighth
+  selectors: 1 (expressions not shown)
+  config: present
+
+full
+  labels:
+    nodepartition.dra.k8s.io/coupling=loose
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/partitionType=full
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+gpu-nic-pair
+  labels:
+    nodepartition.dra.k8s.io/alignment=pcieRoot
+    nodepartition.dra.k8s.io/count=2
+    nodepartition.dra.k8s.io/grouping=gpu-nic-pair
+    nodepartition.dra.k8s.io/managed=true
+  selectors: 1 (expressions not shown)
+  config: present
+
+gpu-nic-pair-pcieroot-numa0
+  labels:
+    nodepartition.dra.k8s.io/alignment=pcieRoot
+    nodepartition.dra.k8s.io/grouping=gpu-nic-pair
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=0
+  selectors: 1 (expressions not shown)
+  config: present
+
+gpu-nic-pair-pcieroot-numa5
+  labels:
+    nodepartition.dra.k8s.io/alignment=pcieRoot
+    nodepartition.dra.k8s.io/grouping=gpu-nic-pair
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/numa=5
+  selectors: 1 (expressions not shown)
+  config: present
+
+gpu.amd.com
+  labels: none
+  selectors: 1 (expressions not shown)
+  config: none
+
+numa
+  labels:
+    nodepartition.dra.k8s.io/count=8
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/partitionType=numa
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+pcieroot
+  labels:
+    nodepartition.dra.k8s.io/count=8
+    nodepartition.dra.k8s.io/managed=true
+    nodepartition.dra.k8s.io/partitionType=pcieroot
+    nodepartition.dra.k8s.io/profile=dra.cpu_dra.memory_gpu.amd.com_sriovnetwork.k8snetwork-3a9b45c3
+  selectors: 1 (expressions not shown)
+  config: present
+
+sriovnetwork.k8snetworkplumbingwg.io
+  labels:
+    app.kubernetes.io/managed-by=Helm
+  selectors: 1 (expressions not shown)
+  config: none

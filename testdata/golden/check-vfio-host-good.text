@@ -1,0 +1,8 @@
+═══ VFIO Check ═══
+
+gpu.example.com/gpu-0 (0000:3b:00.0)
+  bound driver: vfio-pci
+  IOMMU group: 7
+  /dev/vfio/7: present
+  CDI spec lists device: no
+  ✓ 0000:3b:00.0 bound to vfio-pci in IOMMU group 7

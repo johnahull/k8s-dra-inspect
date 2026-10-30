@@ -1,0 +1,55 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0,1,2,3
+│  ├─ pcieRoot pci0000:00
+│  │  └─ gpu  gpu-vfio-5 (0000:0c:02.0)
+│  ├─ pcieRoot pci0000:32
+│  │  └─ gpu  gpu-vfio-4 (0000:3d:02.0)
+│  ├─ pcieRoot pci0000:a0
+│  │  └─ gpu  gpu-vfio-6 (0000:a8:02.0)
+│  ├─ pcieRoot pci0000:d0
+│  │  ├─ gpu  gpu-vfio-7 (0000:dc:02.0)
+│  │  ├─ nic  0000-d5-00-2 (0000:d5:00.2)
+│  │  ├─ nic  0000-d5-00-3 (0000:d5:00.3)
+│  │  ├─ nic  0000-d5-00-4 (0000:d5:00.4)
+│  │  └─ nic  0000-d5-00-5 (0000:d5:00.5)
+│  ├─ pcieRoot pci0000:00,pci0000:64
+│  │  └─ cpu  cpudevnuma001
+│  ├─ pcieRoot pci0000:32,pci0000:66
+│  │  └─ cpu  cpudevnuma002
+│  ├─ pcieRoot pci0000:96,pci0000:a0
+│  │  └─ cpu  cpudevnuma003
+│  ├─ pcieRoot pci0000:98,pci0000:d0
+│  │  └─ cpu  cpudevnuma000
+│  └─ pcieRoot unknown
+│     ├─ memory  memory-bjd9hw
+│     ├─ memory  memory-fk8nlr
+│     ├─ memory  memory-rddth4
+│     └─ memory  memory-t5wtkl
+└─ NUMA 4,5,6,7
+   ├─ pcieRoot pci0001:00
+   │  ├─ gpu  gpu-vfio-2 (0001:0d:02.0)
+   │  ├─ nic  0001-07-00-2 (0001:07:00.2)
+   │  ├─ nic  0001-07-00-3 (0001:07:00.3)
+   │  ├─ nic  0001-07-00-4 (0001:07:00.4)
+   │  └─ nic  0001-07-00-5 (0001:07:00.5)
+   ├─ pcieRoot pci0001:32
+   │  └─ gpu  gpu-vfio-3 (0001:3d:02.0)
+   ├─ pcieRoot pci0001:a0
+   │  └─ gpu  gpu-vfio-1 (0001:a5:02.0)
+   ├─ pcieRoot pci0001:d0
+   │  └─ gpu  gpu-vfio-0 (0001:dc:02.0)
+   ├─ pcieRoot pci0001:00,pci0001:64
+   │  └─ cpu  cpudevnuma005
+   ├─ pcieRoot pci0001:32,pci0001:66
+   │  └─ cpu  cpudevnuma006
+   ├─ pcieRoot pci0001:68,pci0001:a0
+   │  └─ cpu  cpudevnuma007
+   ├─ pcieRoot pci0001:98,pci0001:d0
+   │  └─ cpu  cpudevnuma004
+   └─ pcieRoot unknown
+      ├─ memory  memory-2v88wt
+      ├─ memory  memory-4qhskf
+      ├─ memory  memory-559qbb
+      └─ memory  memory-s9zcsf

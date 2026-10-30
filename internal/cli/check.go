@@ -9,6 +9,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
+	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
 // checkSpec lays out any check result: subject, status, then the reason for
@@ -56,18 +57,20 @@ snapshot and calls no extra API. Only host-device, claim, NUMA and CPU fields
 of a VMI are read; cloud-init data, credentials and interfaces never are.`
 
 func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
-	add := func(use, short, long string, args cobra.PositionalArgs, build func(args []string) check.Check) {
+	add := func(use, short, long string, text textView, args cobra.PositionalArgs, build func(args []string) check.Check) {
 		parent.AddCommand(&cobra.Command{
 			Use: use, Short: short, Long: long, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				c := build(args)
 				return runResults(cmd, opts, d,
-					func(ctx context.Context, snap model.Snapshot) []model.Result { return c(ctx, snap) },
-					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) })
+					func(ctx context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
+						return snap, c(ctx, snap)
+					},
+					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, text)
 			},
 		})
 	}
-	add("alignment [POD|CLAIM]", "Check allocated devices against claim constraints and NUMA/PCIe placement", alignmentHelp, cobra.MaximumNArgs(1),
+	add("alignment [POD|CLAIM]", "Check allocated devices against claim constraints and NUMA/PCIe placement", alignmentHelp, view.Alignment, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
 			target := ""
 			if len(args) == 1 {
@@ -75,10 +78,10 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 			}
 			return check.Alignment(target, opts.Namespace)
 		})
-	add("counters", "Check shared-counter capacity against allocated claims", "", cobra.NoArgs, func([]string) check.Check { return check.Counters() })
-	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
-	add("topology", "Validate published NUMA and PCIe-root attributes", "", cobra.NoArgs, func([]string) check.Check { return check.Topology() })
-	add("kubevirt [VMI]", "Check KubeVirt VMI host devices against their DRA claims (derived from the snapshot's VMIs)", kubevirtHelp, cobra.MaximumNArgs(1),
+	add("counters", "Check shared-counter capacity against allocated claims", "", view.Counters, cobra.NoArgs, func([]string) check.Check { return check.Counters() })
+	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, view.Capacity, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
+	add("topology", "Validate published NUMA and PCIe-root attributes", "", view.CheckTopology, cobra.NoArgs, func([]string) check.Check { return check.Topology() })
+	add("kubevirt [VMI]", "Check KubeVirt VMI host devices against their DRA claims (derived from the snapshot's VMIs)", kubevirtHelp, view.KubeVirt, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
 			target := ""
 			if len(args) == 1 {

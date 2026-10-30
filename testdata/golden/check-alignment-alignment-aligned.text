@@ -1,0 +1,9 @@
+═══ Alignment Check ═══
+
+demo/aligned-gpus
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot unknown
+    gpu-1  gpu.example.com
+    NUMA 0  pcieRoot unknown
+  ✓ matchAttribute resource.kubernetes.io/numaNode satisfied: common value 0

@@ -67,33 +67,6 @@ func requestsOf(c resourcev1.ResourceClaim) []map[string]any {
 	return out
 }
 
-// podsUsing finds pods whose spec or status resolves to claim c, plus pods in
-// reservedFor.
-func podsUsing(snap model.Snapshot, c resourcev1.ResourceClaim) []string {
-	var names []string
-	for _, p := range snap.Pods {
-		if p.Namespace != c.Namespace {
-			continue
-		}
-		for _, rc := range p.ResourceClaims {
-			if rc.ResourceClaimName != nil && *rc.ResourceClaimName == c.Name {
-				names = append(names, p.Name)
-			}
-		}
-		for _, st := range p.ResourceClaimStatuses {
-			if st.ResourceClaimName != nil && *st.ResourceClaimName == c.Name {
-				names = append(names, p.Name)
-			}
-		}
-	}
-	for _, r := range c.Status.ReservedFor {
-		if r.Resource == "pods" {
-			names = append(names, r.Name)
-		}
-	}
-	return sortedUnique(names)
-}
-
 // vmiOf matches a virt-launcher-<vmi>-<suffix> pod to a VMI in the namespace.
 func vmiOf(snap model.Snapshot, ns string, pods []string) string {
 	for _, p := range pods {
@@ -179,7 +152,7 @@ func Claims() Inspector {
 				for _, r := range c.Status.ReservedFor {
 					reserved = append(reserved, r.Name)
 				}
-				used := podsUsing(snap, c)
+				used := model.PodsUsing(snap, c)
 				det := map[string]any{
 					"deviceRequests": requestsOf(c), "allocated": al != nil, "results": results, "deviceCount": len(results),
 					"nodes": sortedUnique(nodes), "reservedFor": reserved, "usedBy": used,
@@ -206,12 +179,14 @@ func Claims() Inspector {
 					}
 				}
 				status := model.StatusPass
+				var findings []model.Finding
 				if len(missing) > 0 {
 					status = model.StatusWarn
 					det["missingDevices"] = missing
 					det["reason"] = "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
+					findings = []model.Finding{{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing}}
 				}
-				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det})
+				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det, Findings: findings})
 			}
 			return out
 		},

@@ -1,0 +1,30 @@
+UNAVAILABLE: check.vfio node/node-b.example.com: 1 device on node node-b.example.com: run on node node-b.example.com
+UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
+═══ Support Report ═══
+
+Summary: 13 checks: 8 ok, 3 warnings, 1 failure, 1 unavailable, 0 errors
+
+inspect.topology
+  ! node-a.example.com, NUMA 0: no pcieRoot published
+  ! node-a.example.com, NUMA 1: no pcieRoot published
+  ! node-b.example.com, NUMA 0: no pcieRoot published
+
+check.alignment
+  ! demo/claim-ok: devices span NUMA nodes (no common NUMA node)
+
+check.topology
+  ! gpu.example.com/node-a.example.com: PCIe root missing on 3 devices
+      gpu-0, nic-0, gpu-2
+  ! gpu.example.com/node-b.example.com: PCIe root missing on gpu-b0
+
+check.kubevirt
+  ✗ demo/vm-missing-claim: claim demo/no-such-claim not found
+  ✗ demo/vm-no-allocation: request absent has no allocation result in claim demo/claim-ok
+  ! demo/vm-split: devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology
+  ✗ demo/vm-wrong-node: device gpu.example.com/node-b.example.com/gpu-b0 is on node node-b.example.com, but the VMI runs on node-a.example.com
+
+adapters
+  ✓ adapter.host: host evidence for node node-a.example.com
+  ✓ adapter.kubevirt: 8 VMIs
+
+Details: run the individual check or inspect commands, or use -o json.

@@ -1,0 +1,6 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  gpu.example.com (2 devices, 2 in use, 0 free)
+    NUMA 0  gpu-0  →claim demo/two-gpus
+    NUMA 1  gpu-1  →claim demo/two-gpus

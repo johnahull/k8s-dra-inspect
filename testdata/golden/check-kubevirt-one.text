@@ -1,0 +1,16 @@
+═══ KubeVirt Check ═══
+
+demo/vm-ok
+  gpu0
+    gpu-0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-a.example.com
+  nic0
+    nic-0 (0000:3c:00.0)  gpu.example.com
+    hostDevice nic0  node node-a.example.com
+  gpu2/sub
+    gpu-2 (0000:af:00.0)  gpu.example.com
+    hostDevice gpu2  node node-a.example.com
+  devices on NUMA 0,1
+  guest NUMA passthrough: yes
+  dedicated CPU placement: yes
+  ✓ 3 devices on node node-a.example.com

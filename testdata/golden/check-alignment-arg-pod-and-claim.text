@@ -1,0 +1,14 @@
+═══ Alignment Check ═══
+
+demo/two-gpus (also matched pod)
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot pci0000:00
+    gpu-1  gpu.example.com
+    NUMA 1  pcieRoot pci0000:80
+  ! devices span NUMA nodes (no common NUMA node)
+      NUMA 0: gpu-0
+      NUMA 1: gpu-1
+  · devices span PCIe roots (informational)
+      pcieRoot pci0000:00: gpu-0
+      pcieRoot pci0000:80: gpu-1

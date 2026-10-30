@@ -1,0 +1,39 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  dra.cpu (8 devices, 3 in use, 5 free)
+    NUMA 0,1,2,3  cpudevnuma000
+    NUMA 0,1,2,3  cpudevnuma001  →default/pod-1
+    NUMA 0,1,2,3  cpudevnuma002  →default/pod-1
+    NUMA 0,1,2,3  cpudevnuma003  →default/pod-1
+    NUMA 4,5,6,7  cpudevnuma004
+    NUMA 4,5,6,7  cpudevnuma005
+    NUMA 4,5,6,7  cpudevnuma006
+    NUMA 4,5,6,7  cpudevnuma007
+  dra.memory (8 devices, 3 in use, 5 free)
+    NUMA 0,1,2,3  memory-bjd9hw  →default/pod-1
+    NUMA 0,1,2,3  memory-fk8nlr
+    NUMA 0,1,2,3  memory-rddth4
+    NUMA 0,1,2,3  memory-t5wtkl  →default/pod-1
+    NUMA 4,5,6,7  memory-2v88wt
+    NUMA 4,5,6,7  memory-4qhskf  →default/pod-1
+    NUMA 4,5,6,7  memory-559qbb
+    NUMA 4,5,6,7  memory-s9zcsf
+  gpu.amd.com (8 devices, 3 in use, 5 free)
+    NUMA 0,1,2,3  gpu-vfio-4 (0000:3d:02.0)
+    NUMA 0,1,2,3  gpu-vfio-5 (0000:0c:02.0)
+    NUMA 0,1,2,3  gpu-vfio-6 (0000:a8:02.0)
+    NUMA 0,1,2,3  gpu-vfio-7 (0000:dc:02.0)  →default/pod-1
+    NUMA 4,5,6,7  gpu-vfio-0 (0001:dc:02.0)  →default/pod-1
+    NUMA 4,5,6,7  gpu-vfio-1 (0001:a5:02.0)  →default/pod-1
+    NUMA 4,5,6,7  gpu-vfio-2 (0001:0d:02.0)
+    NUMA 4,5,6,7  gpu-vfio-3 (0001:3d:02.0)
+  sriovnetwork.k8snetworkplumbingwg.io (8 devices, 3 in use, 5 free)
+    NUMA 0,1,2,3  0000-d5-00-2 (0000:d5:00.2)
+    NUMA 0,1,2,3  0000-d5-00-3 (0000:d5:00.3)
+    NUMA 0,1,2,3  0000-d5-00-4 (0000:d5:00.4)
+    NUMA 0,1,2,3  0000-d5-00-5 (0000:d5:00.5)
+    NUMA 4,5,6,7  0001-07-00-2 (0001:07:00.2)
+    NUMA 4,5,6,7  0001-07-00-3 (0001:07:00.3)  →default/pod-1
+    NUMA 4,5,6,7  0001-07-00-4 (0001:07:00.4)  →default/pod-1
+    NUMA 4,5,6,7  0001-07-00-5 (0001:07:00.5)  →default/pod-1

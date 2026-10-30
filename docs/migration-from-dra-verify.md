@@ -31,6 +31,24 @@ New commands with no legacy counterpart: `check capacity`, `check topology`,
 `check kubevirt [VMI]`, `snapshot capture`, and the global `--from FILE`
 replay.
 
+### The text layout and the legacy sections
+
+The default `-o text` output keeps the script's sections but is laid out for
+reading rather than for `awk`; use `-o table` for flat rows and `-o json` for
+machines.
+
+| Legacy section | Text layout |
+|---|---|
+| `slices` hardware summary | `inspect slices`: per node and driver, one line per current device with its NUMA nodes, bus ID and product, and after an arrow the claim or pod using it; the header counts devices in use and free. |
+| `topology` tree | `inspect topology`: node, then NUMA set, then PCIe-root set, then devices. There is no socket level (`cpuSocketID` is gone). NUMA sets sort numerically (`0,1` before `10,11`), PCIe roots by count and then naturally, and unknown branches come last. |
+| `drivers` | `inspect drivers`: per node, one line per driver with its current devices and pools on that node; with `--attributes` the attribute keys those devices publish, indented below. Named nodes sort as plain strings (`node-10` before `node-2`); devices not bound to one node follow under `Node: (no node)`, `Node: (all nodes)` or `Node: (selector)`. An incomplete-pool warning prints under each node that holds devices of that pool, naming only that node's pools. A warning no node can own (and a driver with no devices) comes last, under `Other notes`. |
+| `attributes` | `inspect attributes`: per node, then driver (with its device count on that node), then device; one `key = value` line per attribute, `=` aligned per device, list values as `[0, 1]`. A device heading names its pool only when the pool is not called like the node. Placeholder nodes and warnings follow the same rules as `drivers`. |
+| `alignment` | `check alignment`: each request name on its own line with its device, NUMA nodes and PCIe root indented below; then one sentence per finding. A sentence naming devices (a NUMA split, a violated `matchAttribute`) is followed by one line per group (`NUMA 0,1: gpu-0, gpu-2`). |
+| `counters` | `check counters`: per pool and counter set, "N of M in use", the claims using it, then the verdict. |
+
+Long device lists wrap at the terminal width (100 columns when piped) and
+never lose a name.
+
 ### DeviceClass filters
 
 The legacy script always listed only classes labeled
@@ -57,7 +75,7 @@ summaries, counts and analysis text are not reproduced.
 | `-v`, `--verbose` | dropped; `inspect attributes --all-attributes` shows every attribute, including product names, and `-o json` always carries full detail |
 | positional DeviceClass filter (`pairs`, `partitions`, `aggregates`) | `--selector`, a standard Kubernetes label selector; see the table below |
 | positional Pod or VM | typed positional argument of the command that takes it (`check alignment POD`, `check cpupinning POD`, `check kubevirt VMI`) |
-| (none) | `-o table\|json`, `--from FILE`, `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color` |
+| (none) | `-o text\|table\|json`, `--from FILE`, `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color` |
 | `source dra-verify.sh` | gone; use `dra-inspect completion` |
 
 ## Dropped
@@ -128,8 +146,9 @@ How to read the output:
   files, and does not look at process file descriptors. The Helm Job does not
   run them.
 - **Current generation only.** `drivers`, `attributes`, `topology` and
-  `check counters` use the newest generation of each pool; `inspect slices`
-  lists every generation. The script counted superseded slices too, so its
+  `check counters` use the newest generation of each pool; `inspect slices -o
+  table` lists every slice and generation, while the default text view shows
+  the current devices and notes stale or incomplete slices. The script counted superseded slices too, so its
   counter totals could include stale devices.
 - **Allocation without `reservedFor`.** The script ignored allocated claims
   that no pod reserved (`status.reservedFor` empty); dra-inspect counts every
@@ -138,8 +157,9 @@ How to read the output:
   is `fail` (exit 1). The legacy `dra-counters.py` printed a red negative
   number and exited 0.
 - **Output is plain.** No ANSI unless stdout is a terminal (`--no-color` and
-  `NO_COLOR` disable it); long names are truncated with an ellipsis in tables
-  and kept whole in JSON.
+  `NO_COLOR` disable it). The default `-o text` never truncates a name; only
+  `-o table` truncates long cells with an ellipsis to fit the terminal, and
+  `-o json` keeps everything whole.
 - **Requirements.** Kubernetes 1.34 or newer (the `resource.k8s.io/v1` API).
   The legacy `deviceclasses` command needs Python 3.12 or newer; with 3.10 it
   fails silently after the heading.

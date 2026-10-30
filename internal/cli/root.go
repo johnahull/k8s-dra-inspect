@@ -33,7 +33,7 @@ func NewRootCommand(opts *Options, version string, deps Deps) *cobra.Command {
 	f.StringVar(&opts.Kubeconfig, "kubeconfig", "", "path to the kubeconfig file")
 	f.StringVar(&opts.Context, "context", "", "kubeconfig context to use")
 	f.StringVarP(&opts.Namespace, "namespace", "n", "", "namespace filter")
-	f.StringVarP(&opts.Output, "output", "o", "table", "output format: table or json")
+	f.StringVarP(&opts.Output, "output", "o", "text", "output format: text (default, sectioned, never truncated), table (flat rows, long cells truncated with …) or json")
 	f.BoolVar(&opts.NoColor, "no-color", false, "disable colored output")
 	f.DurationVar(&opts.Timeout, "timeout", 30*time.Second, "overall deadline for collecting from the cluster (all resource kinds together); 0 means no deadline")
 	f.StringVar(&opts.From, "from", "", "read from a snapshot file instead of a live cluster")

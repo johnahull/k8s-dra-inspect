@@ -44,7 +44,7 @@ dra-inspect completion bash|zsh|fish
 dra-inspect version
 ```
 
-Global flags: `-n/--namespace`, `-o/--output table|json`, `--from FILE`,
+Global flags: `-n/--namespace`, `-o/--output text|table|json`, `--from FILE`,
 `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
 
 `--timeout` (default 30s; 0 means no deadline; negative values are a usage error) is one overall deadline for collecting from the
@@ -53,8 +53,23 @@ long in total. Kinds not collected by then are reported as unavailable
 (`timed out after <timeout>`). It applies to `inspect`, `check`, `snapshot
 capture` and `report` alike.
 
-- Tables are the default; `-o json` prints a versioned envelope
-  (`schemaVersion`, `results[]` with `check`, `status`, `subject`, `details`).
+- Three output modes (`-o`):
+  - `text` (default) is the readable layout: sectioned, one idea per line, long
+    names and device lists never truncated. A device list that does not fit
+    wraps at the terminal width (100 columns when piped); every line starts with
+    what it is about, so `grep` still finds it.
+    `inspect slices`, `topology`, `drivers` and `attributes` are organised by
+    node (`Node: <name>`, then driver, then device). Named nodes come first in
+    plain string order (`node-10` before `node-2`, no natural sorting); devices
+    not bound to one node follow under `Node: (no node)`, `Node: (all nodes)`
+    or `Node: (selector)`, in all four views alike. The claim-centred
+    checks (`alignment`, `kubevirt`, `cpupinning`,
+    `vfio`) and `report` are not grouped by node.
+  - `table` prints flat rows, for scripts and wide terminals. Long cells are
+    truncated with `…` to fit the terminal width.
+  - `json` prints a versioned envelope (`schemaVersion`, `results[]` with
+    `check`, `status`, `subject`, `details`). It never changes with the text
+    layout.
 - Every result is `pass`, `warn`, `fail`, `unavailable` or `error`. Exit codes:
   0 pass or warn, 1 fail, 2 error, 3 unavailable (only with `--strict`).
   Missing permissions or data are `unavailable`, never a guess.
@@ -88,10 +103,83 @@ Snapshots keep DeviceClass and ResourceClaim CEL selector text, `reservedFor`
 pod names, Node labels and VMI names, namespaces, UIDs and node names; see
 [SECURITY.md](SECURITY.md) for exactly what is removed and kept.
 
+### Sample text output
+
+Real output of `dra-inspect inspect slices --from testdata/snapshots/xe9785l.json`
+(first lines; a device shows its NUMA nodes, hardware and, after the arrow, who
+uses it):
+
+<!-- sample: inspect slices -->
+```text
+$ dra-inspect inspect slices --from testdata/snapshots/xe9785l.json
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  dra.cpu (8 devices, 3 in use, 5 free)
+    NUMA 0,1,2,3  cpudevnuma000
+    NUMA 0,1,2,3  cpudevnuma001  →default/pod-1
+    NUMA 0,1,2,3  cpudevnuma002  →default/pod-1
+    NUMA 0,1,2,3  cpudevnuma003  →default/pod-1
+    NUMA 4,5,6,7  cpudevnuma004
+    NUMA 4,5,6,7  cpudevnuma005
+    NUMA 4,5,6,7  cpudevnuma006
+    NUMA 4,5,6,7  cpudevnuma007
+```
+
+The PCIe topology as a tree (`inspect topology`, first lines; NUMA sets and
+PCIe roots sort numerically, unknown ones last):
+
+<!-- sample: inspect topology -->
+```text
+$ dra-inspect inspect topology --from testdata/snapshots/xe9785l.json
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0,1,2,3
+│  ├─ pcieRoot pci0000:00
+│  │  └─ gpu  gpu-vfio-5 (0000:0c:02.0)
+│  ├─ pcieRoot pci0000:32
+│  │  └─ gpu  gpu-vfio-4 (0000:3d:02.0)
+│  ├─ pcieRoot pci0000:a0
+│  │  └─ gpu  gpu-vfio-6 (0000:a8:02.0)
+│  ├─ pcieRoot pci0000:d0
+│  │  ├─ gpu  gpu-vfio-7 (0000:dc:02.0)
+│  │  ├─ nic  0000-d5-00-2 (0000:d5:00.2)
+│  │  ├─ nic  0000-d5-00-3 (0000:d5:00.3)
+```
+
+A report lists only what needs attention; a sentence that names many devices
+puts them on indented lines below it:
+
+<!-- sample: report cluster -->
+```text
+$ dra-inspect report cluster --from testdata/snapshots/xe9785l.json
+═══ Cluster Report ═══
+
+Summary: 9 checks: 6 ok, 3 warnings, 0 failures, 0 unavailable, 0 errors
+
+inspect.topology
+  ! node-a.example.com, NUMA 0,1,2,3: no pcieRoot published
+  ! node-a.example.com, NUMA 4,5,6,7: no pcieRoot published
+
+check.alignment
+  ! default/vm-final-all: devices span NUMA nodes (no common NUMA node)
+
+check.topology
+  ! dra.memory/node-a.example.com: PCIe root missing on 8 devices
+      memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf,
+        memory-2v88wt, memory-559qbb
+
+Details: run the individual check or inspect commands, or use -o json.
+```
+
+The same checks print flat rows with `-o table`, and JSON with `-o json`.
+These samples are checked against the real output by a test.
+
 The parent groups `inspect`, `check`, `report` and `snapshot` without a
 subcommand print help and exit 0.
 
-A sample redacted bundle and its report are in
+A sample redacted bundle and its report (in the default text form) are in
 [docs/examples/](docs/examples/support-bundle.json)
 ([report](docs/examples/support-report.txt)); both are regenerated and checked
 by a test.

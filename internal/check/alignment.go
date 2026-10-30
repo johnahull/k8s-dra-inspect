@@ -69,7 +69,17 @@ var rollupRank = map[model.Status]int{
 
 type finding struct {
 	status model.Status
+	kind   model.Kind
 	reason string
+	head   string   // list findings: the stem a view prints before one line per item
+	items  []string // list findings: the devices
+}
+
+// listFinding is a finding whose sentence is "<stem> a, b, c": reason keeps
+// those words (the JSON reason); views print head and the items on their own.
+func listFinding(st model.Status, k model.Kind, stem, noun string, items []string) finding {
+	return finding{status: st, kind: k, reason: stem + " " + strings.Join(items, ", "),
+		head: stem + " " + model.Plural(len(items), noun, noun+"s"), items: items}
 }
 
 func worst(fs []finding) model.Status {
@@ -80,6 +90,15 @@ func worst(fs []finding) model.Status {
 		}
 	}
 	return st
+}
+
+// findingsOf converts fs for Result.Findings; reasons(fs) is their joined text.
+func findingsOf(fs []finding) []model.Finding {
+	out := make([]model.Finding, len(fs))
+	for i, f := range fs {
+		out[i] = model.Finding{Status: f.status, Kind: f.kind, Text: f.reason, Head: f.head, Items: f.items}
+	}
+	return out
 }
 
 func reasons(fs []finding) string {
@@ -103,11 +122,11 @@ func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev, derived map[
 	det := map[string]any{"attribute": attr, "requests": append([]string{}, c.Requests...)}
 	if _, _, err := parseMatchAttribute(attr); err != nil {
 		det["status"] = model.StatusError
-		return det, finding{model.StatusError, err.Error()}
+		return det, finding{status: model.StatusError, kind: model.KindInvalid, reason: err.Error()}
 	}
 	if derived[attr] {
 		det["status"] = model.StatusUnavailable
-		return det, finding{model.StatusUnavailable, attr + ": derived attribute, not evaluated"}
+		return det, finding{status: model.StatusUnavailable, kind: model.KindNotEvaluated, reason: attr + ": derived attribute, not evaluated"}
 	}
 	values := map[string][]string{}
 	var sets, typed [][]string
@@ -131,13 +150,13 @@ func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev, derived map[
 	switch {
 	case len(sets) > 0 && len(inter) == 0:
 		det["status"] = model.StatusFail
-		return det, finding{model.StatusFail, fmt.Sprintf("matchAttribute %s violated: no value common to all devices in scope", attr)}
+		return det, finding{status: model.StatusFail, kind: model.KindConstraintViolated, items: []string{attr}, reason: fmt.Sprintf("matchAttribute %s violated: no value common to all devices in scope", attr)}
 	case len(sets) > 0 && len(intersect(typed)) == 0:
 		det["status"] = model.StatusFail
-		return det, finding{model.StatusFail, fmt.Sprintf("matchAttribute %s violated: type mismatch (values are equal as text but differ in type)", attr)}
+		return det, finding{status: model.StatusFail, kind: model.KindConstraintType, items: []string{attr}, reason: fmt.Sprintf("matchAttribute %s violated: type mismatch (values are equal as text but differ in type)", attr)}
 	case len(missing) > 0:
 		det["status"] = model.StatusUnavailable
-		return det, finding{model.StatusUnavailable, fmt.Sprintf("%s not published by %s", attr, strings.Join(missing, ", "))}
+		return det, listFinding(model.StatusUnavailable, model.KindConstraintMissing, attr+" not published by", "device", missing)
 	}
 	det["status"] = model.StatusPass
 	return det, finding{}
@@ -238,9 +257,9 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 		deviceNames = append(deviceNames, d.name)
 		switch ref.state {
 		case deviceMissing:
-			fs = append(fs, finding{model.StatusFail, fmt.Sprintf("allocated device %s is not in any ResourceSlice (data inconsistency)", d.name)})
+			fs = append(fs, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("allocated device %s is not in any ResourceSlice (data inconsistency)", d.name)})
 		case deviceStale:
-			fs = append(fs, finding{model.StatusWarn, fmt.Sprintf("allocated device %s is only in a stale generation of its pool", d.name)})
+			fs = append(fs, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("allocated device %s is only in a stale generation of its pool", d.name)})
 		}
 	}
 	det := map[string]any{"devices": deviceNames}
@@ -248,7 +267,7 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	derived := derivedNames(c)
 	for _, c := range c.Spec.Devices.Constraints {
 		if c.DistinctAttribute != nil {
-			fs = append(fs, finding{model.StatusUnavailable, fmt.Sprintf("distinctAttribute %s is not evaluated", *c.DistinctAttribute)})
+			fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindNotEvaluated, reason: fmt.Sprintf("distinctAttribute %s is not evaluated", *c.DistinctAttribute)})
 		}
 		if c.MatchAttribute == nil {
 			continue
@@ -264,21 +283,21 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	if len(devs) >= 2 {
 		spec := c.Spec.Devices.Constraints
 		if n, err := summarize(devs, func(t model.Topology) model.Resolved { return t.NUMA }); err != nil {
-			fs = append(fs, finding{model.StatusUnavailable, err.Error()})
+			fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindInvalid, reason: err.Error()})
 		} else {
 			n.det["constrained"] = coveredBy(spec, numaNames, devs)
 			det["numa"] = n.det
 			if n.det["constrained"] == false {
 				if len(n.missing) > 0 {
-					fs = append(fs, finding{model.StatusUnavailable, "NUMA node not published by " + strings.Join(n.missing, ", ")})
+					fs = append(fs, listFinding(model.StatusUnavailable, model.KindNUMAMissing, "NUMA node not published by", "device", n.missing))
 				}
 				if !n.aligned {
-					fs = append(fs, finding{model.StatusWarn, "devices span NUMA nodes (no common NUMA node)"})
+					fs = append(fs, finding{status: model.StatusWarn, kind: model.KindNUMASplit, reason: "devices span NUMA nodes (no common NUMA node)"})
 				}
 			}
 		}
 		if p, err := summarize(devs, func(t model.Topology) model.Resolved { return t.PCIeRoot }); err != nil {
-			fs = append(fs, finding{model.StatusUnavailable, err.Error()})
+			fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindInvalid, reason: err.Error()})
 		} else {
 			p.det["constrained"] = coveredBy(spec, pcieNames, devs)
 			if !p.aligned && p.det["constrained"] == false {
@@ -289,10 +308,12 @@ func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
 	}
 	st := worst(fs)
 	det["summary"] = fmt.Sprintf("%d devices, %d constraints", len(devs), len(cons))
+	res := model.Result{Check: NameAlignment, Status: st, Subject: c.Namespace + "/" + c.Name, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	}
-	return model.Result{Check: NameAlignment, Status: st, Subject: c.Namespace + "/" + c.Name, Details: det}
+	return res
 }
 
 // podClaims lists the claim names a pod resolves to.

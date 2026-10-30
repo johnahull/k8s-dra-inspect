@@ -1,0 +1,7 @@
+═══ Consumable Capacity ═══
+
+mem.example.com/node-a.example.com/mem-0
+  size: 100Gi of 100Gi consumed (remaining 0)
+  used by demo/half
+  used by demo/rest
+  ✓ within published capacity

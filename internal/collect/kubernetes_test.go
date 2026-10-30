@@ -269,8 +269,11 @@ func TestCollectOverallDeadline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if el := time.Since(start); el > 450*time.Millisecond {
-		t.Errorf("Collect took %v, want < 450ms (1.5 x timeout)", el)
+	// One overall deadline, not one per resource kind: a sequential collection
+	// would need at least 6 x 300ms. The upper bound leaves room for a loaded
+	// machine; the lower bound proves the deadline was actually waited for.
+	if el := time.Since(start); el < 250*time.Millisecond || el > 1200*time.Millisecond {
+		t.Errorf("Collect took %v, want between 250ms and 1.2s (timeout 300ms)", el)
 	}
 	if len(snap.Collection) == 0 {
 		t.Fatal("no collection entries")
@@ -331,8 +334,11 @@ func TestCollectDeadlineCoversDiscovery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if el := time.Since(start); el > 450*time.Millisecond {
-		t.Errorf("Collect took %v, want < 450ms (1.5 x timeout)", el)
+	// One overall deadline, not one per resource kind: a sequential collection
+	// would need at least 6 x 300ms. The upper bound leaves room for a loaded
+	// machine; the lower bound proves the deadline was actually waited for.
+	if el := time.Since(start); el < 250*time.Millisecond || el > 1200*time.Millisecond {
+		t.Errorf("Collect took %v, want between 250ms and 1.2s (timeout 300ms)", el)
 	}
 	if st := snap.Collection["virtualmachineinstances"]; st.State != model.StateError || st.Reason != timedOutReason {
 		t.Errorf("vmi = %+v, want error %q", st, timedOutReason)

@@ -1,0 +1,19 @@
+═══ Topology Check ═══
+
+dra.cpu/node-a.example.com
+  8 devices, 0 missing NUMA, 0 missing PCIe root
+  ✓ every device publishes a NUMA node and a PCIe root
+
+dra.memory/node-a.example.com
+  8 devices, 0 missing NUMA, 8 missing PCIe root
+  ! PCIe root missing on 8 devices
+      memory-rddth4, memory-fk8nlr, memory-bjd9hw, memory-t5wtkl, memory-4qhskf, memory-s9zcsf,
+        memory-2v88wt, memory-559qbb
+
+gpu.amd.com/node-a.example.com
+  8 devices, 0 missing NUMA, 0 missing PCIe root
+  ✓ every device publishes a NUMA node and a PCIe root
+
+sriovnetwork.k8snetworkplumbingwg.io/node-a.example.com
+  8 devices, 0 missing NUMA, 0 missing PCIe root
+  ✓ every device publishes a NUMA node and a PCIe root

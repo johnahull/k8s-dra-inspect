@@ -1,0 +1,55 @@
+═══ DRA Drivers ═══
+
+Node: node-a.example.com
+  dra.cpu: 8 devices  (1 pool)
+    attributes:
+      dra.cpu/numCPUs
+      dra.cpu/numaNodeID
+      dra.cpu/smtEnabled
+      dra.cpu/socketID
+      dra.net/numaNode
+      resource.kubernetes.io/numaNode
+      resource.kubernetes.io/pcieRoot
+
+  dra.memory: 8 devices  (1 pool)
+    attributes:
+      dra.cpu/numaNodeID
+      dra.memory/hugeTLB
+      dra.memory/numaNode
+      dra.memory/pageSize
+      dra.net/numaNode
+      resource.kubernetes.io/cpuSocketID
+      resource.kubernetes.io/numaNode
+
+  gpu.amd.com: 8 devices  (1 pool)
+    attributes:
+      deviceID
+      dra.net/numaNode
+      iommuGroup
+      isVF
+      numaNode
+      pciAddr
+      resource.kubernetes.io/numaNode
+      resource.kubernetes.io/pciBusID
+      resource.kubernetes.io/pcieRoot
+      type
+      vendorID
+
+  sriovnetwork.k8snetworkplumbingwg.io: 8 devices  (1 pool)
+    attributes:
+      dra.net/numaNode
+      k8s.cni.cncf.io/deviceID
+      resource.kubernetes.io/cpuSocketID
+      resource.kubernetes.io/numaNode
+      resource.kubernetes.io/pciBusID
+      resource.kubernetes.io/pcieRoot
+      sriovnetwork.k8snetworkplumbingwg.io/EswitchMode
+      sriovnetwork.k8snetworkplumbingwg.io/PFName
+      sriovnetwork.k8snetworkplumbingwg.io/deviceID
+      sriovnetwork.k8snetworkplumbingwg.io/linkType
+      sriovnetwork.k8snetworkplumbingwg.io/pciAddress
+      sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID
+      sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress
+      sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable
+      sriovnetwork.k8snetworkplumbingwg.io/vendor
+      sriovnetwork.k8snetworkplumbingwg.io/vfID

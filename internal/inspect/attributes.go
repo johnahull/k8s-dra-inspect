@@ -23,7 +23,7 @@ func attrName(key string) string { return key[strings.LastIndex(key, "/")+1:] }
 // attrDisplay renders a list-valued attribute as [a,b] and a scalar plainly.
 func attrDisplay(a resourcev1.DeviceAttribute) string {
 	v := strings.Join(model.AttrSet(a), ",")
-	if a.IntValues != nil || a.BoolValues != nil || a.StringValues != nil || a.VersionValues != nil {
+	if model.IsListAttr(a) {
 		return "[" + v + "]"
 	}
 	return v
@@ -78,8 +78,12 @@ func Attributes(all, capacity bool) Inspector {
 						}
 						det["capacity"] = caps
 					}
-					out = append(out, model.Result{Check: check, Status: status,
-						Subject: s.Spec.Driver + "/" + s.Spec.Pool.Name + "/" + d.Name, Details: det})
+					res := model.Result{Check: check, Status: status,
+						Subject: s.Spec.Driver + "/" + s.Spec.Pool.Name + "/" + d.Name, Details: det}
+					if incomplete {
+						res.Findings = incompleteFinding(s.Spec.Pool.Name)
+					}
+					out = append(out, res)
 				}
 			}
 			slices.SortFunc(out, func(a, b model.Result) int {

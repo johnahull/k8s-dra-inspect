@@ -1,0 +1,10 @@
+═══ ResourceClaims ═══
+
+demo/two-gpus → no pods
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot unknown
+    node node-a.example.com
+    gpu-1 [example-gpu]  gpu.example.com
+    NUMA unknown  pcieRoot unknown
+    node node-a.example.com

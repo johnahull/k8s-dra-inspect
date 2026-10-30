@@ -64,7 +64,7 @@ func Counters() Check {
 		}
 		for k, p := range pools {
 			if sel[k].Incomplete {
-				p.pool = append(p.pool, finding{model.StatusWarn, incompleteReason(k[1])})
+				p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindIncomplete, reason: incompleteReason(k[1])})
 			}
 			// Publication integrity: every consumed set/counter must be defined by the pool.
 			for _, name := range slices.Sorted(maps.Keys(p.devices)) {
@@ -96,9 +96,9 @@ func Counters() Check {
 				if !ok {
 					switch idx.find(r.Driver, r.Pool, r.Device).state {
 					case deviceStale:
-						p.pool = append(p.pool, finding{model.StatusWarn, fmt.Sprintf("claim %s/%s allocates %s from a stale generation; its counters are not counted", c.Namespace, c.Name, devName(r))})
+						p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("claim %s/%s allocates %s from a stale generation; its counters are not counted", c.Namespace, c.Name, devName(r))})
 					case deviceMissing:
-						p.pool = append(p.pool, finding{model.StatusFail, fmt.Sprintf("claim %s/%s allocates %s, which no ResourceSlice publishes", c.Namespace, c.Name, devName(r))})
+						p.pool = append(p.pool, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("claim %s/%s allocates %s, which no ResourceSlice publishes", c.Namespace, c.Name, devName(r))})
 					}
 					continue
 				}
@@ -154,7 +154,7 @@ func Counters() Check {
 func (p *counterPool) result(k model.PoolKey, set string) model.Result {
 	fs := slices.Clone(p.pool)
 	for _, m := range p.setFind[set] {
-		fs = append(fs, finding{model.StatusFail, m})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindCounter, reason: m})
 	}
 	counters := map[string]map[string]string{}
 	var over []string
@@ -172,7 +172,7 @@ func (p *counterPool) result(k model.PoolKey, set string) model.Result {
 	}
 	slices.Sort(over)
 	for _, cn := range over {
-		fs = append(fs, finding{model.StatusFail, fmt.Sprintf("counter %s overcommitted: %s used of %s", cn, counters[cn]["used"], counters[cn]["capacity"])})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindCounter, reason: fmt.Sprintf("counter %s overcommitted: %s used of %s", cn, counters[cn]["used"], counters[cn]["capacity"])})
 	}
 	st := worst(fs)
 	var sum []string
@@ -184,10 +184,12 @@ func (p *counterPool) result(k model.PoolKey, set string) model.Result {
 		delete(det, "counters")
 		delete(det, "summary")
 	}
+	res := model.Result{Check: NameCounters, Status: st, Subject: k[0] + "/" + k[1] + "/" + set, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	}
-	return model.Result{Check: NameCounters, Status: st, Subject: k[0] + "/" + k[1] + "/" + set, Details: det}
+	return res
 }
 
 func incompleteReason(pool string) string {

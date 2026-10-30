@@ -41,12 +41,12 @@ const (
 // Fixed narrow widths: the host locale must not change the layout.
 var cond = &runewidth.Condition{}
 
-// clean replaces control characters (including ESC, so ANSI sequences
+// Clean replaces control characters (including ESC, so ANSI sequences
 // become inert text), format characters (Cf: bidi overrides, zero-width
 // space, ...) and the line/paragraph separators with a visible placeholder.
 // Cf includes ZWJ (U+200D), so emoji ZWJ sequences render split; spoofing
 // resistance wins over emoji fidelity in a diagnostic tool.
-func clean(s string) string {
+func Clean(s string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsControl(r) || unicode.Is(unicode.Cf, r) || r == '\u2028' || r == '\u2029' {
 			return '�'
@@ -106,14 +106,14 @@ func Table(w io.Writer, cols []Column, rows [][]string, opt TableOptions) error 
 	cells := make([][]string, 0, len(rows)+1)
 	hdr := make([]string, len(cols))
 	for i, c := range cols {
-		hdr[i] = clean(c.Header)
+		hdr[i] = Clean(c.Header)
 	}
 	cells = append(cells, hdr)
 	for _, r := range rows {
 		row := make([]string, len(cols))
 		for i := range row {
 			if i < len(r) {
-				row[i] = clean(r[i])
+				row[i] = Clean(r[i])
 			}
 		}
 		cells = append(cells, row)
@@ -175,11 +175,11 @@ func Unavailable(w io.Writer, results []model.Result) error {
 		if v, ok := r.Details["reason"]; ok {
 			reason = fmt.Sprint(v)
 		}
-		who := clean(r.Check)
+		who := Clean(r.Check)
 		if r.Subject != "" {
-			who += " " + clean(r.Subject)
+			who += " " + Clean(r.Subject)
 		}
-		if _, err := fmt.Fprintf(w, "UNAVAILABLE: %s: %s\n", who, clean(reason)); err != nil {
+		if _, err := fmt.Fprintf(w, "UNAVAILABLE: %s: %s\n", who, Clean(reason)); err != nil {
 			return err
 		}
 	}

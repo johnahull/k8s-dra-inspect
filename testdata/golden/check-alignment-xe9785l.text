@@ -1,0 +1,51 @@
+═══ Alignment Check ═══
+
+default/vm-final-all
+  n0-sriovnetwork-k8snetworkplumbingwg-io
+    0001-07-00-3 (0001:07:00.3)  sriovnetwork.k8snetworkplumbingwg.io
+    NUMA 4,5,6,7  pcieRoot pci0001:00
+  n0-gpu-amd-com
+    gpu-vfio-7 (0000:dc:02.0)  gpu.amd.com
+    NUMA 0,1,2,3  pcieRoot pci0000:d0
+  n0-dra-cpu
+    cpudevnuma001  dra.cpu
+    NUMA 0,1,2,3  pcieRoot pci0000:00,pci0000:64
+  n0-dra-memory
+    memory-bjd9hw  dra.memory
+    NUMA 0,1,2,3  pcieRoot unknown
+  n1-sriovnetwork-k8snetworkplumbingwg-io
+    0001-07-00-4 (0001:07:00.4)  sriovnetwork.k8snetworkplumbingwg.io
+    NUMA 4,5,6,7  pcieRoot pci0001:00
+  n1-gpu-amd-com
+    gpu-vfio-0 (0001:dc:02.0)  gpu.amd.com
+    NUMA 4,5,6,7  pcieRoot pci0001:d0
+  n1-dra-cpu
+    cpudevnuma002  dra.cpu
+    NUMA 0,1,2,3  pcieRoot pci0000:32,pci0000:66
+  n1-dra-memory
+    memory-t5wtkl  dra.memory
+    NUMA 0,1,2,3  pcieRoot unknown
+  n2-sriovnetwork-k8snetworkplumbingwg-io
+    0001-07-00-5 (0001:07:00.5)  sriovnetwork.k8snetworkplumbingwg.io
+    NUMA 4,5,6,7  pcieRoot pci0001:00
+  n2-gpu-amd-com
+    gpu-vfio-1 (0001:a5:02.0)  gpu.amd.com
+    NUMA 4,5,6,7  pcieRoot pci0001:a0
+  n2-dra-cpu
+    cpudevnuma003  dra.cpu
+    NUMA 0,1,2,3  pcieRoot pci0000:96,pci0000:a0
+  n2-dra-memory
+    memory-4qhskf  dra.memory
+    NUMA 4,5,6,7  pcieRoot unknown
+  ! devices span NUMA nodes (no common NUMA node)
+      NUMA 0,1,2,3: cpudevnuma001, cpudevnuma002, cpudevnuma003, gpu-vfio-7, memory-bjd9hw,
+        memory-t5wtkl
+      NUMA 4,5,6,7: 0001-07-00-3, 0001-07-00-4, 0001-07-00-5, gpu-vfio-0, gpu-vfio-1, memory-4qhskf
+  · devices span PCIe roots (informational)
+      pcieRoot pci0000:00,pci0000:64: cpudevnuma001
+      pcieRoot pci0000:32,pci0000:66: cpudevnuma002
+      pcieRoot pci0000:96,pci0000:a0: cpudevnuma003
+      pcieRoot pci0000:d0: gpu-vfio-7
+      pcieRoot pci0001:00: 0001-07-00-3, 0001-07-00-4, 0001-07-00-5
+      pcieRoot pci0001:a0: gpu-vfio-1
+      pcieRoot pci0001:d0: gpu-vfio-0

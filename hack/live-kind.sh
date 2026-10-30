@@ -140,13 +140,15 @@ main() {
   check "slices published devices>0" true "$([ "${DEVS:-0}" -gt 0 ] && echo true || echo false)"
   echo "== 4. workstation CLI"
   for c in slices drivers attributes topology deviceclasses claims; do
-    run "inspect-$c" --kubeconfig "$KUBECONFIG_FILE" inspect "$c"
+    run "inspect-$c" --kubeconfig "$KUBECONFIG_FILE" inspect "$c" -o table
+    run "inspect-$c-text" --kubeconfig "$KUBECONFIG_FILE" inspect "$c" -o text
     run "inspect-$c-json" --kubeconfig "$KUBECONFIG_FILE" inspect "$c" -o json
   done
   for c in alignment counters capacity topology kubevirt; do
-    run "check-$c" --kubeconfig "$KUBECONFIG_FILE" check "$c"
+    run "check-$c" --kubeconfig "$KUBECONFIG_FILE" check "$c" -o table
   done
-  run report-cluster --kubeconfig "$KUBECONFIG_FILE" report cluster
+  run report-cluster --kubeconfig "$KUBECONFIG_FILE" report cluster -o table
+  run report-cluster-text --kubeconfig "$KUBECONFIG_FILE" report cluster -o text
   run report-cluster-json --kubeconfig "$KUBECONFIG_FILE" report cluster -o json
   run report-support --kubeconfig "$KUBECONFIG_FILE" report support -o json
   for n in $(awk '$1 ~ /^(inspect|report)-/ {print $1}' "$OUT/exit-codes.txt"); do check "exit $n" 0 "$(exit_code "$n")"; done
@@ -274,13 +276,13 @@ EOF
   kubectl config set-context c --cluster=k --user=u --kubeconfig "$SAK" >/dev/null
   kubectl config use-context c --kubeconfig "$SAK" >/dev/null
   DI=$DI_ORIG
-  run forbidden-report --kubeconfig "$SAK" report cluster
-  run forbidden-report-ns --kubeconfig "$SAK" -n default report cluster
-  run forbidden-report-ns-strict --kubeconfig "$SAK" -n default report cluster --strict
+  run forbidden-report --kubeconfig "$SAK" report cluster -o text
+  run forbidden-report-ns --kubeconfig "$SAK" -n default report cluster -o text
+  run forbidden-report-ns-strict --kubeconfig "$SAK" -n default report cluster -o text --strict
   printf 'apiVersion: v1\nkind: Config\nclusters: [{name: c, cluster: {server: "https://127.0.0.1:1", insecure-skip-tls-verify: true}}]\nusers: [{name: u, user: {token: x}}]\ncontexts: [{name: c, context: {cluster: c, user: u}}]\ncurrent-context: c\n' >"$SCRATCH/closed.kubeconfig"
-  run unreachable --kubeconfig "$SCRATCH/closed.kubeconfig" report cluster
-  run unreachable-strict --kubeconfig "$SCRATCH/closed.kubeconfig" report cluster --strict
-  run timeout-1ns --kubeconfig "$KUBECONFIG_FILE" --timeout 1ns inspect slices
+  run unreachable --kubeconfig "$SCRATCH/closed.kubeconfig" report cluster -o text
+  run unreachable-strict --kubeconfig "$SCRATCH/closed.kubeconfig" report cluster -o text --strict
+  run timeout-1ns --kubeconfig "$KUBECONFIG_FILE" --timeout 1ns inspect slices -o text
   for want in forbidden-report:0 forbidden-report-ns:0 forbidden-report-ns-strict:3 unreachable:0 unreachable-strict:3 timeout-1ns:0; do
     check "exit ${want%%:*}" "${want##*:}" "$(exit_code "${want%%:*}")"
   done

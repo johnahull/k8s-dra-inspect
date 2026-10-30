@@ -1,0 +1,11 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  gpu.example.com (2 devices, 2 in use, 0 free)
+    NUMA 0,1,2,3  a-gpu-0  →demo/pair-pod
+    NUMA 0,1,2,3  a-gpu-1  →demo/pair-pod
+
+Node: node-b.example.com
+  gpu.example.com (2 devices, 0 in use, 2 free)
+    NUMA 2    b-gpu-0
+    NUMA 2,3  b-gpu-1

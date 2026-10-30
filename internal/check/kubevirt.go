@@ -100,11 +100,11 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 	for _, hd := range v.HostDevices {
 		switch cl, found := kubevirtClaim(snap, v, hd); {
 		case hd.ClaimName == "" && !claimDefined(v, hd.ClaimAlias):
-			fs = append(fs, finding{model.StatusFail, fmt.Sprintf("claim alias %s is not defined in spec.resourceClaims", hd.ClaimAlias)})
+			fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("claim alias %s is not defined in spec.resourceClaims", hd.ClaimAlias)})
 		case hd.ClaimName == "":
-			fs = append(fs, finding{model.StatusUnavailable, fmt.Sprintf("claim %s comes from a template; its generated name is not in the VMI", hd.ClaimAlias)})
+			fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindClaimRef, reason: fmt.Sprintf("claim %s comes from a template; its generated name is not in the VMI", hd.ClaimAlias)})
 		case !found:
-			fs = append(fs, finding{model.StatusFail, fmt.Sprintf("claim %s/%s not found", v.Namespace, hd.ClaimName)})
+			fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("claim %s/%s not found", v.Namespace, hd.ClaimName)})
 		default:
 			var results []resourcev1.DeviceRequestAllocationResult
 			if cl.Status.Allocation != nil {
@@ -115,7 +115,7 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 				}
 			}
 			if len(results) == 0 {
-				fs = append(fs, finding{model.StatusFail, fmt.Sprintf("request %s has no allocation result in claim %s/%s", hd.RequestName, v.Namespace, hd.ClaimName)})
+				fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("request %s has no allocation result in claim %s/%s", hd.RequestName, v.Namespace, hd.ClaimName)})
 			}
 			for _, r := range results {
 				d := map[string]any{"hostDevice": hd.Name, "request": r.Request, "driver": r.Driver, "pool": r.Pool, "device": r.Device}
@@ -123,12 +123,12 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 				ref := idx.find(r.Driver, r.Pool, r.Device)
 				node, tied := deviceNode(snap, r)
 				if ref.state != deviceMissing {
-					if bdf := pciBusID(ref.dev, r.Driver); bdf != "" {
-						d["pciBusID"] = bdf
+					if bdf, _ := model.AttrString(ref.dev, r.Driver, "pciBusID"); bdf != "" {
+						d["pciBusID"] = strings.ToLower(bdf)
 					}
 					top, err := model.TopologyOf(ref.dev, r.Driver)
 					if err != nil {
-						fs = append(fs, finding{model.StatusUnavailable, "device " + devName(r) + " has invalid topology attributes"})
+						fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindInvalid, reason: "device " + devName(r) + " has invalid topology attributes"})
 					}
 					for _, n := range top.NUMA.Values {
 						numaSet[n] = true
@@ -137,11 +137,11 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 				switch {
 				case !tied:
 					unknown = true
-					fs = append(fs, finding{model.StatusUnavailable, "device " + devName(r) + " has no known node"})
+					fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindNode, reason: "device " + devName(r) + " has no known node"})
 				case v.NodeName == "":
 				case node != v.NodeName:
 					d["node"] = node
-					fs = append(fs, finding{model.StatusFail, fmt.Sprintf("device %s is on node %s, but the VMI runs on %s", devName(r), node, v.NodeName)})
+					fs = append(fs, finding{status: model.StatusFail, kind: model.KindNode, reason: fmt.Sprintf("device %s is on node %s, but the VMI runs on %s", devName(r), node, v.NodeName)})
 				default:
 					d["node"] = node
 				}
@@ -149,7 +149,7 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 		}
 	}
 	if v.NodeName == "" && len(v.HostDevices) > 0 && !unknown {
-		fs = append(fs, finding{model.StatusUnavailable, "VMI is not scheduled to a node"})
+		fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindNode, reason: "VMI is not scheduled to a node"})
 	}
 	numa := slices.SortedFunc(func(yield func(string) bool) {
 		for n := range numaSet {
@@ -169,10 +169,10 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 		numa = []string{}
 	}
 	if len(numa) >= 2 && !v.GuestNUMAPassthrough {
-		fs = append(fs, finding{model.StatusWarn, fmt.Sprintf("devices span NUMA nodes %s without guestMappingPassthrough; the guest cannot see the topology", strings.Join(numa, ","))})
+		fs = append(fs, finding{status: model.StatusWarn, kind: model.KindGuestNUMA, reason: fmt.Sprintf("devices span NUMA nodes %s without guestMappingPassthrough; the guest cannot see the topology", strings.Join(numa, ","))})
 	}
 	if v.GuestNUMAPassthrough && !v.DedicatedCPUPlacement {
-		fs = append(fs, finding{model.StatusWarn, "NUMA passthrough requires dedicated CPU placement; KubeVirt will not schedule such a VMI"})
+		fs = append(fs, finding{status: model.StatusWarn, kind: model.KindGuestNUMA, reason: "NUMA passthrough requires dedicated CPU placement; KubeVirt will not schedule such a VMI"})
 	}
 	st := worst(fs)
 	det := map[string]any{
@@ -182,15 +182,17 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 	if len(v.Warnings) > 0 {
 		det["warnings"] = v.Warnings
 	}
+	res := model.Result{Check: NameKubeVirt, Status: st, Subject: v.Namespace + "/" + v.Name, Details: det}
 	switch {
 	case st != model.StatusPass:
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	case len(v.HostDevices) == 0:
 		det["summary"] = "no DRA host devices"
 	default:
 		det["summary"] = fmt.Sprintf("%d device(s) on node %s", len(devices), v.NodeName)
 	}
-	return model.Result{Check: NameKubeVirt, Status: st, Subject: v.Namespace + "/" + v.Name, Details: det}
+	return res
 }
 
 func claimDefined(v kubevirt.VMI, alias string) bool { _, ok := v.Claims[alias]; return ok }

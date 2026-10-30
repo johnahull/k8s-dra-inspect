@@ -1,0 +1,55 @@
+═══ DRA Drivers ═══
+
+Node: node-a.example.com
+  dra.cpu: 4 devices  (1 pool)
+    attributes:
+      dra.cpu/numCPUs
+      dra.cpu/numaNodeID
+      dra.cpu/smtEnabled
+      dra.cpu/socketID
+      dra.net/numaNode
+
+  dra.memory: 8 devices  (1 pool)
+    attributes:
+      dra.cpu/numaNodeID
+      dra.memory/hugeTLB
+      dra.memory/numaNode
+      dra.memory/pageSize
+      dra.net/numaNode
+
+  gpu.amd.com: 16 devices  (1 pool)
+    attributes:
+      cardIndex
+      deviceID
+      driverSrcVersion
+      driverVersion
+      family
+      iommuGroup
+      isVF
+      numaNode
+      parentPciAddr
+      partitionProfile
+      pciAddr
+      productName
+      renderIndex
+      resource.kubernetes.io/pciBusID
+      resource.kubernetes.io/pcieRoot
+      type
+      uuid
+      vendorID
+
+  sriovnetwork.k8snetworkplumbingwg.io: 32 devices  (1 pool)
+    attributes:
+      dra.net/numaNode
+      resource.kubernetes.io/pciBusID
+      resource.kubernetes.io/pcieRoot
+      sriovnetwork.k8snetworkplumbingwg.io/EswitchMode
+      sriovnetwork.k8snetworkplumbingwg.io/PFName
+      sriovnetwork.k8snetworkplumbingwg.io/deviceID
+      sriovnetwork.k8snetworkplumbingwg.io/linkType
+      sriovnetwork.k8snetworkplumbingwg.io/pciAddress
+      sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID
+      sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress
+      sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable
+      sriovnetwork.k8snetworkplumbingwg.io/vendor
+      sriovnetwork.k8snetworkplumbingwg.io/vfID

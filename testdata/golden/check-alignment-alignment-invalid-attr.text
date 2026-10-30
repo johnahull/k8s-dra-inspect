@@ -1,0 +1,7 @@
+═══ Alignment Check ═══
+
+demo/bad-constraint
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot unknown
+  E invalid matchAttribute "numaNode": want domain/name

@@ -112,3 +112,35 @@ func TestRun(t *testing.T) {
 		})
 	}
 }
+
+// The text view shows current devices (stale slices only as notes); only the
+// table lists every slice generation. The help must say which is which.
+func TestSlicesHelpDescribesTextAndTable(t *testing.T) {
+	out, err := runCmd(t, "inspect", "--help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var line string
+	for _, l := range strings.Split(out, "\n") {
+		if strings.Contains(l, "slices") {
+			line = l
+		}
+	}
+	if strings.Contains(line, "List every ResourceSlice generation") || !strings.Contains(line, "current") || !strings.Contains(line, "-o table") {
+		t.Errorf("slices help: %q", line)
+	}
+}
+
+// -o help says what table is, so nobody has to guess why text is the default.
+func TestOutputFlagHelpDescribesTheThreeModes(t *testing.T) {
+	out, err := runCmd(t, "--help")
+	if err != nil {
+		t.Fatal(err)
+	}
+	flat := strings.Join(strings.Fields(out), " ")
+	for _, want := range []string{"text (default, sectioned, never truncated)", "table (flat rows, long cells truncated with …)", "or json"} {
+		if !strings.Contains(flat, want) {
+			t.Errorf("--help is missing %q:\n%s", want, out)
+		}
+	}
+}

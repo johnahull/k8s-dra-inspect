@@ -1,0 +1,8 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+└─ NUMA 0
+   ├─ pcieRoot pci0000:00
+   │  └─ nic.example.com  nic-0
+   └─ pcieRoot pci0000:80
+      └─ nic.example.com  nic-1

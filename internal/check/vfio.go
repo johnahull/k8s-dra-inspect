@@ -6,8 +6,6 @@ import (
 	"slices"
 	"strings"
 
-	resourcev1 "k8s.io/api/resource/v1"
-
 	"github.com/johnahull/k8s-dra-inspect/internal/adapters/host"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
@@ -15,10 +13,7 @@ import (
 // NameVFIO is the Result.Check of VFIO.
 const NameVFIO = "check.vfio"
 
-const (
-	pciBusIDKey = "resource.kubernetes.io/pciBusID"
-	vfioDriver  = "vfio-pci"
-)
+const vfioDriver = "vfio-pci"
 
 // VFIO checks every allocated device that publishes a PCI bus ID against host
 // evidence: bound to vfio-pci, IOMMU group peers, and the /dev/vfio group
@@ -44,7 +39,8 @@ func VFIO() Check {
 				if !found || seen[devName(r)] {
 					continue
 				}
-				bdf := pciBusID(d, r.Driver)
+				bdf, _ := model.AttrString(d, r.Driver, "pciBusID")
+				bdf = strings.ToLower(bdf)
 				if bdf == "" {
 					continue
 				}
@@ -75,36 +71,26 @@ func VFIO() Check {
 	}
 }
 
-// pciBusID reads the standard attribute, or the driver's own-domain one.
-func pciBusID(d resourcev1.Device, driver string) string {
-	a, ok := lookupKey(d.Attributes, driver, pciBusIDKey)
-	if !ok {
-		a, ok = lookupKey(d.Attributes, driver, driver+"/pciBusID")
-	}
-	if !ok || a.StringValue == nil {
-		return ""
-	}
-	return strings.ToLower(*a.StringValue)
-}
-
 func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 	det := map[string]any{"bdf": bdf, "cdiPresent": cdiHas(ev, device, bdf)}
 	pci, ok := ev.PCI[bdf]
 	if !ok {
-		det["reason"] = "PCI device " + bdf + " not found in host evidence"
-		return model.Result{Check: NameVFIO, Status: model.StatusUnavailable, Subject: subject, Details: det}
+		reason := "PCI device " + bdf + " not found in host evidence"
+		det["reason"] = reason
+		return model.Result{Check: NameVFIO, Status: model.StatusUnavailable, Subject: subject, Details: det,
+			Findings: []model.Finding{{Status: model.StatusUnavailable, Kind: model.KindUnavailable, Text: reason}}}
 	}
 	det["driver"], det["iommuGroup"] = pci.Driver, pci.IOMMUGroup
 	var fs []finding
 	switch pci.Driver {
 	case vfioDriver:
 	case "":
-		fs = append(fs, finding{model.StatusFail, "no driver bound, want " + vfioDriver})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindVFIODriver, reason: "no driver bound, want " + vfioDriver})
 	default:
-		fs = append(fs, finding{model.StatusFail, fmt.Sprintf("bound to driver %s, want %s", pci.Driver, vfioDriver)})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindVFIODriver, reason: fmt.Sprintf("bound to driver %s, want %s", pci.Driver, vfioDriver)})
 	}
 	if pci.IOMMUGroup == "" {
-		fs = append(fs, finding{model.StatusWarn, "no IOMMU group (IOMMU disabled?)"})
+		fs = append(fs, finding{status: model.StatusWarn, kind: model.KindIOMMUGroup, reason: "no IOMMU group (IOMMU disabled?)"})
 	} else {
 		var peers []string
 		for _, p := range ev.IOMMUGroups[pci.IOMMUGroup] {
@@ -124,19 +110,21 @@ func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 		}
 		if len(peers) > 0 {
 			det["nonVfioPeers"] = peers
-			fs = append(fs, finding{model.StatusWarn, fmt.Sprintf("IOMMU group %s also holds %s", pci.IOMMUGroup, strings.Join(peers, ", "))})
+			fs = append(fs, listFinding(model.StatusWarn, model.KindVFIOPeers, "IOMMU group "+pci.IOMMUGroup+" also holds", "device", peers))
 		}
 		if !slices.Contains(ev.VFIODevNodes, pci.IOMMUGroup) {
-			fs = append(fs, finding{model.StatusWarn, "/dev/vfio/" + pci.IOMMUGroup + " is missing"})
+			fs = append(fs, finding{status: model.StatusWarn, kind: model.KindDevNode, reason: "/dev/vfio/" + pci.IOMMUGroup + " is missing"})
 		}
 	}
 	st := worst(fs)
+	res := model.Result{Check: NameVFIO, Status: st, Subject: subject, Details: det}
 	if st != model.StatusPass {
 		det["reason"] = reasons(fs)
+		res.Findings = findingsOf(fs)
 	} else {
 		det["summary"] = fmt.Sprintf("%s bound to %s in IOMMU group %s", bdf, vfioDriver, pci.IOMMUGroup)
 	}
-	return model.Result{Check: NameVFIO, Status: st, Subject: subject, Details: det}
+	return res
 }
 
 // cdiHas reports whether any CDI spec lists the device by name or bus ID.

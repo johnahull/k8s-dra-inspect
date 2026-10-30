@@ -1,0 +1,10 @@
+═══ ResourceSlice Hardware Summary ═══
+
+Node: node-a.example.com
+  gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com (2 devices, 0 in use, 2 free)
+    NUMA 0  dev-b (0000:3b:00.0) [Café Accelerator Ünï]
+    NUMA 1  device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total [示例加速器 カード 한국어]
+
+Node: node-b.example.com
+  other.example.com (1 device, 0 in use, 1 free)
+    nic0

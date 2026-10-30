@@ -141,7 +141,7 @@ func TestCheckExitCodes(t *testing.T) {
 		})
 	}
 	// An unavailable table prints a UNAVAILABLE line, JSON carries the status.
-	out, _ := cmdRun(t, forbidden, "check", "alignment")
+	out, _ := cmdRun(t, forbidden, "check", "alignment", "-o", "table")
 	if !strings.Contains(out, "UNAVAILABLE: check.alignment: forbidden: cannot list resourceclaims") {
 		t.Errorf("table:\n%s", out)
 	}
@@ -191,7 +191,7 @@ func TestCheckAlignmentArguments(t *testing.T) {
 			t.Errorf("%s: got %s, want %s", tc.name, got, tc.want)
 		}
 	}
-	out, _ := cmdRun(t, snap, "check", "alignment", "nope")
+	out, _ := cmdRun(t, snap, "check", "alignment", "nope", "-o", "table")
 	if !strings.Contains(out, "UNAVAILABLE: check.alignment: no claim or pod named nope") {
 		t.Errorf("unknown name:\n%s", out)
 	}
@@ -238,7 +238,7 @@ func TestReportClusterGolden(t *testing.T) {
 
 func TestReportClusterTableSummaryThenNonPass(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/pcie-split")
-	out, code := cmdRun(t, snap, "report", "cluster")
+	out, code := cmdRun(t, snap, "report", "cluster", "-o", "table")
 	if code != 1 {
 		t.Fatalf("exit %d", code)
 	}

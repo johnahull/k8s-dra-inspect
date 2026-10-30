@@ -1,0 +1,14 @@
+═══ DRA Topology ═══
+
+Node: node-a.example.com
+├─ NUMA 0
+│  └─ pcieRoot unknown
+│     └─ gpu  dev-b (0000:3b:00.0) [Café Accelerator Ünï]
+└─ NUMA 1
+   └─ pcieRoot pci0000:00,pci0000:80
+      └─ gpu  device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total [示例加速器 カード 한국어]
+
+Node: node-b.example.com
+└─ NUMA unknown
+   └─ pcieRoot unknown
+      └─ other.example.com  nic0

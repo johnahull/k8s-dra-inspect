@@ -146,15 +146,23 @@ Accept: the driver pod is `Running` and the device count is greater than zero.
 B="$SCRATCH/dra-inspect --kubeconfig $KUBECONFIG"
 $B inspect slices -o json  | jq '.results | length'
 $B inspect drivers -o json | jq -r '.results[] | [.subject, .details.devices] | @tsv'
-$B inspect topology; echo "exit=$?"
-$B check alignment; echo "exit=$?"
+$B inspect topology -o text; echo "exit=$?"     # the readable tree (the default mode)
+$B check alignment -o text; echo "exit=$?"
 $B report cluster -o json > "$SCRATCH/live-report.json"; echo "exit=$?"
 ```
 
 Accept: slice results match `kubectl get resourceslices | wc -l` minus the
-header; `inspect drivers` device count equals the step 3 count; topology rows
-are `warn` with `missing attribute` (the example driver publishes no NUMA
-attributes); exit codes are 0 (warn does not fail).
+header; `inspect drivers` device count equals the step 3 count; the topology
+tree shows `NUMA unknown` and `pcieRoot unknown` (the example driver publishes no
+NUMA attributes; `-o table` and `-o json` carry the same groups as `warn` rows
+with `missing attribute`); exit codes are 0 (warn does not fail).
+
+Output modes: the readable `-o text` is the default and is what a person runs;
+`-o table` (flat rows) and `-o json` are what scripts and the comparisons below
+use. `hack/live-apiserver.sh` and `hack/live-kind.sh` name the mode on every
+run: `-o table` and `-o text` for the saved human output, `-o json` for every
+equality check, and `-o text` for the failure-mode runs whose `UNAVAILABLE`
+lines they grep.
 
 ### 5. Allocate a claim and inspect it
 
@@ -408,7 +416,7 @@ the image it built, and prints the cleanup proof below.
 | 1 Start etcd and apiserver | 0 | pass; `/readyz` ok; serving cert SAN has `127.0.0.1`; `resource.k8s.io/v1` served; server `v1.34.11` |
 | B Load fixtures as real objects | 0 | classes-claims 10/10 and xe9680 20/20 created (status subresource written for claims and pods); multinode and xe9785l partly rejected, see F3 and F4 |
 | B golden comparison, live vs committed golden `results[]` | 0 | classes-claims topology, deviceclasses (plain and `--selector`), claims (ignoring the KubeVirt `vmi` field) and xe9680 slices, drivers, attributes, drivers `--attributes`, topology, deviceclasses, `check topology`, `report cluster`: **all identical** |
-| C `inspect` (6, table and JSON), `check` (5), `report cluster`, `report support` as admin | inspect 0; `check alignment` 1, `check capacity` 1, `report *` 1, `check counters`/`topology`/`kubevirt` 0 | pass: exit 1 is a genuine `fail` result because the combined dataset has claims whose devices are not published (rejected slices); `check kubevirt` is `unavailable` with exit 0 |
+| C `inspect` (6, text, table and JSON), `check` (5, table), `report cluster` (text, table and JSON), `report support` (JSON) as admin | inspect 0; `check alignment` 1, `check capacity` 1, `report *` 1, `check counters`/`topology`/`kubevirt` 0 | pass: exit 1 is a genuine `fail` result because the combined dataset has claims whose devices are not published (rejected slices); `check kubevirt` is `unavailable` with exit 0 |
 | D `snapshot capture --with-adapters`, then 14 commands `--from` | 0 | live `results[]` equals replay `results[]` for all (including `report support`); snapshot mode 600; collection `ok ok ok ok` plus `virtualmachineinstances: notFound`; opaque marker present in the cluster, absent from snapshot and every output |
 | I `-n demo` | 0 | live equals replay for `report cluster` and `inspect claims`; only `demo/` subjects |
 | E RBAC (`helm template` piped to `kubectl apply`, both profiles, `job.enabled=true`) | cluster SA 1, namespace SA 0, namespace SA `--strict` 3 | cluster SA results equal the admin's, collections ok; namespace SA (`rbac.namespaces={demo}`, `-n demo`): slices, deviceclasses, nodes `forbidden`, eight slice-based results `unavailable`, claims and pods scoped `namespace demo only`; without `-n`, claims `unavailable` |

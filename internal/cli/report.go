@@ -14,6 +14,7 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
+	"github.com/johnahull/k8s-dra-inspect/internal/view"
 )
 
 const supportHelp = `Run the cluster report plus check.vfio, check.kubevirt and one adapter.<name>
@@ -42,7 +43,7 @@ func addReportCommands(parent *cobra.Command, opts *Options, d Deps) {
 			}
 			return runResults(cmd, opts, d, supportResults(opts, d, root, nodeName), func(rs []model.Result) error {
 				return renderReport(cmd, opts, d, supportMembers, rs)
-			})
+			}, view.Report("Support Report", supportMembers))
 		},
 	}
 	support.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (live runs only)")
@@ -55,14 +56,14 @@ func addReportCommands(parent *cobra.Command, opts *Options, d Deps) {
 		RunE: func(cmd *cobra.Command, _ []string) error {
 			return runResults(cmd, opts, d, clusterResults(opts), func(rs []model.Result) error {
 				return renderReport(cmd, opts, d, reportMembers, rs)
-			})
+			}, view.Report("Cluster Report", reportMembers))
 		},
 	})
 }
 
 // clusterResults concatenates the safe core inspectors and checks.
-func clusterResults(opts *Options) func(context.Context, model.Snapshot) []model.Result {
-	return func(ctx context.Context, snap model.Snapshot) []model.Result {
+func clusterResults(opts *Options) func(context.Context, model.Snapshot) (model.Snapshot, []model.Result) {
+	return func(ctx context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
 		var out []model.Result
 		for _, in := range []inspect.Inspector{
 			inspect.Slices(), inspect.Drivers(false), inspect.Topology(true), inspect.DeviceClasses(labels.Everything()), inspect.Claims(),
@@ -72,7 +73,7 @@ func clusterResults(opts *Options) func(context.Context, model.Snapshot) []model
 		for _, e := range check.Registry(opts.Namespace) {
 			out = append(out, e.Run(ctx, snap)...)
 		}
-		return out
+		return snap, out
 	}
 }
 
@@ -83,17 +84,17 @@ var supportMembers = append(slices.Clone(reportMembers), check.NameVFIO, check.N
 
 // supportResults is the cluster report plus vfio, kubevirt and the adapter
 // rows. A live run attaches adapter evidence to the in-memory snapshot first.
-func supportResults(opts *Options, d Deps, root, nodeName string) func(context.Context, model.Snapshot) []model.Result {
+func supportResults(opts *Options, d Deps, root, nodeName string) func(context.Context, model.Snapshot) (model.Snapshot, []model.Result) {
 	cluster := clusterResults(opts)
-	return func(ctx context.Context, snap model.Snapshot) []model.Result {
+	return func(ctx context.Context, snap model.Snapshot) (model.Snapshot, []model.Result) {
 		if opts.From == "" {
 			snap = attachAdapters(ctx, d, hostConfig(root, nodeName), snap)
 		}
-		out := cluster(ctx, snap)
+		_, out := cluster(ctx, snap)
 		for _, c := range []check.Check{check.VFIO(), check.KubeVirt("", opts.Namespace), check.AdapterHost(), check.AdapterKubeVirt()} {
 			out = append(out, c(ctx, snap)...)
 		}
-		return out
+		return snap, out
 	}
 }
 

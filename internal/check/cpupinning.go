@@ -121,12 +121,15 @@ func pinPod(snap model.Snapshot, p model.PodRef) model.Result {
 	case len(extra) > 0:
 		st, reason = model.StatusWarn, fmt.Sprintf("pinned CPUs are on NUMA node(s) %s not in the devices' NUMA node(s) %s", joinInts(extra), joinInts(devNuma))
 	}
+	res := model.Result{Check: NameCPUPinning, Status: st, Subject: subject, Details: det}
 	if reason != "" {
 		det["reason"] = reason
+		// A pass can carry a note ("cannot compare"); its finding keeps status pass.
+		res.Findings = []model.Finding{{Status: st, Kind: model.KindPinning, Text: reason}}
 	} else {
 		det["summary"] = fmt.Sprintf("CPUs %s on NUMA node(s) %s match the devices", cpuset, joinInts(cpuNuma))
 	}
-	return model.Result{Check: NameCPUPinning, Status: st, Subject: subject, Details: det}
+	return res
 }
 
 // pinnedCPUs is the union of the container cpusets, or the pod-level set when
