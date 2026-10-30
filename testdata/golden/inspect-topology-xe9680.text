@@ -77,8 +77,3 @@ Node: node-a.example.com
       ├─ cpu     cpudevnuma003
       ├─ memory  hugepages-2mi-bmgj2r
       └─ memory  memory-nfqcrb
-
-! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 1, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 2, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 3, pcieRoot unknown: missing attribute: pcieRoot

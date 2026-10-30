@@ -125,7 +125,7 @@ func pinPod(snap model.Snapshot, p model.PodRef) model.Result {
 	if reason != "" {
 		det["reason"] = reason
 		// A pass can carry a note ("cannot compare"); its finding keeps status pass.
-		res.Findings = []model.Finding{{Status: st, Text: reason}}
+		res.Findings = []model.Finding{{Status: st, Kind: model.KindPinning, Text: reason}}
 	} else {
 		det["summary"] = fmt.Sprintf("CPUs %s on NUMA node(s) %s match the devices", cpuset, joinInts(cpuNuma))
 	}

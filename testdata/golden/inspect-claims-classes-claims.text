@@ -1,12 +1,19 @@
 ═══ ResourceClaims ═══
 
 demo/broken → no pods
-  ✗ request gpu: gpu.example.com/gpu-9 not found in ResourceSlices (pool node-a.example.com)
+  gpu
+    ! gpu.example.com/gpu-9 not found in ResourceSlices (pool node-a.example.com)
 
 demo/pending → pending (not allocated)
 
 demo/shared-gpu → pod virt-launcher-vm1-abcde (VM vm1)
-  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00  node node-a.example.com
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot pci0000:00
+    node node-a.example.com
 
 demo/web-0-gpu-xyz12 → pod web-0
-  request gpu: gpu.example.com/gpu-1  NUMA 1  pcieRoot pci0000:80  node node-a.example.com
+  gpu
+    gpu-1  gpu.example.com
+    NUMA 1  pcieRoot pci0000:80
+    node node-a.example.com

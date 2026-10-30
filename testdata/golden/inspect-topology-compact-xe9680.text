@@ -17,8 +17,3 @@ Node: node-a.example.com
    ├─ pcieRoot pci0000:b7  gpu=2
    ├─ pcieRoot pci0000:c7  gpu=2
    └─ pcieRoot unknown  cpu=1 memory=2
-
-! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 1, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 2, pcieRoot unknown: missing attribute: pcieRoot
-! NUMA 3, pcieRoot unknown: missing attribute: pcieRoot

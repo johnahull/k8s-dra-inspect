@@ -1,9 +1,16 @@
 ═══ Alignment Check ═══
 
 demo/gpus-and-nic
-  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00
-  request gpu: gpu.example.com/gpu-1  NUMA 0  pcieRoot pci0000:00
-  request nic: nic.example.com/nic-0  NUMA 0  pcieRoot pci0000:80
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0  pcieRoot pci0000:00
+    gpu-1  gpu.example.com
+    NUMA 0  pcieRoot pci0000:00
+  nic
+    nic-0  nic.example.com
+    NUMA 0  pcieRoot pci0000:80
   ✓ matchAttribute resource.kubernetes.io/pcieRoot satisfied: common value pci0000:00
   ✓ numaNode aligned: all on NUMA 0
-  · devices span PCIe roots (informational): on pcieRoot pci0000:00: gpu-0, gpu-1; on pcieRoot pci0000:80: nic-0
+  · devices span PCIe roots (informational)
+      pcieRoot pci0000:00: gpu-0, gpu-1
+      pcieRoot pci0000:80: nic-0

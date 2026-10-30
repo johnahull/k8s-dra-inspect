@@ -7,12 +7,13 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
-// consumers words who uses an allocated claim.
-func consumers(r model.Result) string {
-	used, _ := r.Details["usedBy"].([]string)
+// consumers words who uses an allocated claim; podsDown and vmiDown say the
+// collection failed, so the consumers are unknown rather than none.
+func consumers(r model.Result, d *decoder, podsDown, vmiDown bool) string {
+	used := detail[[]string](d, r, "usedBy")
 	var s string
 	switch {
-	case detStr(r, "usedByState") != "":
+	case podsDown:
 		return "pods unavailable"
 	case len(used) == 0:
 		return "no pods"
@@ -21,60 +22,65 @@ func consumers(r model.Result) string {
 	default:
 		s = "pods " + strings.Join(used, ", ")
 	}
-	if v := detStr(r, "vmi"); v != "" && !strings.HasPrefix(v, "unavailable") {
+	if v := detStr(r, "vmi"); v != "" && !vmiDown {
 		s += " (VM " + v + ")"
 	}
 	return s
 }
 
-// Claims prints each ResourceClaim: who uses it, then one line per allocated
-// device with its hardware, NUMA node, PCIe root and node.
+// Claims prints each ResourceClaim: who uses it, then per request its
+// devices with hardware, NUMA node, PCIe root and node on indented lines. A
+// failed pods or VMI collection is said once, above the claims.
 func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("ResourceClaims")
-	slicesOK := snap.Collection["resourceslices"].State == model.StateOK
-	n := 0
+	var devs model.DeviceIndex
+	if snap.Collection["resourceslices"].State == model.StateOK {
+		devs = model.NewDeviceIndex(snap.ResourceSlices)
+	}
+	podsDown := snap.Collection["pods"].State != model.StateOK
+	vmiDown := snap.Collection["virtualmachineinstances"].State != model.StateOK
+	var shown []model.Result
 	for _, r := range results {
-		if r.Status == model.StatusUnavailable {
-			continue
+		if r.Status != model.StatusUnavailable {
+			shown = append(shown, r)
 		}
+	}
+	if len(shown) > 0 && (podsDown || vmiDown) {
 		p.Blank()
-		n++
+		for _, c := range []struct {
+			down      bool
+			key, noun string
+		}{{podsDown, "usedByState", "pods"}, {vmiDown, "vmi", "vmi"}} {
+			if !c.down {
+				continue
+			}
+			for _, r := range shown {
+				if v := detStr(r, c.key); v != "" {
+					p.Note(0, model.StatusUnavailable, c.noun+" "+v)
+					break
+				}
+			}
+		}
+	}
+	for _, r := range shown {
+		p.Blank()
+		var d decoder
 		if r.Details["allocated"] != true {
 			p.Line(0, "%s → pending (not allocated)", p.Bold(r.Subject))
 			continue
 		}
-		p.Line(0, "%s → %s", p.Bold(r.Subject), consumers(r))
-		devs, _ := r.Details["results"].([]map[string]string)
-		for _, d := range devs {
-			id := d["driver"] + "/" + d["device"]
-			dev, s, ok := model.FindDevice(snap.ResourceSlices, d["driver"], d["pool"], d["device"])
-			switch {
-			case !slicesOK:
-				p.Line(2, "request %s: %s", d["request"], id)
-			case !ok:
-				p.Note(2, model.StatusFail, "request "+d["request"]+": "+id+" not found in ResourceSlices (pool "+d["pool"]+")")
-			default:
-				numa, root := topo(dev, d["driver"])
-				p.Line(2, "request %s: %s%s  NUMA %s  pcieRoot %s  node %s", d["request"], id, hardware(dev, d["driver"]),
-					orUnknown(numa), orUnknown(root), model.DeviceNode(*s, dev))
-			}
+		p.Line(0, "%s → %s", p.Bold(r.Subject), consumers(r, &d, podsDown, vmiDown))
+		var as []alloc
+		for _, m := range detail[[]map[string]string](&d, r, "results") {
+			as = append(as, alloc{m["request"], m["driver"], m["pool"], m["device"]})
 		}
-		if v := detStr(r, "vmi"); strings.HasPrefix(v, "unavailable") {
-			p.Note(2, model.StatusUnavailable, "vmi "+v)
-		}
-		if v := detStr(r, "usedByState"); strings.HasPrefix(v, "unavailable") {
-			p.Note(2, model.StatusUnavailable, "pods "+v)
-		}
+		printAllocs(p, 2, as, devs, true, func(a alloc) {
+			p.Note(4, r.Status, a.driver+"/"+a.device+" not found in ResourceSlices (pool "+a.pool+")")
+		})
+		d.flush(p, 2)
 	}
-	if n == 0 {
+	if len(shown) == 0 {
 		p.Blank()
 		p.Line(0, "no ResourceClaims")
 	}
-}
-
-func orUnknown(s string) string {
-	if s == "" {
-		return "unknown"
-	}
-	return s
 }

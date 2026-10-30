@@ -1,7 +1,6 @@
 package view
 
 import (
-	"fmt"
 	"slices"
 	"strings"
 
@@ -41,8 +40,9 @@ func Report(title string, members []string) func(*render.Printer, model.Snapshot
 		}
 		p.Banner(title)
 		p.Blank()
-		p.Line(0, "Summary: %d checks: %d ok, %d warnings, %d failures, %d unavailable, %d errors", len(order),
-			n[model.StatusPass], n[model.StatusWarn], n[model.StatusFail], n[model.StatusUnavailable], n[model.StatusError])
+		p.Line(0, "Summary: %s: %d ok, %s, %s, %d unavailable, %s", model.Plural(len(order), "check", "checks"),
+			n[model.StatusPass], model.Plural(n[model.StatusWarn], "warning", "warnings"), model.Plural(n[model.StatusFail], "failure", "failures"),
+			n[model.StatusUnavailable], model.Plural(n[model.StatusError], "error", "errors"))
 		for _, m := range order {
 			if strings.HasPrefix(m, "adapter.") {
 				continue
@@ -60,7 +60,12 @@ func Report(title string, members []string) func(*render.Printer, model.Snapshot
 			p.Blank()
 			p.Line(0, "%s", p.Bold(m))
 			for _, r := range rest {
-				notes(p, 2, r, func(f model.Finding) string { return named(r.Subject, f.Text) })
+				var d decoder
+				subject := subjectOf(r, &d)
+				for _, f := range findingsOf(r) {
+					printFinding(p, 2, reportFinding(f), subject, nil)
+				}
+				d.flush(p, 2)
 			}
 		}
 		var adapters []model.Result
@@ -81,9 +86,19 @@ func Report(title string, members []string) func(*render.Printer, model.Snapshot
 	}
 }
 
-func named(subject, text string) string {
-	if subject == "" {
-		return text
+// reportFinding is f as the report words it. An inspector's "missing
+// attribute" is said as what it means for the group the subject names.
+func reportFinding(f model.Finding) model.Finding {
+	if f.Kind == model.KindAttrMissing && len(f.Items) == 1 {
+		f.Text = "no " + attrLabel(f.Items[0]) + " published"
 	}
-	return fmt.Sprintf("%s: %s", subject, text)
+	return f
+}
+
+// attrLabel is the name a topology attribute goes by in text.
+func attrLabel(attr string) string {
+	if attr == "numa" {
+		return "NUMA node"
+	}
+	return attr
 }

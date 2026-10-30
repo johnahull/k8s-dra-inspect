@@ -3,6 +3,7 @@ package render
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -29,10 +30,10 @@ func TestMarker(t *testing.T) {
 	off, _ := newP(Style{})
 	on, _ := newP(Style{Color: true})
 	for _, c := range cases {
-		if got := string(off.Marker(c.s)); got != c.plain {
+		if got := off.Marker(c.s).String(); got != c.plain {
 			t.Errorf("%s off: got %q want %q", c.s, got, c.plain)
 		}
-		if got := string(on.Marker(c.s)); got != c.col {
+		if got := on.Marker(c.s).String(); got != c.col {
 			t.Errorf("%s on: got %q want %q", c.s, got, c.col)
 		}
 	}
@@ -220,5 +221,108 @@ func TestInfoNoteIsNeutralNotGreen(t *testing.T) {
 	p.Note(0, Info, "no shared counters published")
 	if want := "\x1b[2m·\x1b[0m no shared counters published\n"; b.String() != want || strings.Contains(b.String(), "32m") {
 		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+// The wrap limit is inclusive: a line exactly Width columns wide stays whole.
+func TestWrapBoundaryIsInclusive(t *testing.T) {
+	cases := []struct {
+		name  string
+		width int
+		run   func(p *Printer)
+		want  string
+	}{
+		{"prose fits", 9, func(p *Printer) { p.Prose(0, 0, "aaaa bbbb") }, "aaaa bbbb\n"},
+		{"prose one over", 8, func(p *Printer) { p.Prose(0, 0, "aaaa bbbb") }, "aaaa\nbbbb\n"},
+		{"note fits", 11, func(p *Printer) { p.Note(0, model.StatusWarn, "aaaa bbbb") }, "! aaaa bbbb\n"},
+		{"note one over", 10, func(p *Printer) { p.Note(0, model.StatusWarn, "aaaa bbbb") }, "! aaaa\n  bbbb\n"},
+		{"list fits", 25, func(p *Printer) { p.List(2, "NUMA 0,1", []string{"gpu-0", "gpu-1", "gpu-2"}) }, "  NUMA 0,1: gpu-0, gpu-1,\n    gpu-2\n"},
+		{"list one over", 24, func(p *Printer) { p.List(2, "NUMA 0,1", []string{"gpu-0", "gpu-1", "gpu-2"}) }, "  NUMA 0,1: gpu-0,\n    gpu-1, gpu-2\n"},
+	}
+	for _, c := range cases {
+		p, b := newP(Style{Width: c.width})
+		c.run(p)
+		if b.String() != c.want {
+			t.Errorf("%s: got %q want %q", c.name, b.String(), c.want)
+		}
+	}
+}
+
+func TestListOneGroupLineWhenItFits(t *testing.T) {
+	p, b := newP(Style{})
+	p.List(4, "NUMA 0,1,2,3", []string{"a", "b", "c"})
+	if want := "    NUMA 0,1,2,3: a, b, c\n"; b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+func TestListWrapsAt100WhenWidthIsZero(t *testing.T) {
+	var items []string
+	for i := range 30 {
+		items = append(items, fmt.Sprintf("device-%02d", i))
+	}
+	p, b := newP(Style{})
+	p.List(2, "pcieRoot pci0000:00", items)
+	lines := strings.Split(strings.TrimRight(b.String(), "\n"), "\n")
+	if len(lines) < 3 {
+		t.Fatalf("not wrapped: %q", b.String())
+	}
+	for i, l := range lines {
+		if w := cond.StringWidth(l); w > 100 || (i < len(lines)-1 && w < 90) {
+			t.Errorf("line %d width %d: %q", i, w, l)
+		}
+		if i > 0 && !strings.HasPrefix(l, "    device-") {
+			t.Errorf("line %d has no hanging indent: %q", i, l)
+		}
+	}
+	if !strings.HasPrefix(lines[0], "  pcieRoot pci0000:00: device-00, ") {
+		t.Errorf("group line does not start with its key: %q", lines[0])
+	}
+	if got := strings.Join(strings.Fields(strings.ReplaceAll(strings.Join(lines, " "), ",", " ")), " "); !strings.HasSuffix(got, "device-29") {
+		t.Errorf("items lost: %q", got)
+	}
+}
+
+func TestListDisplayWidthCJKAndCombining(t *testing.T) {
+	p, b := newP(Style{Width: 30})
+	p.List(2, "NUMA 0", []string{"示例加速器-1", "示例加速器-2", "示例加速器-3", "café-4", "café-5"})
+	for i, l := range strings.Split(strings.TrimRight(b.String(), "\n"), "\n") {
+		if w := cond.StringWidth(l); w > 30 {
+			t.Errorf("line %d width %d: %q", i, w, l)
+		}
+	}
+	if !strings.Contains(b.String(), "café-4") || strings.Count(b.String(), "\n") < 2 {
+		t.Errorf("got %q", b.String())
+	}
+}
+
+func TestListEmptySingleAndLongToken(t *testing.T) {
+	p, b := newP(Style{Width: 20})
+	p.List(2, "NUMA 0", nil)
+	p.List(2, "", nil)
+	p.List(2, "NUMA 1", []string{"solo"})
+	p.List(2, "", []string{"x", "y"})
+	tok := strings.Repeat("d", 60)
+	p.List(2, "NUMA 2", []string{tok, "e"})
+	want := "  NUMA 0: (none)\n  NUMA 1: solo\n  x, y\n  NUMA 2:\n    " + tok + ",\n    e\n"
+	if b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+func TestListCleansItemsAndLabel(t *testing.T) {
+	p, b := newP(Style{})
+	p.List(0, "k\x1b[2J", []string{"a\u202eb", "c d"})
+	if want := "k�[2J: a�b, c d\n"; b.String() != want {
+		t.Errorf("got %q want %q", b.String(), want)
+	}
+}
+
+// Only the Printer may mint a Span: the type has an unexported field, so no
+// other package can write Span("\x1b[31m...") around the Printer's cleaning.
+func TestSpanCannotBeForged(t *testing.T) {
+	ty := reflect.TypeFor[Span]()
+	if ty.Kind() != reflect.Struct || ty.NumField() != 1 || ty.Field(0).IsExported() {
+		t.Errorf("Span must be a struct with one unexported field, got %v", ty)
 	}
 }

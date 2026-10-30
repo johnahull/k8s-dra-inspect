@@ -179,12 +179,14 @@ func Claims() Inspector {
 					}
 				}
 				status := model.StatusPass
+				var findings []model.Finding
 				if len(missing) > 0 {
 					status = model.StatusWarn
 					det["missingDevices"] = missing
 					det["reason"] = "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
+					findings = []model.Finding{{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing}}
 				}
-				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det})
+				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det, Findings: findings})
 			}
 			return out
 		},

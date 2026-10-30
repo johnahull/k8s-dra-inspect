@@ -66,22 +66,24 @@ func Topology() Check {
 		for _, k := range slices.SortedFunc(maps.Keys(pools), func(a, b model.PoolKey) int { return strings.Compare(a[0]+"/"+a[1], b[0]+"/"+b[1]) }) {
 			p := pools[k]
 			var fs []finding
-			warn := func(f string, a ...any) { fs = append(fs, finding{model.StatusWarn, fmt.Sprintf(f, a...)}) }
+			warn := func(k model.Kind, f string, a ...any) {
+				fs = append(fs, finding{status: model.StatusWarn, kind: k, reason: fmt.Sprintf(f, a...)})
+			}
 			if len(p.missingNUMA) > 0 {
-				warn("NUMA node missing on %s", strings.Join(p.missingNUMA, ", "))
+				fs = append(fs, listFinding(model.StatusWarn, model.KindNUMAMissing, "NUMA node missing on", "device", p.missingNUMA))
 			}
 			if len(p.missingPC) > 0 {
-				warn("PCIe root missing on %s", strings.Join(p.missingPC, ", "))
+				fs = append(fs, listFinding(model.StatusWarn, model.KindPCIeRootMissing, "PCIe root missing on", "device", p.missingPC))
 			}
 			for _, c := range p.conflicts {
 				kind, name, _ := strings.Cut(c, ":")
-				warn("conflicting %s attributes on %s", kind, name)
+				warn(model.KindTopologyConflict, "conflicting %s attributes on %s", kind, name)
 			}
 			for _, e := range p.invalid {
-				warn("%s", e)
+				warn(model.KindInvalid, "%s", e)
 			}
 			if sel[k].Incomplete {
-				warn("pool has fewer ResourceSlices than expected for its newest generation (%d of %d)", p.slices, p.expected)
+				warn(model.KindIncomplete, "pool has fewer ResourceSlices than expected for its newest generation (%d of %d)", p.slices, p.expected)
 			}
 			det := map[string]any{
 				"generation": p.gen, "devices": p.devices, "slicesObserved": p.slices, "slicesExpected": p.expected,

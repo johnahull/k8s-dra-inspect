@@ -28,18 +28,22 @@ func Counters(p *render.Printer, _ model.Snapshot, results []model.Result) {
 			p.Blank()
 			p.Line(0, "%s (pool: %s)", p.Bold(drv), pool)
 			last = key
+		} else {
+			p.Blank() // sets of one pool are separated like devices of one check
 		}
 		p.Line(2, "counter set %s", detStr(r, "counterSet"))
-		counters, _ := r.Details["counters"].(map[string]map[string]string)
+		var d decoder
+		counters := detail[map[string]map[string]string](&d, r, "counters")
 		for _, name := range slices.Sorted(maps.Keys(counters)) {
 			p.Line(4, "%s: %s of %s in use", name, counters[name]["used"], counters[name]["capacity"])
 		}
-		for _, by := range strs(r.Details["allocatedBy"]) {
+		for _, by := range detail[[]string](&d, r, "allocatedBy") {
 			p.Line(4, "used by %s", by)
 		}
 		if notes(p, 4, r, nil) == 0 {
 			p.Note(4, model.StatusPass, "within capacity")
 		}
+		d.flush(p, 4)
 	}
 	if n == 0 {
 		p.Blank()

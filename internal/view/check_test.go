@@ -19,10 +19,17 @@ func TestAlignmentSplitNamesTheDevicesAndNUMASets(t *testing.T) {
 		"═══ Alignment Check ═══",
 		"",
 		"demo/two-gpus",
-		"  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00",
-		"  request gpu: gpu.example.com/gpu-1  NUMA 1  pcieRoot pci0000:80",
-		"  ! devices span NUMA nodes (no common NUMA node): on NUMA 0: gpu-0; on NUMA 1: gpu-1",
-		"  · devices span PCIe roots (informational): on pcieRoot pci0000:00: gpu-0; on pcieRoot pci0000:80: gpu-1",
+		"  gpu",
+		"    gpu-0  gpu.example.com",
+		"    NUMA 0  pcieRoot pci0000:00",
+		"    gpu-1  gpu.example.com",
+		"    NUMA 1  pcieRoot pci0000:80",
+		"  ! devices span NUMA nodes (no common NUMA node)",
+		"      NUMA 0: gpu-0",
+		"      NUMA 1: gpu-1",
+		"  · devices span PCIe roots (informational)",
+		"      pcieRoot pci0000:00: gpu-0",
+		"      pcieRoot pci0000:80: gpu-1",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
@@ -58,9 +65,15 @@ func TestAlignmentUnconstrainedAlignedSaysAllOnNUMA(t *testing.T) {
 
 func TestAlignmentViolatedConstraintListsValuesPerDevice(t *testing.T) {
 	got := showCheck(t, fx(t, "alignment/list-global-fail"), check.Alignment("", ""), view.Alignment)
-	want := "  ✗ matchAttribute resource.kubernetes.io/numaNode violated: no value common to all devices in scope (gpu-0 = 0,1; gpu-1 = 1,2; gpu-2 = 0,2)"
-	if !hasLine(got, want) {
-		t.Errorf("missing %q in:\n%s", want, got)
+	for _, want := range []string{
+		"  ✗ matchAttribute resource.kubernetes.io/numaNode violated: no value common to all devices in scope",
+		"      numaNode 0,1: gpu-0",
+		"      numaNode 0,2: gpu-2",
+		"      numaNode 1,2: gpu-1",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
 	}
 }
 
@@ -147,7 +160,8 @@ func TestTopologyCheckNamesDevicesMissingAttributes(t *testing.T) {
 		"gpu.example.com/node-a.example.com",
 		"  2 devices, 1 missing NUMA, 2 missing PCIe root",
 		"  ! NUMA node missing on gpu-1",
-		"  ! PCIe root missing on gpu-0, gpu-1",
+		"  ! PCIe root missing on 2 devices",
+		"      gpu-0, gpu-1",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
@@ -165,13 +179,19 @@ func TestKubeVirtDevicesNUMAAndFlagsInPlainWords(t *testing.T) {
 		"═══ KubeVirt Check ═══",
 		"",
 		"demo/vm-ok",
-		"  hostDevice gpu0  request gpu0: gpu.example.com/gpu-0 (0000:3b:00.0)  node node-a.example.com",
-		"  hostDevice nic0  request nic0: gpu.example.com/nic-0 (0000:3c:00.0)  node node-a.example.com",
-		"  hostDevice gpu2  request gpu2/sub: gpu.example.com/gpu-2 (0000:af:00.0)  node node-a.example.com",
+		"  gpu0",
+		"    gpu-0 (0000:3b:00.0)  gpu.example.com",
+		"    hostDevice gpu0  node node-a.example.com",
+		"  nic0",
+		"    nic-0 (0000:3c:00.0)  gpu.example.com",
+		"    hostDevice nic0  node node-a.example.com",
+		"  gpu2/sub",
+		"    gpu-2 (0000:af:00.0)  gpu.example.com",
+		"    hostDevice gpu2  node node-a.example.com",
 		"  devices on NUMA 0,1",
 		"  guest NUMA passthrough: yes",
 		"  dedicated CPU placement: yes",
-		"  ✓ 3 device(s) on node node-a.example.com",
+		"  ✓ 3 devices on node node-a.example.com",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
@@ -182,7 +202,8 @@ func TestKubeVirtDevicesNUMAAndFlagsInPlainWords(t *testing.T) {
 		"  ! devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology",
 		"  guest NUMA passthrough: no",
 		"  · no DRA host devices",
-		"  ! evidence: status.nodeName is not a string",
+		"  ! evidence: 9 warnings",
+		"      status.nodeName is not a string",
 	} {
 		if !hasLine(all, w) {
 			t.Errorf("missing %q in:\n%s", w, all)
@@ -242,24 +263,25 @@ func TestVFIOPerDeviceDetails(t *testing.T) {
 	rs := []model.Result{{Check: check.NameVFIO, Status: model.StatusFail, Subject: "gpu.example.com/node-a/gpu-0",
 		Details: map[string]any{"bdf": "0000:3b:00.0", "cdiPresent": false, "driver": "nvidia", "iommuGroup": "7",
 			"nonVfioPeers": []string{"0000:3b:00.1 (driver snd_hda_intel)", "0000:3b:00.2 (no driver)"}},
-		Findings: []model.Finding{{Status: model.StatusFail, Text: "bound to driver nvidia, want vfio-pci"}}}}
+		Findings: []model.Finding{{Status: model.StatusFail, Kind: model.KindVFIODriver, Text: "bound to driver nvidia, want vfio-pci"},
+			{Status: model.StatusWarn, Kind: model.KindVFIOPeers, Text: "IOMMU group 7 also holds 0000:3b:00.1 (driver snd_hda_intel), 0000:3b:00.2 (no driver)",
+				Head: "IOMMU group 7 also holds 2 devices", Items: []string{"0000:3b:00.1 (driver snd_hda_intel)", "0000:3b:00.2 (no driver)"}}}}}
 	got := showResults(t, vfioSnap(t, "7"), rs, view.VFIO)
 	want := lines(
 		"═══ VFIO Check ═══",
 		"",
 		"gpu.example.com/gpu-0 (0000:3b:00.0)",
-		"  bound driver: nvidia",
+		"  ✗ bound driver: nvidia, want vfio-pci",
 		"  IOMMU group: 7",
-		"  non-vfio peer: 0000:3b:00.1 (driver snd_hda_intel)",
-		"  non-vfio peer: 0000:3b:00.2 (no driver)",
+		"  ! non-vfio peer: 0000:3b:00.1 (driver snd_hda_intel)",
+		"  ! non-vfio peer: 0000:3b:00.2 (no driver)",
 		"  /dev/vfio/7: present",
 		"  CDI spec lists device: no",
-		"  ✗ bound to driver nvidia, want vfio-pci",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
 	}
-	if got := showResults(t, vfioSnap(t), rs, view.VFIO); !hasLine(got, "  /dev/vfio/7: missing") {
+	if got := showResults(t, vfioSnap(t), rs, view.VFIO); !hasLine(got, "  ! /dev/vfio/7: missing") {
 		t.Errorf("missing node:\n%s", got)
 	}
 	good := []model.Result{{Check: check.NameVFIO, Status: model.StatusPass, Subject: "gpu.example.com/node-a/gpu-0",

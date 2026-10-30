@@ -35,8 +35,9 @@ type entry struct{ driver, name, hw string }
 
 // leaf is one PCIe-root set: its devices (or, compact, per-label counts).
 type leaf struct {
-	root    string // exact set, "" when unknown
-	reason  string
+	root    string   // exact set, "" when unknown
+	roots   []string // the same set, one per root
+	notes   []model.Finding
 	devices []entry
 	counts  string // compact: "gpu=1 cpu=1"
 }
@@ -46,11 +47,13 @@ type numaGroup struct {
 	leaves []*leaf
 }
 
-// unknownLast moves the empty (unknown) entry to the end, keeping the rest in order.
-func unknownLast[T any](v []T, unknown func(T) bool) {
-	slices.SortStableFunc(v, func(a, b T) int {
-		return cmp.Compare(boolInt(unknown(a)), boolInt(unknown(b)))
-	})
+// cmpRoots orders PCIe-root sets: unknown last, then by how many roots, then
+// by their values in natural order (pci0000:20 before pci0000:100).
+func cmpRoots(a, b *leaf) int {
+	if (len(a.roots) == 0) != (len(b.roots) == 0) {
+		return cmp.Compare(boolInt(len(a.roots) == 0), boolInt(len(b.roots) == 0))
+	}
+	return cmp.Or(cmp.Compare(len(a.roots), len(b.roots)), cmpList(a.roots, b.roots))
 }
 
 func boolInt(b bool) int {
@@ -58,11 +61,6 @@ func boolInt(b bool) int {
 		return 1
 	}
 	return 0
-}
-
-func detList(r model.Result, key string) []string {
-	v, _ := r.Details[key].([]string)
-	return v
 }
 
 // countsOf renders per-label device counts, labels in driver-name order.
@@ -86,7 +84,10 @@ func countsOf(byDriver map[string]int) string {
 // Topology prints node, NUMA set, PCIe-root set and one device per line, from
 // the topology results plus a snapshot lookup for each device's driver. A
 // result without a devices list (--compact) prints per-group counts only.
-// Groups keep the results' order, except that unknown NUMA/PCIe branches go last.
+// NUMA sets are ordered numerically (0,1 then 2,3 then 9 then 10,11), PCIe
+// roots by count and then naturally, and unknown branches go last. A device
+// without a pcieRoot or NUMA node shows as "unknown" in the tree, so that
+// finding is not repeated below it; other findings are listed after the tree.
 func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("DRA Topology")
 
@@ -110,13 +111,15 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	}
 
 	var nodes []string
+	var decodeErrs []string
 	groups := map[string][]*numaGroup{}
 	for _, r := range results {
 		if r.Status == model.StatusUnavailable {
 			continue
 		}
 		node := detStr(r, "node")
-		numa, root := detList(r, "numa"), detList(r, "pcieRoot")
+		var d decoder
+		numa, root := detail[[]string](&d, r, "numa"), detail[[]string](&d, r, "pcieRoot")
 		if groups[node] == nil {
 			nodes = append(nodes, node)
 		}
@@ -126,10 +129,16 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		} else {
 			groups[node] = append(groups[node], ng)
 		}
-		l := &leaf{root: strings.Join(root, ","), reason: detStr(r, "reason")}
+		l := &leaf{root: strings.Join(root, ","), roots: root}
+		for _, f := range findingsOf(r) {
+			if f.Kind != model.KindAttrMissing {
+				l.notes = append(l.notes, f)
+			}
+		}
+		// The inspector leaves "devices" out of Details with --compact.
 		if _, listed := r.Details["devices"]; listed {
 			avail := slices.Clone(idx[groupKey{node, strings.Join(numa, ","), l.root}])
-			for _, name := range detList(r, "devices") {
+			for _, name := range detail[[]string](&d, r, "devices") {
 				e := entry{name: name}
 				if i := slices.IndexFunc(avail, func(a entry) bool { return a.name == name }); i >= 0 {
 					e = avail[i]
@@ -144,10 +153,10 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 				return cmp.Or(cmp.Compare(a.driver, b.driver), cmp.Compare(a.name, b.name))
 			})
 		} else {
-			byDriver, _ := r.Details["drivers"].(map[string]int)
-			l.counts = countsOf(byDriver)
+			l.counts = countsOf(detail[map[string]int](&d, r, "drivers"))
 		}
 		ng.leaves = append(ng.leaves, l)
+		decodeErrs = append(decodeErrs, d.errs...)
 	}
 
 	p.Blank()
@@ -160,16 +169,16 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			p.Blank()
 		}
 		p.Line(0, "%s %s", p.Bold("Node:"), node)
-		unknownLast(groups[node], func(g *numaGroup) bool { return g.numa == "" })
+		slices.SortStableFunc(groups[node], func(a, b *numaGroup) int { return cmpSets(a.numa, b.numa) })
 		var notes []string
 		for gi, ng := range groups[node] {
 			lastN := gi == len(groups[node])-1
 			p.Line(0, "%s%s", p.Branch(lastN), p.Bold("NUMA "+orUnknown(ng.numa)))
-			unknownLast(ng.leaves, func(l *leaf) bool { return l.root == "" })
+			slices.SortStableFunc(ng.leaves, cmpRoots)
 			for li, l := range ng.leaves {
 				lastP := li == len(ng.leaves)-1
-				if l.reason != "" {
-					notes = append(notes, "NUMA "+orUnknown(ng.numa)+", pcieRoot "+orUnknown(l.root)+": "+l.reason)
+				for _, f := range l.notes {
+					notes = append(notes, "NUMA "+orUnknown(ng.numa)+", pcieRoot "+orUnknown(l.root)+": "+f.Text)
 				}
 				head := "pcieRoot " + orUnknown(l.root)
 				if l.counts != "" {
@@ -193,4 +202,5 @@ func Topology(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			p.Note(0, model.StatusWarn, n)
 		}
 	}
+	(&decoder{errs: decodeErrs}).flush(p, 0)
 }

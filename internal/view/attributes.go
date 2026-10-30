@@ -5,6 +5,8 @@ import (
 	"slices"
 	"strings"
 
+	resourcev1 "k8s.io/api/resource/v1"
+
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -19,20 +21,14 @@ func splitSubject(s string) (driver, pool, device string) {
 	return driver, rest[:i], rest[i+1:]
 }
 
-// listValue spaces the commas of a list value "[a,b]" to "[a, b]".
-// shortcut: a scalar string that itself looks like "[x,y]" is spaced too; upgrade
-// by having the inspector expose the values instead of a joined display string.
-func listValue(v string) string {
-	if strings.HasPrefix(v, "[") && strings.HasSuffix(v, "]") {
-		return strings.ReplaceAll(v, ",", ", ")
-	}
-	return v
-}
+// maxKeyPad is the widest attribute key the "=" column is aligned for.
+const maxKeyPad = 56
 
 // Attributes prints, per driver and device, one "key = value" line per
 // attribute (and "capacity key = value" with --include-capacity).
 func Attributes(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("DRA Device Attributes")
+	devs := model.NewDeviceIndex(snap.ResourceSlices)
 	byDriver := map[string][]model.Result{}
 	for _, r := range results {
 		if r.Status != model.StatusUnavailable {
@@ -50,29 +46,41 @@ func Attributes(p *render.Printer, snap model.Snapshot, results []model.Result) 
 			p.Blank()
 		}
 		rs := byDriver[driver]
-		p.Line(0, "%s (%s)", p.Bold(driver), plural(len(rs), "device", "devices"))
+		p.Line(0, "%s (%s)", p.Bold(driver), model.Plural(len(rs), "device", "devices"))
 		for _, r := range rs {
 			_, pool, dev := splitSubject(r.Subject)
 			p.Line(2, "%s  (pool %s, node %s)", p.Bold(dev), pool, detStr(r, "node"))
-			attrs, _ := r.Details["attributes"].(map[string]string)
-			caps, _ := r.Details["capacity"].(map[string]string)
+			var d decoder
+			attrs := detail[map[string]string](&d, r, "attributes")
+			caps := detail[map[string]string](&d, r, "capacity")
+			device, _, found := devs.Find(driver, pool, dev)
 			w := 0
+			// A key longer than maxKeyPad is printed whole but does not widen the others.
 			for k := range attrs {
-				w = max(w, len(k))
+				if len(k) <= maxKeyPad {
+					w = max(w, len(k))
+				}
 			}
 			for k := range caps {
-				w = max(w, len("capacity "+k))
+				if len("capacity "+k) <= maxKeyPad {
+					w = max(w, len("capacity "+k))
+				}
 			}
-			line := func(k, v string) { p.Line(4, "%s = %s", k+strings.Repeat(" ", w-len(k)), listValue(v)) }
+			line := func(k, v string) { p.Line(4, "%s = %s", k+strings.Repeat(" ", max(w-len(k), 0)), v) }
 			for _, k := range slices.Sorted(maps.Keys(attrs)) {
-				line(k, attrs[k])
+				v := attrs[k]
+				// A list is spaced from the attribute itself, so a scalar string that
+				// merely looks like "[x,y]" is printed as it is.
+				if a, ok := device.Attributes[resourcev1.QualifiedName(k)]; found && ok && model.IsListAttr(a) {
+					v = "[" + strings.Join(model.AttrSet(a), ", ") + "]"
+				}
+				line(k, v)
 			}
 			for _, k := range slices.Sorted(maps.Keys(caps)) {
 				line("capacity "+k, caps[k])
 			}
-			if reason := detStr(r, "reason"); reason != "" {
-				p.Note(4, r.Status, reason)
-			}
+			notes(p, 4, r, nil)
+			d.flush(p, 4)
 		}
 	}
 }

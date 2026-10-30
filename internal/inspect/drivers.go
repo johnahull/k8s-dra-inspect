@@ -76,7 +76,9 @@ func Drivers(attributes bool) Inspector {
 				a := byDriver[n]
 				d := map[string]any{"pools": len(a.pools), "nodes": len(a.nodes), "devices": a.devices}
 				status := model.StatusPass
+				var findings []model.Finding
 				if len(a.incomplete) > 0 {
+					findings = incompleteFinding(a.incomplete...)
 					slices.Sort(a.incomplete)
 					status = model.StatusWarn
 					d["incompletePools"] = a.incomplete
@@ -93,7 +95,7 @@ func Drivers(attributes bool) Inspector {
 					slices.Sort(keys)
 					d["attributes"] = keys
 				}
-				out = append(out, model.Result{Check: check, Status: status, Subject: n, Details: d})
+				out = append(out, model.Result{Check: check, Status: status, Subject: n, Details: d, Findings: findings})
 			}
 			return out
 		},

@@ -1,7 +1,14 @@
 ═══ Alignment Check ═══
 
 demo/three-gpus
-  request gpu: gpu.example.com/gpu-0  NUMA 0,1  pcieRoot unknown
-  request gpu: gpu.example.com/gpu-1  NUMA 1,2  pcieRoot unknown
-  request gpu: gpu.example.com/gpu-2  NUMA 0,2  pcieRoot unknown
-  ✗ matchAttribute resource.kubernetes.io/numaNode violated: no value common to all devices in scope (gpu-0 = 0,1; gpu-1 = 1,2; gpu-2 = 0,2)
+  gpu
+    gpu-0  gpu.example.com
+    NUMA 0,1  pcieRoot unknown
+    gpu-1  gpu.example.com
+    NUMA 1,2  pcieRoot unknown
+    gpu-2  gpu.example.com
+    NUMA 0,2  pcieRoot unknown
+  ✗ matchAttribute resource.kubernetes.io/numaNode violated: no value common to all devices in scope
+      numaNode 0,1: gpu-0
+      numaNode 0,2: gpu-2
+      numaNode 1,2: gpu-1

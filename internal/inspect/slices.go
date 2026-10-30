@@ -53,7 +53,11 @@ func Slices() Inspector {
 				if state == "incomplete" {
 					det["reason"] = incompleteReason(s.Spec.Pool.Name)
 				}
-				out = append(out, model.Result{Check: check, Status: status, Subject: s.Name, Details: det})
+				res := model.Result{Check: check, Status: status, Subject: s.Name, Details: det}
+				if state == "incomplete" {
+					res.Findings = incompleteFinding(s.Spec.Pool.Name)
+				}
+				out = append(out, res)
 			}
 			return out
 		},

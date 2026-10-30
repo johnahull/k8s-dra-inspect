@@ -98,9 +98,6 @@ func TestTopologyUnknownBranchesComeLast(t *testing.T) {
 		"└─ NUMA unknown",
 		"   └─ pcieRoot unknown",
 		"      └─ gpu  gpu-1 [example-gpu]",
-		"",
-		"! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot",
-		"! NUMA unknown, pcieRoot unknown: missing attribute: numa, missing attribute: pcieRoot",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)

@@ -2,13 +2,13 @@
 
 gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com (2 devices)
   dev-b  (pool pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total, node node-a.example.com)
-    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID    = 0000:3b:00.0
+    gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pciBusID = 0000:3b:00.0
     gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName = Café Accelerator Ünï
-    resource.kubernetes.io/numaNode                                                               = 0
+    resource.kubernetes.io/numaNode = 0
   device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total  (pool pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total, node node-a.example.com)
     gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName = 示例加速器 カード 한국어
-    resource.kubernetes.io/numaNode                                                               = 1
-    resource.kubernetes.io/pcieRoot                                                               = [pci0000:00, pci0000:80]
+    resource.kubernetes.io/numaNode = 1
+    resource.kubernetes.io/pcieRoot = [pci0000:00, pci0000:80]
 
 other.example.com (1 device)
   nic0  (pool node-b.example.com, node node-b.example.com)

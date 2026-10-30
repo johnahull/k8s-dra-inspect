@@ -56,7 +56,7 @@ func need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bo
 			reason = fmt.Sprintf("%s collection state: %s", k, state)
 		}
 		return []model.Result{{Check: check, Status: model.StatusUnavailable, Details: map[string]any{"reason": reason},
-			Findings: []model.Finding{{Status: model.StatusUnavailable, Text: reason}}}}, true
+			Findings: []model.Finding{{Status: model.StatusUnavailable, Kind: model.KindUnavailable, Text: reason}}}}, true
 	}
 	return nil, false
 }
@@ -64,7 +64,14 @@ func need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bo
 func single(check string, st model.Status, subject, reason string) []model.Result {
 	r := model.Result{Check: check, Status: st, Subject: subject, Details: map[string]any{"reason": reason}}
 	if st != model.StatusPass {
-		r.Findings = []model.Finding{{Status: st, Text: reason}}
+		k := model.KindOther
+		switch st {
+		case model.StatusUnavailable:
+			k = model.KindUnavailable
+		case model.StatusError:
+			k = model.KindError
+		}
+		r.Findings = []model.Finding{{Status: st, Kind: k, Text: reason}}
 	}
 	return []model.Result{r}
 }

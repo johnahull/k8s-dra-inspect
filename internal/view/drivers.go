@@ -34,24 +34,26 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			continue
 		}
 		n++
-		if _, hasAttrs := r.Details["attributes"]; hasAttrs && n > 1 {
+		if _, hasAttrs := r.Details["attributes"]; hasAttrs && n > 1 { // --attributes blocks are separated
 			p.Blank()
 		}
 		where := append(slices.Sorted(maps.Keys(names[r.Subject])), slices.Sorted(maps.Keys(labels[r.Subject]))...)
-		line := plural(intOf(r.Details["devices"]), "device", "devices")
+		var d decoder
+		line := model.Plural(detail[int](&d, r, "devices"), "device", "devices")
 		if len(where) > 0 {
 			line += " on " + strings.Join(where, ", ")
 		}
-		p.Line(0, "%s: %s  (%s)", p.Bold(r.Subject), line, plural(intOf(r.Details["pools"]), "pool", "pools"))
-		if keys, ok := r.Details["attributes"].([]string); ok {
+		p.Line(0, "%s: %s  (%s)", p.Bold(r.Subject), line, model.Plural(detail[int](&d, r, "pools"), "pool", "pools"))
+		// The inspector leaves "attributes" out of Details unless --attributes was given.
+		if _, listed := r.Details["attributes"]; listed {
+			keys := detail[[]string](&d, r, "attributes")
 			p.Line(2, "attributes:")
 			for _, k := range keys {
 				p.Line(4, "%s", k)
 			}
 		}
-		if reason := detStr(r, "reason"); reason != "" {
-			p.Note(2, r.Status, reason)
-		}
+		notes(p, 2, r, nil)
+		d.flush(p, 2)
 	}
 	if n == 0 {
 		p.Line(0, "no drivers")

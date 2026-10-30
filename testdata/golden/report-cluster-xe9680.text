@@ -3,13 +3,16 @@
 Summary: 9 checks: 7 ok, 2 warnings, 0 failures, 0 unavailable, 0 errors
 
 inspect.topology
-  ! node-a.example.com/numa=0/pcieRoot=-: missing attribute: pcieRoot
-  ! node-a.example.com/numa=1/pcieRoot=-: missing attribute: pcieRoot
-  ! node-a.example.com/numa=2/pcieRoot=-: missing attribute: pcieRoot
-  ! node-a.example.com/numa=3/pcieRoot=-: missing attribute: pcieRoot
+  ! node-a.example.com, NUMA 0: no pcieRoot published
+  ! node-a.example.com, NUMA 1: no pcieRoot published
+  ! node-a.example.com, NUMA 2: no pcieRoot published
+  ! node-a.example.com, NUMA 3: no pcieRoot published
 
 check.topology
-  ! dra.cpu/node-a.example.com: PCIe root missing on cpudevnuma000, cpudevnuma001, cpudevnuma002, cpudevnuma003
-  ! dra.memory/node-a.example.com: PCIe root missing on memory-xnxmvm, memory-56xhnf, memory-ddztgx, memory-nfqcrb, hugepages-2mi-vgzdk8, hugepages-2mi-wzkcsz, hugepages-2mi-5s57zr, hugepages-2mi-bmgj2r
+  ! dra.cpu/node-a.example.com: PCIe root missing on 4 devices
+      cpudevnuma000, cpudevnuma001, cpudevnuma002, cpudevnuma003
+  ! dra.memory/node-a.example.com: PCIe root missing on 8 devices
+      memory-xnxmvm, memory-56xhnf, memory-ddztgx, memory-nfqcrb, hugepages-2mi-vgzdk8,
+        hugepages-2mi-wzkcsz, hugepages-2mi-5s57zr, hugepages-2mi-bmgj2r
 
 Details: run the individual check or inspect commands, or use -o json.

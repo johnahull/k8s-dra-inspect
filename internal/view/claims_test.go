@@ -20,15 +20,22 @@ func TestClaimsExactLayout(t *testing.T) {
 		"═══ ResourceClaims ═══",
 		"",
 		"demo/broken → no pods",
-		"  ✗ request gpu: gpu.example.com/gpu-9 not found in ResourceSlices (pool node-a.example.com)",
+		"  gpu",
+		"    ! gpu.example.com/gpu-9 not found in ResourceSlices (pool node-a.example.com)",
 		"",
 		"demo/pending → pending (not allocated)",
 		"",
 		"demo/shared-gpu → pod virt-launcher-vm1-abcde (VM vm1)",
-		"  request gpu: gpu.example.com/gpu-0  NUMA 0  pcieRoot pci0000:00  node node-a.example.com",
+		"  gpu",
+		"    gpu-0  gpu.example.com",
+		"    NUMA 0  pcieRoot pci0000:00",
+		"    node node-a.example.com",
 		"",
 		"demo/web-0-gpu-xyz12 → pod web-0",
-		"  request gpu: gpu.example.com/gpu-1  NUMA 1  pcieRoot pci0000:80  node node-a.example.com",
+		"  gpu",
+		"    gpu-1  gpu.example.com",
+		"    NUMA 1  pcieRoot pci0000:80",
+		"    node node-a.example.com",
 		"",
 	}, "\n")
 	if got != want {
@@ -41,7 +48,7 @@ func TestClaimsDeviceShowsBusIDAndProduct(t *testing.T) {
 	setAttr(&snap, "gpu-0", "resource.kubernetes.io/pciBusID", "0000:41:00.0")
 	setAttr(&snap, "gpu-0", "productName", "AMD MI355X")
 	got := claimsOut(t, snap)
-	want := "  request gpu: gpu.example.com/gpu-0 (0000:41:00.0) [AMD MI355X]  NUMA 0  pcieRoot pci0000:00  node node-a.example.com"
+	want := "    gpu-0 (0000:41:00.0) [AMD MI355X]  gpu.example.com"
 	if !hasLine(got, want) {
 		t.Errorf("missing %q in:\n%s", want, got)
 	}
@@ -59,7 +66,7 @@ func TestClaimsSeveralPodsAndNumaSets(t *testing.T) {
 		t.Errorf("missing %q in:\n%s", want, got)
 	}
 	got = claimsOut(t, fx(t, "multinode"))
-	if want := "  request gpu: gpu.example.com/a-gpu-1  NUMA 0,1,2,3  pcieRoot pci0000:00  node node-a.example.com"; !hasLine(got, want) {
+	if want := "    NUMA 0,1,2,3  pcieRoot pci0000:00"; !hasLine(got, want) {
 		t.Errorf("missing %q in:\n%s", want, got)
 	}
 }
@@ -72,11 +79,17 @@ func TestClaimsPodsAndVMIUnavailableInWords(t *testing.T) {
 	got := claimsOut(t, snap)
 	for _, want := range []string{
 		"demo/shared-gpu → pods unavailable",
-		"  ? pods unavailable: forbidden: cannot list pods",
-		"  ? vmi unavailable: kubevirt.io/v1 not served",
+		"? pods unavailable: forbidden: cannot list pods",
+		"? vmi unavailable: kubevirt.io/v1 not served",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
+		}
+	}
+	// The reason is said once for the whole run, not once per claim.
+	for _, once := range []string{"? pods unavailable", "? vmi unavailable"} {
+		if n := strings.Count(got, once); n != 1 {
+			t.Errorf("%q printed %d times, want 1:\n%s", once, n, got)
 		}
 	}
 }

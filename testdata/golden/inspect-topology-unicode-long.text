@@ -8,11 +8,7 @@ Node: node-a.example.com
    └─ pcieRoot pci0000:00,pci0000:80
       └─ gpu  device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total [示例加速器 カード 한국어]
 
-! NUMA 0, pcieRoot unknown: missing attribute: pcieRoot
-
 Node: node-b.example.com
 └─ NUMA unknown
    └─ pcieRoot unknown
       └─ other.example.com  nic0
-
-! NUMA unknown, pcieRoot unknown: missing attribute: numa, missing attribute: pcieRoot

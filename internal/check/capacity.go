@@ -45,9 +45,9 @@ func Capacity() Check {
 					devs[key] = d
 					switch d.ref.state {
 					case deviceMissing:
-						d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("allocated device %s is not in any ResourceSlice", key)})
+						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("allocated device %s is not in any ResourceSlice", key)})
 					case deviceStale:
-						d.fs = append(d.fs, finding{model.StatusWarn, fmt.Sprintf("allocated device %s is only in a stale generation of its pool", key)})
+						d.fs = append(d.fs, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("allocated device %s is only in a stale generation of its pool", key)})
 					}
 				}
 				d.by[c.Namespace+"/"+c.Name] = true
@@ -58,19 +58,19 @@ func Capacity() Check {
 					v := r.ConsumedCapacity[name]
 					k, ok := resolveKey(d.ref.dev.Capacity, r.Driver, string(name))
 					if !ok {
-						d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("consumed capacity %s is not published by %s", name, key)})
+						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("consumed capacity %s is not published by %s", name, key)})
 						continue
 					}
 					pub := d.ref.dev.Capacity[k]
 					if v.Cmp(pub.Value) > 0 {
-						d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("claim %s/%s consumes %s of %s, more than the published %s", c.Namespace, c.Name, v.String(), k, pub.Value.String())})
+						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("claim %s/%s consumes %s of %s, more than the published %s", c.Namespace, c.Name, v.String(), k, pub.Value.String())})
 					}
 					if p := pub.RequestPolicy; p != nil && p.ValidRange != nil {
 						if m := p.ValidRange.Min; m != nil && v.Cmp(*m) < 0 {
-							d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("claim %s/%s consumes %s of %s, below the policy minimum %s", c.Namespace, c.Name, v.String(), k, m.String())})
+							d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("claim %s/%s consumes %s of %s, below the policy minimum %s", c.Namespace, c.Name, v.String(), k, m.String())})
 						}
 						if m := p.ValidRange.Max; m != nil && v.Cmp(*m) > 0 {
-							d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("claim %s/%s consumes %s of %s, above the policy maximum %s", c.Namespace, c.Name, v.String(), k, m.String())})
+							d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("claim %s/%s consumes %s of %s, above the policy maximum %s", c.Namespace, c.Name, v.String(), k, m.String())})
 						}
 					}
 					if d.consumed[k] == nil {
@@ -93,7 +93,7 @@ func Capacity() Check {
 				rem.Sub(*used)
 				caps[string(k)] = map[string]string{"published": pub.String(), "consumed": used.String(), "remaining": rem.String()}
 				if used.Cmp(pub) > 0 {
-					d.fs = append(d.fs, finding{model.StatusFail, fmt.Sprintf("total consumed %s of %s exceeds the published %s", used.String(), k, pub.String())})
+					d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("total consumed %s of %s exceeds the published %s", used.String(), k, pub.String())})
 				}
 			}
 			var sum []string

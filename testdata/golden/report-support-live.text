@@ -2,18 +2,19 @@ UNAVAILABLE: check.vfio node/node-b.example.com: 1 device on node node-b.example
 UNAVAILABLE: check.kubevirt demo/vm-pending: VMI is not scheduled to a node
 ═══ Support Report ═══
 
-Summary: 13 checks: 8 ok, 3 warnings, 1 failures, 1 unavailable, 0 errors
+Summary: 13 checks: 8 ok, 3 warnings, 1 failure, 1 unavailable, 0 errors
 
 inspect.topology
-  ! node-a.example.com/numa=0/pcieRoot=-: missing attribute: pcieRoot
-  ! node-a.example.com/numa=1/pcieRoot=-: missing attribute: pcieRoot
-  ! node-b.example.com/numa=0/pcieRoot=-: missing attribute: pcieRoot
+  ! node-a.example.com, NUMA 0: no pcieRoot published
+  ! node-a.example.com, NUMA 1: no pcieRoot published
+  ! node-b.example.com, NUMA 0: no pcieRoot published
 
 check.alignment
   ! demo/claim-ok: devices span NUMA nodes (no common NUMA node)
 
 check.topology
-  ! gpu.example.com/node-a.example.com: PCIe root missing on gpu-0, nic-0, gpu-2
+  ! gpu.example.com/node-a.example.com: PCIe root missing on 3 devices
+      gpu-0, nic-0, gpu-2
   ! gpu.example.com/node-b.example.com: PCIe root missing on gpu-b0
 
 check.kubevirt

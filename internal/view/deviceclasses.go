@@ -20,7 +20,8 @@ func DeviceClasses(p *render.Printer, snap model.Snapshot, results []model.Resul
 		n++
 		p.Blank()
 		p.Line(0, "%s", p.Bold(r.Subject))
-		lbl, _ := r.Details["labels"].(map[string]string)
+		var d decoder
+		lbl := detail[map[string]string](&d, r, "labels")
 		if len(lbl) == 0 {
 			p.Line(2, "labels: none")
 		} else {
@@ -29,12 +30,13 @@ func DeviceClasses(p *render.Printer, snap model.Snapshot, results []model.Resul
 				p.Line(4, "%s=%s", k, lbl[k])
 			}
 		}
-		p.Line(2, "selectors: %d (expressions not shown)", intOf(r.Details["selectorCount"]))
+		p.Line(2, "selectors: %d (expressions not shown)", detail[int](&d, r, "selectorCount"))
 		cfg := "none"
-		if r.Details["configPresent"] == true {
+		if detail[bool](&d, r, "configPresent") {
 			cfg = "present"
 		}
 		p.Line(2, "config: %s", cfg)
+		d.flush(p, 2)
 	}
 	if n == 0 {
 		p.Blank()

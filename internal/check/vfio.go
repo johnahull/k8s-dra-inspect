@@ -78,19 +78,19 @@ func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 		reason := "PCI device " + bdf + " not found in host evidence"
 		det["reason"] = reason
 		return model.Result{Check: NameVFIO, Status: model.StatusUnavailable, Subject: subject, Details: det,
-			Findings: []model.Finding{{Status: model.StatusUnavailable, Text: reason}}}
+			Findings: []model.Finding{{Status: model.StatusUnavailable, Kind: model.KindUnavailable, Text: reason}}}
 	}
 	det["driver"], det["iommuGroup"] = pci.Driver, pci.IOMMUGroup
 	var fs []finding
 	switch pci.Driver {
 	case vfioDriver:
 	case "":
-		fs = append(fs, finding{model.StatusFail, "no driver bound, want " + vfioDriver})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindVFIODriver, reason: "no driver bound, want " + vfioDriver})
 	default:
-		fs = append(fs, finding{model.StatusFail, fmt.Sprintf("bound to driver %s, want %s", pci.Driver, vfioDriver)})
+		fs = append(fs, finding{status: model.StatusFail, kind: model.KindVFIODriver, reason: fmt.Sprintf("bound to driver %s, want %s", pci.Driver, vfioDriver)})
 	}
 	if pci.IOMMUGroup == "" {
-		fs = append(fs, finding{model.StatusWarn, "no IOMMU group (IOMMU disabled?)"})
+		fs = append(fs, finding{status: model.StatusWarn, kind: model.KindIOMMUGroup, reason: "no IOMMU group (IOMMU disabled?)"})
 	} else {
 		var peers []string
 		for _, p := range ev.IOMMUGroups[pci.IOMMUGroup] {
@@ -110,10 +110,10 @@ func vfioDevice(ev host.Evidence, device, subject, bdf string) model.Result {
 		}
 		if len(peers) > 0 {
 			det["nonVfioPeers"] = peers
-			fs = append(fs, finding{model.StatusWarn, fmt.Sprintf("IOMMU group %s also holds %s", pci.IOMMUGroup, strings.Join(peers, ", "))})
+			fs = append(fs, listFinding(model.StatusWarn, model.KindVFIOPeers, "IOMMU group "+pci.IOMMUGroup+" also holds", "device", peers))
 		}
 		if !slices.Contains(ev.VFIODevNodes, pci.IOMMUGroup) {
-			fs = append(fs, finding{model.StatusWarn, "/dev/vfio/" + pci.IOMMUGroup + " is missing"})
+			fs = append(fs, finding{status: model.StatusWarn, kind: model.KindDevNode, reason: "/dev/vfio/" + pci.IOMMUGroup + " is missing"})
 		}
 	}
 	st := worst(fs)

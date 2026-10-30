@@ -29,9 +29,9 @@ func observed(snap model.Snapshot, driver, pool string, gen int64) (seen, want i
 }
 
 // sliceNote words one stale or incomplete slice result.
-func sliceNote(snap model.Snapshot, sel map[model.PoolKey]model.PoolSel, r model.Result) string {
+func sliceNote(d *decoder, snap model.Snapshot, sel map[model.PoolKey]model.PoolSel, r model.Result) string {
 	driver, pool := detStr(r, "driver"), detStr(r, "pool")
-	gen, _ := r.Details["generation"].(int64)
+	gen := detail[int64](d, r, "generation")
 	cur := sel[model.PoolKey{driver, pool}].Gen
 	seen, want := observed(snap, driver, pool, gen)
 	switch r.Details["state"] {
@@ -67,8 +67,9 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 	}
 	notes := map[string][]string{} // node -> sentences
+	var d decoder
 	for _, r := range results {
-		if n := sliceNote(snap, sel, r); n != "" {
+		if n := sliceNote(&d, snap, sel, r); n != "" {
 			node := detStr(r, "node")
 			notes[node] = append(notes[node], n)
 			if rows[node] == nil {
@@ -77,6 +78,7 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 	}
 
+	d.flush(p, 0)
 	p.Blank()
 	if !sc.Available {
 		p.Note(0, model.StatusUnavailable, "usage unavailable: "+sc.Reason)
@@ -118,7 +120,7 @@ func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 }
 
 func counts(devs []deviceRow, sc model.UsageScope) string {
-	s := plural(len(devs), "device", "devices")
+	s := model.Plural(len(devs), "device", "devices")
 	if !sc.Available {
 		return s
 	}
@@ -146,7 +148,7 @@ func deviceLine(d deviceRow, numaW int, sc model.UsageScope) string {
 	}
 	b.WriteString(d.text)
 	if sc.Available && d.used {
-		if len(d.users.Pods) > 0 {
+		if sc.PodsAvailable && len(d.users.Pods) > 0 { // without the pod list every arrow is a claim
 			b.WriteString("  →" + strings.Join(d.users.Pods, ", "))
 		} else {
 			b.WriteString("  →claim " + strings.Join(d.users.Claims, ", "))
