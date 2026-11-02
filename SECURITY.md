@@ -18,9 +18,11 @@ VMIs to an allow-list (names, namespaces, UIDs, claim and host-device names,
 CPU settings, node name and phase).
 
 CEL selector text is kept in snapshots (DeviceClass and ResourceClaim
-selectors) because replay needs it, as are `reservedFor` pod names, Node
-labels, and the VMI names, namespaces, UIDs and node names above. Review a
-snapshot before sharing it outside the team that owns the cluster.
+selectors) because replay needs it, and DeviceClass selector text is shown by
+`inspect deviceclasses`. Opaque driver parameters remain hidden. The same
+applies to `reservedFor` pod names, Node labels, and the VMI names,
+namespaces, UIDs and node names above. Review a snapshot before sharing it
+outside the team that owns the cluster.
 `--no-redact` keeps full objects and should never be shared. Adapter evidence
 (`--with-adapters`) is redacted by its producer.
 

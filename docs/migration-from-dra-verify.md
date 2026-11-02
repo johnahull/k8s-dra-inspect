@@ -87,7 +87,7 @@ summaries, counts and analysis text are not reproduced.
 | `guest` | Needed SSH (with an `sshpass` fallback). dra-inspect never opens a shell into a workload. | None in v1. |
 | `cpuSocketID` handling | Not a standard DRA attribute. The legacy socket column, the NUMA-to-socket inference and the "cpuSocketID SPLIT" verdict are gone. | Group by NUMA node and PCIe root (`inspect topology`). |
 | `cpuSocketID`-style vendor keys as a separate concept | Not separate: NUMA and PCIe root are resolved through three tiers, and the first tier with any key wins (see below). | `inspect topology` shows the resolved value. |
-| lab-only parsing (DaemonSet argument scraping, kubelet plugin directory listing, PartitionConfig reconstruction) | Driver-specific and tied to the topology-coordinator project. | `inspect drivers` summarizes drivers from ResourceSlices; `inspect deviceclasses` lists classes and never prints CEL or opaque config. |
+| lab-only parsing (DaemonSet argument scraping, kubelet plugin directory listing, PartitionConfig reconstruction) | Driver-specific and tied to the topology-coordinator project. | `inspect drivers` summarizes drivers from ResourceSlices; `inspect deviceclasses` lists classes with CEL selectors and safe config driver names, but never prints opaque parameters. |
 
 ## How NUMA and PCIe root are resolved
 
@@ -130,8 +130,8 @@ How to read the output:
 - **Redaction.** Opaque driver parameters, last-applied annotations,
   `managedFields` and VMI cloud-init data are never printed and are removed from
   snapshots unless `snapshot capture --no-redact` is given. CEL selector text
-  is not printed by `inspect`, but CEL selector text is kept in snapshots for
-  replay fidelity: review a snapshot before sharing it (see
+  is shown by `inspect deviceclasses`; CEL selector text is kept in snapshots
+  for replay fidelity: review a snapshot before sharing it (see
   [SECURITY.md](../SECURITY.md)).
   Opaque parameters and `PartitionConfig` contents that the old
   `claims`/`deviceclasses` output showed are no longer displayed.

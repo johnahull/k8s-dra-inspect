@@ -36,7 +36,8 @@ package cli
 //   - Legacy prints "?/N" for a counter it cannot compute (unknown counter
 //     name); dra-inspect fails the check instead.
 //   - ANSI colors, ordering, column layout and selector text are not compared
-//     (dra-inspect never prints CEL selectors or opaque parameters).
+//     (DeviceClass inspection prints CEL selectors, while opaque parameters
+//     remain hidden).
 
 import (
 	"encoding/json"

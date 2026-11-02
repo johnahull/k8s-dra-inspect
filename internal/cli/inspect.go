@@ -111,7 +111,7 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	t := add("topology", "Group devices by node, NUMA node and PCIe root", view.Topology, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
 	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
 	add("claims", "List ResourceClaims with allocation, node and consumers", view.Claims, plain(inspect.Claims))
-	dc := add("deviceclasses", "List DeviceClasses (selector expressions and config are never shown)", view.DeviceClasses, func() (inspect.Inspector, error) {
+	dc := add("deviceclasses", "List DeviceClasses with selectors and safe config drivers", view.DeviceClasses, func() (inspect.Inspector, error) {
 		sel, err := labels.Parse(selector)
 		if err != nil {
 			return inspect.Inspector{}, fmt.Errorf("invalid --selector: %w", err)

@@ -361,6 +361,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa0-tight",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "tight",
@@ -369,7 +372,10 @@
           "nodepartition.dra.k8s.io/partitionType": "quarter",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"quarter\""
+        ]
       }
     },
     {
@@ -377,6 +383,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa1-loose",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "loose",
@@ -385,7 +394,10 @@
           "nodepartition.dra.k8s.io/partitionType": "quarter",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"quarter\""
+        ]
       }
     },
     {
@@ -393,6 +405,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa2-tight",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "tight",
@@ -401,7 +416,10 @@
           "nodepartition.dra.k8s.io/partitionType": "quarter",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"quarter\""
+        ]
       }
     },
     {
@@ -409,6 +427,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa3-loose",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "loose",
@@ -417,7 +438,10 @@
           "nodepartition.dra.k8s.io/partitionType": "quarter",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"quarter\""
+        ]
       }
     },
     {
@@ -425,6 +449,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa0-tight",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "tight",
@@ -433,7 +460,10 @@
           "nodepartition.dra.k8s.io/partitionType": "eighth",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"eighth\""
+        ]
       }
     },
     {
@@ -441,6 +471,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa1-loose",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "loose",
@@ -449,7 +482,10 @@
           "nodepartition.dra.k8s.io/partitionType": "eighth",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"eighth\""
+        ]
       }
     },
     {
@@ -457,6 +493,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa2-tight",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "tight",
@@ -465,7 +504,10 @@
           "nodepartition.dra.k8s.io/partitionType": "eighth",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"eighth\""
+        ]
       }
     },
     {
@@ -473,6 +515,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa3-loose",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "loose",
@@ -481,7 +526,10 @@
           "nodepartition.dra.k8s.io/partitionType": "eighth",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"eighth\""
+        ]
       }
     },
     {
@@ -489,6 +537,9 @@
       "status": "pass",
       "subject": "dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetwor-da12deaf-full-loose",
       "details": {
+        "configDrivers": [
+          "nodepartition.dra.k8s.io"
+        ],
         "configPresent": true,
         "labels": {
           "nodepartition.dra.k8s.io/coupling": "loose",
@@ -496,7 +547,10 @@
           "nodepartition.dra.k8s.io/partitionType": "full",
           "nodepartition.dra.k8s.io/profile": "dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"nodepartition.dra.k8s.io\" && device.attributes[\"nodepartition.dra.k8s.io\"].partitionType == \"full\""
+        ]
       }
     },
     {
@@ -504,9 +558,13 @@
       "status": "pass",
       "subject": "dra.cpu",
       "details": {
+        "configDrivers": [],
         "configPresent": false,
         "labels": {},
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"dra.cpu\""
+        ]
       }
     },
     {
@@ -514,9 +572,13 @@
       "status": "pass",
       "subject": "dra.hugepages-2m",
       "details": {
+        "configDrivers": [],
         "configPresent": false,
         "labels": {},
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"dra.memory\" && device.attributes[\"dra.memory\"].hugeTLB == true && device.attributes[\"dra.memory\"].pageSize == \"2Mi\""
+        ]
       }
     },
     {
@@ -524,9 +586,13 @@
       "status": "pass",
       "subject": "dra.memory",
       "details": {
+        "configDrivers": [],
         "configPresent": false,
         "labels": {},
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"dra.memory\""
+        ]
       }
     },
     {
@@ -534,9 +600,13 @@
       "status": "pass",
       "subject": "gpu.amd.com",
       "details": {
+        "configDrivers": [],
         "configPresent": false,
         "labels": {},
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"gpu.amd.com\""
+        ]
       }
     },
     {
@@ -544,9 +614,15 @@
       "status": "pass",
       "subject": "gpu.amd.com-vfio",
       "details": {
+        "configDrivers": [
+          "gpu.amd.com"
+        ],
         "configPresent": true,
         "labels": {},
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == \"gpu.amd.com\""
+        ]
       }
     },
     {
@@ -554,11 +630,17 @@
       "status": "pass",
       "subject": "sriovnetwork.k8snetworkplumbingwg.io",
       "details": {
+        "configDrivers": [
+          "sriovnetwork.k8snetworkplumbingwg.io"
+        ],
         "configPresent": true,
         "labels": {
           "app.kubernetes.io/managed-by": "Helm"
         },
-        "selectorCount": 1
+        "selectorCount": 1,
+        "selectorExpressions": [
+          "device.driver == 'sriovnetwork.k8snetworkplumbingwg.io'"
+        ]
       }
     },
     {

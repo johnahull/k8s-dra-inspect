@@ -249,17 +249,43 @@ func TestDeviceClassesSelectorFilters(t *testing.T) {
 	}
 }
 
-// Opaque configuration and CEL text must never reach user output.
-func TestNoSelectorOrConfigLeak(t *testing.T) {
+// Opaque configuration parameters remain hidden, while DeviceClass CEL text
+// and opaque driver names are useful diagnostic output.
+func TestDeviceClassOutputRedactsOpaqueParameters(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/classes-claims")
 	for _, args := range [][]string{{"deviceclasses"}, {"claims"}, {"topology"}} {
 		for _, format := range []string{"table", "json", "text"} {
 			out, _ := inspectRun(t, snap, append([]string{"-o", format}, args...)...)
-			for _, bad := range []string{"leakmarker", "opaque-parameter-marker", "device.driver", "secretKnob", "claimKnob", "isGreaterThan"} {
+			forbidden := []string{"opaque-parameter-marker", "secretKnob", "GpuConfig"}
+			if args[0] != "deviceclasses" {
+				forbidden = append(forbidden, "claimKnob", "device.driver", "leakmarker", "isGreaterThan")
+			}
+			for _, bad := range forbidden {
 				if strings.Contains(out, bad) {
 					t.Errorf("%v %s leaks %q:\n%s", args, format, bad, out)
 				}
 			}
+		}
+	}
+	out, _ := inspectRun(t, snap, "deviceclasses")
+	for _, want := range []string{"device.driver", "leakmarker", "isGreaterThan", "config: gpu.example.com"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("deviceclasses output misses %q:\n%s", want, out)
+		}
+	}
+}
+
+func TestDeviceClassOutputUsesRedactedSnapshotDetails(t *testing.T) {
+	snap := model.Redact(testutil.LoadFixture(t, "testdata/fixtures/classes-claims"))
+	out, _ := inspectRun(t, snap, "deviceclasses")
+	for _, want := range []string{"device.driver", "config: gpu.example.com"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("redacted output misses %q:\n%s", want, out)
+		}
+	}
+	for _, bad := range []string{"opaque-parameter-marker", "secretKnob", "GpuConfig"} {
+		if strings.Contains(out, bad) {
+			t.Errorf("redacted output leaks %q:\n%s", bad, out)
 		}
 	}
 }

@@ -89,7 +89,9 @@ dra-inspect report cluster -o json
 
 # Capture once, analyze anywhere. Snapshots are redacted by default (opaque
 # driver parameters, cloud-init data, managedFields, most Node and VMI fields)
-# but CEL selector text is kept for replay: review a snapshot before sharing it.
+# inspect deviceclasses shows CEL selector text and safe config driver names;
+# opaque driver parameters remain hidden. CEL selector text is kept for replay:
+# review a snapshot before sharing it.
 # --from needs no cluster.
 dra-inspect snapshot capture --file snap.json
 dra-inspect check alignment --from snap.json

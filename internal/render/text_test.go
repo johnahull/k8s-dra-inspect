@@ -111,6 +111,35 @@ func TestProseWidthZeroNeverWraps(t *testing.T) {
 	}
 }
 
+func TestProseAtUsesFallbackWidth(t *testing.T) {
+	for _, tc := range []struct {
+		name, want string
+		style      Style
+		width      int
+	}{
+		{name: "fallback", style: Style{}, width: 30, want: "word"},
+		{name: "terminal", style: Style{Width: 20}, width: 30, want: "word"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			p, b := newP(tc.style)
+			p.ProseAt(4, 3, tc.width, strings.Repeat(tc.want+" ", 12))
+			lines := strings.Split(strings.TrimRight(b.String(), "\n"), "\n")
+			if len(lines) < 2 {
+				t.Fatalf("not wrapped: %q", b.String())
+			}
+			limit := tc.width
+			if tc.style.Width > 0 && tc.style.Width < limit {
+				limit = tc.style.Width
+			}
+			for _, line := range lines {
+				if w := cond.StringWidth(line); w > limit {
+					t.Errorf("line width %d: %q", w, line)
+				}
+			}
+		})
+	}
+}
+
 func TestProseOverflowToken(t *testing.T) {
 	p, b := newP(Style{Width: 20})
 	tok := strings.Repeat("x", 50)

@@ -9,9 +9,8 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
-// DeviceClasses lists DeviceClasses matching sel. Only the selector count and
-// whether config exists are reported; CEL text and opaque parameters never
-// leave this function.
+// DeviceClasses lists DeviceClasses matching sel. CEL selector text and opaque
+// driver names are reported; opaque parameters never leave this function.
 func DeviceClasses(sel labels.Selector) Inspector {
 	return Inspector{
 		Spec: Spec{
@@ -26,6 +25,9 @@ func DeviceClasses(sel labels.Selector) Inspector {
 				cfg := "-"
 				if r.Details["configPresent"] == true {
 					cfg = "present"
+					if drivers, ok := r.Details["configDrivers"].([]string); ok && len(drivers) > 0 {
+						cfg = strings.Join(drivers, ",")
+					}
 				}
 				return []string{r.Subject, strings.ReplaceAll(kv(lbl), ", ", ","), str(r, "selectorCount"), cfg}
 			},
@@ -44,8 +46,21 @@ func DeviceClasses(sel labels.Selector) Inspector {
 				for k, v := range c.Labels {
 					lbl[k] = v
 				}
+				expressions := make([]string, 0, len(c.Spec.Selectors))
+				for _, selector := range c.Spec.Selectors {
+					if selector.CEL != nil && selector.CEL.Expression != "" {
+						expressions = append(expressions, selector.CEL.Expression)
+					}
+				}
+				drivers := make([]string, 0, len(c.Spec.Config))
+				for _, config := range c.Spec.Config {
+					if config.Opaque != nil && config.Opaque.Driver != "" {
+						drivers = append(drivers, config.Opaque.Driver)
+					}
+				}
 				out = append(out, model.Result{Check: check, Status: model.StatusPass, Subject: c.Name, Details: map[string]any{
-					"labels": lbl, "selectorCount": len(c.Spec.Selectors), "configPresent": len(c.Spec.Config) > 0,
+					"configDrivers": drivers, "configPresent": len(c.Spec.Config) > 0, "labels": lbl,
+					"selectorCount": len(c.Spec.Selectors), "selectorExpressions": expressions,
 				}})
 			}
 			return out

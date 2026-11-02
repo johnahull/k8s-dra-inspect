@@ -12,7 +12,7 @@ import (
 
 func contains(s, sub string) bool { return strings.Contains(s, sub) }
 
-func TestDeviceClassesBlocksNeverShowSelectorsOrConfig(t *testing.T) {
+func TestDeviceClassesBlocksShowSelectorsAndConfigDrivers(t *testing.T) {
 	got := show(t, fx(t, "classes-claims"), inspect.DeviceClasses(labels.Everything()), view.DeviceClasses)
 	want := joinLines(
 		"═══ DeviceClasses ═══",
@@ -21,25 +21,28 @@ func TestDeviceClassesBlocksNeverShowSelectorsOrConfig(t *testing.T) {
 		"  labels:",
 		"    tier=gold",
 		"    vendor=example",
-		"  selectors: 2 (expressions not shown)",
-		"  config: present",
+		"  selectors: 2",
+		"    1. device.driver == \"gpu.example.com\" && device.attributes[\"gpu.example.com\"].leakmarker",
+		"    2. device.capacity[\"gpu.example.com\"].memory.isGreaterThan(quantity(\"1Gi\"))",
+		"  config: gpu.example.com",
 		"",
 		"nic.example.com",
 		"  labels:",
 		"    tier=silver",
 		"    vendor=example",
-		"  selectors: 0 (expressions not shown)",
-		"  config: present",
+		"  selectors: 0",
+		"  config: nic.example.com",
 		"",
 		"plain.example.com",
 		"  labels: none",
-		"  selectors: 1 (expressions not shown)",
+		"  selectors: 1",
+		"    1. device.driver == \"plain.example.com\"",
 		"  config: none",
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
 	}
-	for _, bad := range []string{"leakmarker", "opaque-parameter-marker", "device.driver", "secretKnob"} {
+	for _, bad := range []string{"opaque-parameter-marker", "secretKnob", "GpuConfig"} {
 		if contains(got, bad) {
 			t.Errorf("leaks %q", bad)
 		}

@@ -129,6 +129,16 @@ func (p *Printer) Prose(indent, hanging int, text string) {
 	p.wrap("", 0, indent, hanging, p.st.Width, strings.Fields(Clean(text)))
 }
 
+// ProseAt prints prose wrapped at width when no terminal width is known, or
+// at the narrower configured terminal width when one is available.
+func (p *Printer) ProseAt(indent, hanging, width int, text string) {
+	limit := width
+	if p.st.Width > 0 && (limit <= 0 || p.st.Width < limit) {
+		limit = p.st.Width
+	}
+	p.wrap("", 0, indent, hanging, limit, strings.Fields(Clean(text)))
+}
+
 // Note prints a status marker and a sentence; continuation lines align under
 // the text, not the marker.
 func (p *Printer) Note(indent int, s model.Status, text string) {
