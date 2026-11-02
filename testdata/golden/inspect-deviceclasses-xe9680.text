@@ -7,8 +7,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa0-tight
     nodepartition.dra.k8s.io/numa=numa0
     nodepartition.dra.k8s.io/partitionType=quarter
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "quarter"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa1-loose
   labels:
@@ -17,8 +19,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa1-loose
     nodepartition.dra.k8s.io/numa=numa1
     nodepartition.dra.k8s.io/partitionType=quarter
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "quarter"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa2-tight
   labels:
@@ -27,8 +31,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa2-tight
     nodepartition.dra.k8s.io/numa=numa2
     nodepartition.dra.k8s.io/partitionType=quarter
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "quarter"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa3-loose
   labels:
@@ -37,8 +43,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnet-da12deaf-quarter-numa3-loose
     nodepartition.dra.k8s.io/numa=numa3
     nodepartition.dra.k8s.io/partitionType=quarter
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "quarter"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa0-tight
   labels:
@@ -47,8 +55,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa0-tight
     nodepartition.dra.k8s.io/numa=numa0
     nodepartition.dra.k8s.io/partitionType=eighth
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "eighth"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa1-loose
   labels:
@@ -57,8 +67,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa1-loose
     nodepartition.dra.k8s.io/numa=numa1
     nodepartition.dra.k8s.io/partitionType=eighth
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "eighth"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa2-tight
   labels:
@@ -67,8 +79,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa2-tight
     nodepartition.dra.k8s.io/numa=numa2
     nodepartition.dra.k8s.io/partitionType=eighth
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "eighth"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa3-loose
   labels:
@@ -77,8 +91,10 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetw-da12deaf-eighth-numa3-loose
     nodepartition.dra.k8s.io/numa=numa3
     nodepartition.dra.k8s.io/partitionType=eighth
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "eighth"
+  config: nodepartition.dra.k8s.io
 
 dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetwor-da12deaf-full-loose
   labels:
@@ -86,36 +102,45 @@ dra-cpu-4-dra-memory-4-gpu-amd-com-16-sriovnetwor-da12deaf-full-loose
     nodepartition.dra.k8s.io/managed=true
     nodepartition.dra.k8s.io/partitionType=full
     nodepartition.dra.k8s.io/profile=dra.cpu-4_dra.memory-4_gpu.amd.com-16_sriovnetwork.k8s-5fd28c8c
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "nodepartition.dra.k8s.io" &&
+       device.attributes["nodepartition.dra.k8s.io"].partitionType == "full"
+  config: nodepartition.dra.k8s.io
 
 dra.cpu
   labels: none
-  selectors: 1 (expressions not shown)
+  selectors: 1
+    1. device.driver == "dra.cpu"
   config: none
 
 dra.hugepages-2m
   labels: none
-  selectors: 1 (expressions not shown)
+  selectors: 1
+    1. device.driver == "dra.memory" && device.attributes["dra.memory"].hugeTLB == true &&
+       device.attributes["dra.memory"].pageSize == "2Mi"
   config: none
 
 dra.memory
   labels: none
-  selectors: 1 (expressions not shown)
+  selectors: 1
+    1. device.driver == "dra.memory"
   config: none
 
 gpu.amd.com
   labels: none
-  selectors: 1 (expressions not shown)
+  selectors: 1
+    1. device.driver == "gpu.amd.com"
   config: none
 
 gpu.amd.com-vfio
   labels: none
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == "gpu.amd.com"
+  config: gpu.amd.com
 
 sriovnetwork.k8snetworkplumbingwg.io
   labels:
     app.kubernetes.io/managed-by=Helm
-  selectors: 1 (expressions not shown)
-  config: present
+  selectors: 1
+    1. device.driver == 'sriovnetwork.k8snetworkplumbingwg.io'
+  config: sriovnetwork.k8snetworkplumbingwg.io

@@ -1,15 +1,17 @@
 package view
 
 import (
+	"fmt"
 	"maps"
 	"slices"
+	"strings"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
 // DeviceClasses prints one block per class. Selector expressions and opaque
-// config are never printed, only their presence.
+// driver names are printed; opaque parameters are never printed.
 func DeviceClasses(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("DeviceClasses")
 	n := 0
@@ -30,10 +32,22 @@ func DeviceClasses(p *render.Printer, snap model.Snapshot, results []model.Resul
 				p.Line(4, "%s=%s", k, lbl[k])
 			}
 		}
-		p.Line(2, "selectors: %d (expressions not shown)", detail[int](&d, r, "selectorCount"))
+		selectorCount := detail[int](&d, r, "selectorCount")
+		expressions := detail[[]string](&d, r, "selectorExpressions")
+		if len(expressions) == selectorCount {
+			p.Line(2, "selectors: %d", selectorCount)
+		} else {
+			p.Line(2, "selectors: %d (%d expressions shown)", selectorCount, len(expressions))
+		}
+		for i, expression := range expressions {
+			p.ProseAt(4, 3, render.DefaultListWidth, fmt.Sprintf("%d. %s", i+1, expression))
+		}
 		cfg := "none"
 		if detail[bool](&d, r, "configPresent") {
 			cfg = "present"
+			if drivers := detail[[]string](&d, r, "configDrivers"); len(drivers) > 0 {
+				cfg = strings.Join(drivers, ", ")
+			}
 		}
 		p.Line(2, "config: %s", cfg)
 		d.flush(p, 2)

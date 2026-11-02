@@ -8,12 +8,19 @@
       "status": "pass",
       "subject": "gpu.example.com",
       "details": {
+        "configDrivers": [
+          "gpu.example.com"
+        ],
         "configPresent": true,
         "labels": {
           "tier": "gold",
           "vendor": "example"
         },
-        "selectorCount": 2
+        "selectorCount": 2,
+        "selectorExpressions": [
+          "device.driver == \"gpu.example.com\" && device.attributes[\"gpu.example.com\"].leakmarker",
+          "device.capacity[\"gpu.example.com\"].memory.isGreaterThan(quantity(\"1Gi\"))"
+        ]
       }
     },
     {
@@ -21,12 +28,16 @@
       "status": "pass",
       "subject": "nic.example.com",
       "details": {
+        "configDrivers": [
+          "nic.example.com"
+        ],
         "configPresent": true,
         "labels": {
           "tier": "silver",
           "vendor": "example"
         },
-        "selectorCount": 0
+        "selectorCount": 0,
+        "selectorExpressions": []
       }
     }
   ]
