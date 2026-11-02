@@ -15,8 +15,8 @@
 | `topology -t` | `inspect topology --compact` (or `-t`) |
 | `drivers` | `inspect drivers` |
 | `driverinfo` | `inspect drivers --attributes` (no standalone command) |
-| `attributes` | `inspect attributes` |
-| `attributes -a` | `inspect attributes --all-attributes` (add `--include-capacity` for capacities) |
+| `attributes` | `inspect attributes --topology` |
+| `attributes -a` | `inspect attributes` (add `--include-capacity` for capacities) |
 | `deviceclasses [pairs\|partitions\|aggregates]` | `inspect deviceclasses [--selector LABEL_SELECTOR]` |
 | `claims [-n NS]` | `inspect claims [-n NS]` |
 | `alignment [POD] [-n NS]` | `check alignment [POD\|CLAIM] [-n NS]` |
@@ -70,9 +70,9 @@ summaries, counts and analysis text are not reproduced.
 | Legacy option | New |
 |---|---|
 | `-n`, `--namespace NS` | global `-n`, `--namespace NS` (no flag means all namespaces) |
-| `-a`, `--all` | `inspect attributes --all-attributes`; not a global flag any more |
+| `-a`, `--all` | `inspect attributes`; not a global flag any more |
 | `-t`, `--simple` | `inspect topology --compact` / `-t` |
-| `-v`, `--verbose` | dropped; `inspect attributes --all-attributes` shows every attribute, including product names, and `-o json` always carries full detail |
+| `-v`, `--verbose` | dropped; `inspect attributes` shows every raw attribute and `--topology` selects the filtered view |
 | positional DeviceClass filter (`pairs`, `partitions`, `aggregates`) | `--selector`, a standard Kubernetes label selector; see the table below |
 | positional Pod or VM | typed positional argument of the command that takes it (`check alignment POD`, `check cpupinning POD`, `check kubevirt VMI`) |
 | (none) | `-o text\|table\|json`, `--from FILE`, `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color` |
@@ -82,11 +82,11 @@ summaries, counts and analysis text are not reproduced.
 
 | Legacy | Why | What to do instead |
 |---|---|---|
-| `composite` | No v1 replacement. | None. `inspect attributes --all-attributes` still shows the raw attributes. |
+| `composite` | No v1 replacement. | None. `inspect attributes` shows the raw attributes. |
 | `metadata` | Needed `kubectl exec` (`pods/exec`). dra-inspect grants no exec. | None in v1. |
 | `guest` | Needed SSH (with an `sshpass` fallback). dra-inspect never opens a shell into a workload. | None in v1. |
-| `cpuSocketID` handling | Not a standard DRA attribute. The legacy socket column, the NUMA-to-socket inference and the "cpuSocketID SPLIT" verdict are gone. | Group by NUMA node and PCIe root (`inspect topology`). |
-| `cpuSocketID`-style vendor keys as a separate concept | Not separate: NUMA and PCIe root are resolved through three tiers, and the first tier with any key wins (see below). | `inspect topology` shows the resolved value. |
+| `cpuSocketID` handling | Not a standard DRA attribute. The legacy socket column, the NUMA-to-socket inference and the "cpuSocketID SPLIT" verdict are gone. | Raw keys remain visible in `inspect attributes`; `--topology` excludes them. |
+| `cpuSocketID`-style vendor keys as a separate concept | Not separate: NUMA and PCIe root are resolved through three tiers, and the first tier with any key wins (see below). | `inspect topology` shows the resolved value; `inspect attributes` shows raw keys. |
 | lab-only parsing (DaemonSet argument scraping, kubelet plugin directory listing, PartitionConfig reconstruction) | Driver-specific and tied to the topology-coordinator project. | `inspect drivers` summarizes drivers from ResourceSlices; `inspect deviceclasses` lists classes with CEL selectors and safe config driver names, but never prints opaque parameters. |
 
 ## How NUMA and PCIe root are resolved

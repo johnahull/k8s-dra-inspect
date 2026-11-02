@@ -45,7 +45,9 @@ var inspectCases = []struct {
 	{"drivers", []string{"drivers"}},
 	{"drivers-attributes", []string{"drivers", "--attributes"}},
 	{"attributes", []string{"attributes"}},
-	{"attributes-all-capacity", []string{"attributes", "--all-attributes", "--include-capacity"}},
+	{"attributes-capacity", []string{"attributes", "--include-capacity"}},
+	{"attributes-topology", []string{"attributes", "--topology"}},
+	{"attributes-topology-capacity", []string{"attributes", "--topology", "--include-capacity"}},
 }
 
 func TestInspectGolden(t *testing.T) {
@@ -117,6 +119,57 @@ func TestInspectJSONKeepsExactNames(t *testing.T) {
 	}
 }
 
+func TestAttributesDefaultAllAndTopologyFilter(t *testing.T) {
+	snap := testutil.LoadFixture(t, "testdata/fixtures/unicode-long")
+
+	out, _ := inspectRun(t, snap, "-o", "json", "attributes", "--include-capacity")
+	if !strings.Contains(out, "channels") || !strings.Contains(out, "cpuSocketID") {
+		t.Fatalf("default attributes should include every attribute:\n%s", out)
+	}
+	if !strings.Contains(out, `"capacity"`) {
+		t.Fatalf("--include-capacity should still include capacity:\n%s", out)
+	}
+
+	deps := Deps{
+		NewSource: func(*Options) (model.Source, error) { return fakeSource{snap}, nil },
+		Now:       func() time.Time { return time.Date(2026, 3, 4, 5, 6, 7, 0, time.UTC) },
+	}
+	var stdout, stderr bytes.Buffer
+	code := run([]string{"-o", "json", "inspect", "attributes", "--topology"}, &stdout, &stderr, "v", deps)
+	if code != 0 || stderr.Len() != 0 {
+		t.Fatalf("--topology failed: code=%d stderr=%q", code, stderr.String())
+	}
+	if strings.Contains(stdout.String(), "channels") || strings.Contains(stdout.String(), "cpuSocketID") {
+		t.Fatalf("--topology should hide non-topology attributes:\n%s", stdout.String())
+	}
+	if !strings.Contains(stdout.String(), "resource.kubernetes.io/pcieRoot") {
+		t.Fatalf("--topology should retain topology attributes:\n%s", stdout.String())
+	}
+
+	stdout.Reset()
+	stderr.Reset()
+	code = run([]string{"-o", "json", "inspect", "attributes", "--topology", "--include-capacity"}, &stdout, &stderr, "v", deps)
+	if code != 0 || stderr.Len() != 0 {
+		t.Fatalf("--topology --include-capacity failed: code=%d stderr=%q", code, stderr.String())
+	}
+	if strings.Contains(stdout.String(), "channels") || strings.Contains(stdout.String(), "cpuSocketID") || !strings.Contains(stdout.String(), `"capacity"`) {
+		t.Fatalf("combined flags should filter attributes and include capacity:\n%s", stdout.String())
+	}
+}
+
+func TestAttributesAllAttributesFlagRemoved(t *testing.T) {
+	snap := testutil.LoadFixture(t, "testdata/fixtures/unicode-long")
+	deps := Deps{
+		NewSource: func(*Options) (model.Source, error) { return fakeSource{snap}, nil },
+		Now:       func() time.Time { return time.Date(2026, 3, 4, 5, 6, 7, 0, time.UTC) },
+	}
+	var stdout, stderr bytes.Buffer
+	code := run([]string{"inspect", "attributes", "--all-attributes"}, &stdout, &stderr, "v", deps)
+	if code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "unknown flag") {
+		t.Fatalf("--all-attributes should be removed: code=%d stdout=%q stderr=%q", code, stdout.String(), stderr.String())
+	}
+}
+
 func TestAttributesDefaultSetAndRendering(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/unicode-long")
 	out, _ := inspectRun(t, snap, "-o", "json", "attributes", "--include-capacity")
@@ -131,10 +184,9 @@ func TestAttributesDefaultSetAndRendering(t *testing.T) {
 		}
 	}
 	attrs := long["attributes"].(map[string]any)
-	for k := range attrs {
-		if strings.Contains(k, "cpuSocketID") || strings.Contains(k, "channels") {
-			t.Errorf("non-default attribute %q shown by default", k)
-		}
+	if attrs["gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID"] != "1" ||
+		attrs["gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels"] != "[2,4]" {
+		t.Errorf("all attributes missing by default: %v", attrs)
 	}
 	if attrs["resource.kubernetes.io/pcieRoot"] != "[pci0000:00,pci0000:80]" {
 		t.Errorf("list attr: %v", attrs)
@@ -147,9 +199,9 @@ func TestAttributesDefaultSetAndRendering(t *testing.T) {
 		t.Errorf("capacity: %v / %v", caps, devB["capacity"])
 	}
 
-	out, _ = inspectRun(t, snap, "-o", "json", "attributes", "--all-attributes")
-	if !strings.Contains(out, "cpuSocketID") || !strings.Contains(out, "[4,2]") && !strings.Contains(out, "[2,4]") {
-		t.Errorf("--all-attributes missing cpuSocketID or int list:\n%s", out)
+	out, _ = inspectRun(t, snap, "-o", "json", "attributes", "--topology")
+	if strings.Contains(out, "cpuSocketID") || strings.Contains(out, "channels") {
+		t.Errorf("--topology includes non-topology attributes:\n%s", out)
 	}
 	if strings.Contains(out, `"capacity"`) {
 		t.Error("capacity shown without --include-capacity")

@@ -1,0 +1,251 @@
+═══ DRA Device Attributes ═══
+
+Node: node-a.example.com
+  dra.cpu (4 devices)
+    cpudevnuma000
+      dra.cpu/numaNodeID = 0
+      dra.net/numaNode   = 0
+    cpudevnuma001
+      dra.cpu/numaNodeID = 1
+      dra.net/numaNode   = 1
+    cpudevnuma002
+      dra.cpu/numaNodeID = 2
+      dra.net/numaNode   = 2
+    cpudevnuma003
+      dra.cpu/numaNodeID = 3
+      dra.net/numaNode   = 3
+  dra.memory (8 devices)
+    hugepages-2mi-5s57zr
+      dra.cpu/numaNodeID  = 2
+      dra.memory/numaNode = 2
+      dra.net/numaNode    = 2
+    hugepages-2mi-bmgj2r
+      dra.cpu/numaNodeID  = 3
+      dra.memory/numaNode = 3
+      dra.net/numaNode    = 3
+    hugepages-2mi-vgzdk8
+      dra.cpu/numaNodeID  = 0
+      dra.memory/numaNode = 0
+      dra.net/numaNode    = 0
+    hugepages-2mi-wzkcsz
+      dra.cpu/numaNodeID  = 1
+      dra.memory/numaNode = 1
+      dra.net/numaNode    = 1
+    memory-56xhnf
+      dra.cpu/numaNodeID  = 1
+      dra.memory/numaNode = 1
+      dra.net/numaNode    = 1
+    memory-ddztgx
+      dra.cpu/numaNodeID  = 2
+      dra.memory/numaNode = 2
+      dra.net/numaNode    = 2
+    memory-nfqcrb
+      dra.cpu/numaNodeID  = 3
+      dra.memory/numaNode = 3
+      dra.net/numaNode    = 3
+    memory-xnxmvm
+      dra.cpu/numaNodeID  = 0
+      dra.memory/numaNode = 0
+      dra.net/numaNode    = 0
+  gpu.amd.com (16 devices)
+    gpu-1-128
+      numaNode                        = 3
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:cd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:c7
+    gpu-17-144
+      numaNode                        = 1
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:4e:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:48
+    gpu-25-152
+      numaNode                        = 2
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:dd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:d7
+    gpu-33-160
+      numaNode                        = 0
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:1b:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    gpu-41-168
+      numaNode                        = 2
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:9d:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    gpu-49-176
+      numaNode                        = 0
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:5f:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:59
+    gpu-57-184
+      numaNode                        = 3
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:bd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:b7
+    gpu-9-136
+      numaNode                        = 1
+      productName                     =
+      resource.kubernetes.io/pciBusID = 0000:3d:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:37
+    gpu-vfio-0
+      numaNode                        = 2
+      resource.kubernetes.io/pciBusID = 0000:dd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:d7
+    gpu-vfio-1
+      numaNode                        = 0
+      resource.kubernetes.io/pciBusID = 0000:1b:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    gpu-vfio-2
+      numaNode                        = 1
+      resource.kubernetes.io/pciBusID = 0000:3d:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:37
+    gpu-vfio-3
+      numaNode                        = 1
+      resource.kubernetes.io/pciBusID = 0000:4e:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:48
+    gpu-vfio-4
+      numaNode                        = 0
+      resource.kubernetes.io/pciBusID = 0000:5f:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:59
+    gpu-vfio-5
+      numaNode                        = 2
+      resource.kubernetes.io/pciBusID = 0000:9d:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    gpu-vfio-6
+      numaNode                        = 3
+      resource.kubernetes.io/pciBusID = 0000:bd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:b7
+    gpu-vfio-7
+      numaNode                        = 3
+      resource.kubernetes.io/pciBusID = 0000:cd:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:c7
+  sriovnetwork.k8snetworkplumbingwg.io (32 devices)
+    0000-1d-00-2
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.2
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-00-3
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.3
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-00-4
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.4
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-00-5
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.5
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-00-6
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.6
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-00-7
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:00.7
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-0
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.0
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-1
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.1
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-2
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.2
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-3
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.3
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-4
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.4
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-5
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.5
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-6
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.6
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-01-7
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:01.7
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-02-0
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-1d-02-1
+      dra.net/numaNode                = 0
+      resource.kubernetes.io/pciBusID = 0000:1d:02.1
+      resource.kubernetes.io/pcieRoot = pci0000:15
+    0000-9f-00-2
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.2
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-00-3
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.3
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-00-4
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.4
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-00-5
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.5
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-00-6
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.6
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-00-7
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:00.7
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-0
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.0
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-1
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.1
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-2
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.2
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-3
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.3
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-4
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.4
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-5
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.5
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-6
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.6
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-01-7
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:01.7
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-02-0
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:02.0
+      resource.kubernetes.io/pcieRoot = pci0000:97
+    0000-9f-02-1
+      dra.net/numaNode                = 2
+      resource.kubernetes.io/pciBusID = 0000:9f:02.1
+      resource.kubernetes.io/pcieRoot = pci0000:97

@@ -41,7 +41,7 @@
 | `slices` | Keep | `inspect slices` |
 | `topology` | Keep | `inspect topology`; groups by NUMA node and PCIe root only |
 | `drivers` | Keep | `inspect drivers` |
-| `attributes` | Keep | `inspect attributes`; use `--all-attributes` or `--include-capacity` |
+| `attributes` | Keep | `inspect attributes`; all attributes by default, or `--topology` for the filtered set; `--include-capacity` is independent |
 | `driverinfo` | Merge | `inspect drivers --attributes`; no standalone command |
 | `deviceclasses` | Keep | `inspect deviceclasses` with explicit filters |
 | `composite` | Drop | No v1 replacement |
@@ -56,8 +56,8 @@
 | `help` | Keep | Cobra help |
 | `completions` | Keep | `completion bash`, `completion zsh`, `completion fish` |
 | `-n`, `--namespace` | Keep | Global namespace filter |
-| `-v`, `--verbose` | Drop | `inspect attributes --all-attributes`; `-o json` always carries full detail |
-| `-a`, `--all` | Drop as global | Explicit command flags such as `--all-attributes` |
+| `-v`, `--verbose` | Drop | `inspect attributes` shows every attribute; `--topology` selects the filtered set |
+| `-a`, `--all` | Drop as global | `inspect attributes` is all attributes by default |
 | `-t`, `--simple` | Replace | `inspect topology --compact` (`-t` is kept as its short flag) |
 | `-h`, `--help` | Keep | Standard Cobra help |
 | Positional DeviceClass filters | Replace | a generic label `--selector` only (no `--partition`) |
@@ -71,7 +71,7 @@
 dra-inspect inspect slices
 dra-inspect inspect topology
 dra-inspect inspect drivers [--attributes]
-dra-inspect inspect attributes [--all-attributes] [--include-capacity]
+dra-inspect inspect attributes [--topology] [--include-capacity]
 dra-inspect inspect deviceclasses [--selector LABEL_SELECTOR]
 dra-inspect inspect claims [--namespace NS]
 
@@ -172,7 +172,7 @@ commands for each installation method.
 - Table output may abbreviate long names but must preserve clear columns and report unavailable data.
 - Goldens are refreshed with an `-update` test flag.
 
-- [ ] Add golden tests for `inspect slices`, `drivers` (including `--attributes`), and `attributes` (`--all-attributes`, `--include-capacity`).
+- [ ] Add golden tests for `inspect slices`, `drivers` (including `--attributes`), and `attributes` (default, `--topology`, and `--include-capacity`).
 - [ ] Wire the commands in `internal/cli/inspect.go`.
 - [ ] Verify table width, Unicode, list attributes, capacity formatting, and JSON stability, with terminal and JSON output tested separately.
 - [ ] Commit: `feat: add slice, driver, and attribute inspection`.

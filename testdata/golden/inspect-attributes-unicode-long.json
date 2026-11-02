@@ -22,6 +22,8 @@
       "subject": "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/pool-with-an-extremely-long-name-that-keeps-going-well-past-eighty-characters-total/device-with-an-extremely-long-name-that-also-exceeds-eighty-characters-in-total",
       "details": {
         "attributes": {
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/channels": "[2,4]",
+          "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/cpuSocketID": "1",
           "gpu.accelerators.extremely-long-driver-domain-name-for-layout-testing.example.com/productName": "示例加速器 カード 한국어",
           "resource.kubernetes.io/numaNode": "1",
           "resource.kubernetes.io/pcieRoot": "[pci0000:00,pci0000:80]"
@@ -35,6 +37,7 @@
       "subject": "other.example.com/node-b.example.com/nic0",
       "details": {
         "attributes": {
+          "other.example.com/mtu": "9000",
           "other.example.com/pciDevice": "10de"
         },
         "node": "node-b.example.com"

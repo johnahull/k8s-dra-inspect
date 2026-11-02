@@ -85,7 +85,7 @@ func liveSource(o *Options) (model.Source, error) {
 }
 
 func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
-	var attrs, allAttrs, capacity, compact bool
+	var attrs, capacity, compact, topology bool
 	var selector string
 	add := func(use, short string, text textView, build func() (inspect.Inspector, error)) *cobra.Command {
 		c := &cobra.Command{
@@ -107,7 +107,7 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	add("slices", "Show the current devices per node and driver, with stale slices noted (-o table: one row per slice, every generation)", view.Slices, plain(inspect.Slices))
 	add("drivers", "Summarize DRA drivers", view.Drivers, plain(func() inspect.Inspector { return inspect.Drivers(attrs) })).
 		Flags().BoolVar(&attrs, "attributes", false, "also list each driver's attribute keys")
-	a := add("attributes", "Show device attributes", view.Attributes, plain(func() inspect.Inspector { return inspect.Attributes(allAttrs, capacity) }))
+	a := add("attributes", "Show device attributes", view.Attributes, plain(func() inspect.Inspector { return inspect.Attributes(!topology, capacity) }))
 	t := add("topology", "Group devices by node, NUMA node and PCIe root", view.Topology, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
 	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
 	add("claims", "List ResourceClaims with allocation, node and consumers", view.Claims, plain(inspect.Claims))
@@ -119,7 +119,7 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 		return inspect.DeviceClasses(sel), nil
 	})
 	dc.Flags().StringVar(&selector, "selector", "", "Kubernetes label selector applied to DeviceClass labels")
-	a.Flags().BoolVar(&allAttrs, "all-attributes", false, "show every attribute, not only the topology set")
+	a.Flags().BoolVar(&topology, "topology", false, "show only topology-related attributes")
 	a.Flags().BoolVar(&capacity, "include-capacity", false, "also show device capacity")
 }
 
