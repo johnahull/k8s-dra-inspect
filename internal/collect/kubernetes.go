@@ -193,7 +193,8 @@ func (l *Live) record(snap *model.Snapshot, key string, err error) bool {
 func isTimeout(err error) bool {
 	var ne net.Error
 	return errors.Is(err, context.DeadlineExceeded) || (errors.As(err, &ne) && ne.Timeout()) ||
-		strings.Contains(err.Error(), "Client.Timeout exceeded")
+		strings.Contains(err.Error(), "Client.Timeout exceeded") ||
+		strings.Contains(err.Error(), "would exceed context deadline")
 }
 
 var secretLike = regexp.MustCompile(`https?://\S+|Bearer\s+\S+`)

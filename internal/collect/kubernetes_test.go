@@ -285,6 +285,17 @@ func TestCollectOverallDeadline(t *testing.T) {
 	}
 }
 
+func TestRecordRateLimiterDeadline(t *testing.T) {
+	snap := &model.Snapshot{Collection: map[string]model.CollectionStatus{}}
+	live := &Live{Timeout: 300 * time.Millisecond}
+
+	live.record(snap, "deviceclasses", fmt.Errorf("rate: Wait(n=1) would exceed context deadline"))
+
+	if got := snap.Collection["deviceclasses"]; got != (model.CollectionStatus{State: model.StateError, Reason: timedOutReason}) {
+		t.Fatalf("got %+v, want error %q", got, timedOutReason)
+	}
+}
+
 func okHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	switch {
