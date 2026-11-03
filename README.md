@@ -260,13 +260,49 @@ shows as a failed Job; read the reason with
 `kubectl -n dra-inspect get job/dra-inspect -o jsonpath='{.status.conditions}'`
 and the exit code in the pod's `containerStatuses` (`kubectl get pod`).
 
-The Job pod meets Pod Security `restricted`: non-root UID 65532, RuntimeDefault
+The Job pod meets Pod Security `restricted`: non-root execution (the image
+defaults to UID 65532, while admission may assign another UID), RuntimeDefault
 seccomp, no privilege escalation, all capabilities dropped, read-only root
 filesystem, no host mounts or host namespaces. Only that pod mounts a service
 account token. The host adapter and host checks (`check cpupinning`,
 `check vfio`, `report support`) are not part of the Job; run them explicitly
 on the node with the workstation binary or the container image. Set
 `rbac.kubevirt=true` to also allow reading VirtualMachineInstances.
+
+### OpenShift
+
+No OpenShift-specific controller or SCC is required. The chart's default Job
+leaves `runAsUser` and `runAsGroup` unset so the project's restricted SCC can
+assign its UID range; do not grant `anyuid` or `privileged` just to run this
+read-only report. `job.runAsUser` remains available when a cluster explicitly
+requires a fixed non-root UID.
+
+Before installing, confirm that the cluster serves the DRA API used by this
+release:
+
+```bash
+oc get --raw /apis/resource.k8s.io/v1 >/dev/null
+```
+
+Install with Helm as usual. If the GHCR package is private in your
+environment, create a pull secret and pass it to the chart:
+
+```bash
+oc new-project dra-inspect
+oc create secret generic ghcr-pull \
+  --from-file=.dockerconfigjson="$HOME/.docker/config.json" \
+  --type=kubernetes.io/dockerconfigjson
+helm install dra-inspect deploy/helm/dra-inspect -n dra-inspect \
+  --set imagePullSecrets[0].name=ghcr-pull \
+  --set rbac.kubevirt=true --set job.enabled=true
+oc wait --for=condition=complete job/dra-inspect --timeout=120s
+oc logs job/dra-inspect
+```
+
+The default cluster profile needs permission to create the read-only
+ClusterRole and ClusterRoleBinding and to list cluster-scoped DRA objects. Use
+`--set rbac.profile=namespace` when only namespaced claims and pods are
+permitted; slices, DeviceClasses, and nodes will then be reported unavailable.
 
 ## Development
 
