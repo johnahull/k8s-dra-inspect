@@ -127,7 +127,7 @@ def check_rbac(tag, docs, profile, kubevirt, nss, sa=SA_DEFAULT):
         if rules != exp:
             fail(2, f"{tag}: rendered rules differ from docs/rbac.md")
 
-def check_job(tag, docs, profile, nss, sa=SA_DEFAULT, strict=False):
+def check_job(tag, docs, profile, nss, sa=SA_DEFAULT, strict=False, fixed_uid=None):
     jobs = [d for d in docs if d["kind"] == "Job"]
     if len(jobs) != 1:
         fail(3, f"{tag}: expected exactly one Job, got {len(jobs)}")
@@ -151,7 +151,12 @@ def check_job(tag, docs, profile, nss, sa=SA_DEFAULT, strict=False):
     need(pod.get("automountServiceAccountToken") is True, "pod must set automountServiceAccountToken: true")
     sa = [d for d in docs if d["kind"] == "ServiceAccount"]
     need(all(d.get("automountServiceAccountToken") is False for d in sa), "ServiceAccount must set automountServiceAccountToken: false")
-    need(psc.get("runAsNonRoot") is True and psc.get("runAsUser") == 65532 and psc.get("runAsGroup") == 65532, "pod runAsNonRoot/65532 required")
+    need(psc.get("runAsNonRoot") is True, "pod runAsNonRoot required")
+    if fixed_uid is None:
+        need("runAsUser" not in psc and "runAsGroup" not in psc, "default pod must omit fixed UID/GID")
+    else:
+        need(psc.get("runAsUser") == fixed_uid and psc.get("runAsGroup") == fixed_uid,
+             f"pod fixed UID/GID must be {fixed_uid}")
     need((psc.get("seccompProfile") or {}).get("type") == "RuntimeDefault", "pod seccompProfile RuntimeDefault required")
     need(sc.get("allowPrivilegeEscalation") is False, "allowPrivilegeEscalation must be false")
     need(sc.get("readOnlyRootFilesystem") is True, "readOnlyRootFilesystem must be true")
@@ -209,6 +214,13 @@ for create, name, want_sa in ((True, "", SA_DEFAULT), (True, "custom", "custom")
         fail(3, f"{tag}: ServiceAccount name {sas[0]['metadata']['name']} != {want_sa}")
     check_rbac(tag, docs, "cluster", False, [], want_sa)
     check_job(tag, docs, "cluster", [], want_sa)
+
+# A fixed UID remains available for clusters that need one explicitly.
+docs, err = render(["job.enabled=true", "job.runAsUser=65532"])
+if docs is None:
+    fail(3, f"fixed UID override render failed: {err.splitlines()[-1] if err else ''}")
+else:
+    check_job("fixed UID override", docs, "cluster", [], fixed_uid=65532)
 
 # job.strict appends --strict; default stays unchanged (matrix above).
 for name, sets, profile, nss in (("cluster", [], "cluster", []), ("namespace", ["rbac.profile=namespace"], "namespace", ["relns"])):
