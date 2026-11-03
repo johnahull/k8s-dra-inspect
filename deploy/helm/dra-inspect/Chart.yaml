@@ -4,8 +4,8 @@ description: Read-only RBAC and an opt-in one-shot Job for dra-inspect, a Kubern
 type: application
 # resource.k8s.io/v1 (GA DRA API) is served from Kubernetes 1.34.
 kubeVersion: ">=1.34.0-0"
-version: 0.1.2
-appVersion: "0.1.2"
+version: 0.1.3
+appVersion: "0.1.3"
 keywords: [dra, kubernetes, inspect, read-only]
 home: https://github.com/johnahull/k8s-dra-inspect
 sources:
