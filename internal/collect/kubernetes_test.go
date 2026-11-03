@@ -241,6 +241,23 @@ func TestCollectPaginatesAll(t *testing.T) {
 	}
 }
 
+func TestListAllPaginatesTypedLists(t *testing.T) {
+	page := 0
+	got, err := listAll(context.Background(), func(_ context.Context, opts metav1.ListOptions) (*corev1.PodList, error) {
+		page++
+		if opts.Continue == "" {
+			return &corev1.PodList{ListMeta: metav1.ListMeta{Continue: "next"}, Items: []corev1.Pod{*pod("a", "first")}}, nil
+		}
+		return &corev1.PodList{Items: []corev1.Pod{*pod("a", "second")}}, nil
+	}, func(l *corev1.PodList) []corev1.Pod { return l.Items })
+	if err != nil {
+		t.Fatal(err)
+	}
+	if page != 2 || len(got) != 2 || got[0].Name != "first" || got[1].Name != "second" {
+		t.Fatalf("pages=%d items=%v, want two pages [first second]", page, got)
+	}
+}
+
 const timedOutReason = "timed out after 300ms"
 
 // hungKubeconfig serves a kubeconfig for a server that never answers until

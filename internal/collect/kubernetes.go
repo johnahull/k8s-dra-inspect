@@ -16,6 +16,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -150,7 +151,21 @@ func listAll[L runtime.Object, T any](ctx context.Context, list func(context.Con
 	if err != nil {
 		return nil, err
 	}
-	return items(obj.(L)), nil
+	if typed, ok := obj.(L); ok {
+		return items(typed), nil
+	}
+	var out []T
+	if err := meta.EachListItem(obj, func(obj runtime.Object) error {
+		item, ok := any(obj).(*T)
+		if !ok {
+			return fmt.Errorf("unexpected list item type %T", obj)
+		}
+		out = append(out, *item)
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 // scoped notes on an ok entry that only one namespace was listed.
