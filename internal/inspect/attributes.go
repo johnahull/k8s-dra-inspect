@@ -11,9 +11,9 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
-// defaultAttrs are the attribute names shown without --all-attributes, in
-// any domain. cpuSocketID is deliberately absent.
-var defaultAttrs = map[string]bool{
+// topologyAttrs are the attribute names shown with --topology, in any domain.
+// cpuSocketID is deliberately absent.
+var topologyAttrs = map[string]bool{
 	"numaNode": true, "numa": true, "numaNodeID": true, "pcieRoot": true,
 	"pciBusID": true, "productName": true, "pciDevice": true,
 }
@@ -60,7 +60,7 @@ func Attributes(all, capacity bool) Inspector {
 				for _, d := range s.Spec.Devices {
 					attrs := map[string]string{}
 					for k, v := range d.Attributes {
-						if all || defaultAttrs[attrName(string(k))] {
+						if all || topologyAttrs[attrName(string(k))] {
 							attrs[string(k)] = attrDisplay(v)
 						}
 					}

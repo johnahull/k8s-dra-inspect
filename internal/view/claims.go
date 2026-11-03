@@ -38,7 +38,9 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		devs = model.NewDeviceIndex(snap.ResourceSlices)
 	}
 	podsDown := snap.Collection["pods"].State != model.StateOK
-	vmiDown := snap.Collection["virtualmachineinstances"].State != model.StateOK
+	vmiStatus := snap.Collection["virtualmachineinstances"]
+	vmiDown := vmiStatus.State != model.StateOK
+	vmiOptionalAbsent := vmiStatus.State == model.StateNotFound && vmiStatus.Reason == "kubevirt.io/v1 not served"
 	var shown []model.Result
 	for _, r := range results {
 		if r.Status != model.StatusUnavailable {
@@ -51,7 +53,7 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			down      bool
 			key, noun string
 		}{{podsDown, "usedByState", "pods"}, {vmiDown, "vmi", "vmi"}} {
-			if !c.down {
+			if !c.down || (c.noun == "vmi" && vmiOptionalAbsent) {
 				continue
 			}
 			for _, r := range shown {

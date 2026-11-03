@@ -161,7 +161,7 @@ func TestAttributesListValuesAndCapacityPerNode(t *testing.T) {
 		}
 	}
 	if !contains(got, "/channels") || !contains(got, "= [2, 4]") {
-		t.Errorf("--all-attributes list value missing:\n%s", got)
+		t.Errorf("all-attributes mode list value missing:\n%s", got)
 	}
 	if !hasLine(got, "Node: node-a.example.com") || !hasLine(got, "Node: node-b.example.com") {
 		t.Errorf("both nodes expected:\n%s", got)

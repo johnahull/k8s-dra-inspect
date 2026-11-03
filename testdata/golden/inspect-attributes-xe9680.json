@@ -9,7 +9,10 @@
       "subject": "dra.cpu/node-a.example.com/cpudevnuma000",
       "details": {
         "attributes": {
+          "dra.cpu/numCPUs": "32",
           "dra.cpu/numaNodeID": "0",
+          "dra.cpu/smtEnabled": "true",
+          "dra.cpu/socketID": "0",
           "dra.net/numaNode": "0"
         },
         "node": "node-a.example.com"
@@ -21,7 +24,10 @@
       "subject": "dra.cpu/node-a.example.com/cpudevnuma001",
       "details": {
         "attributes": {
+          "dra.cpu/numCPUs": "32",
           "dra.cpu/numaNodeID": "1",
+          "dra.cpu/smtEnabled": "true",
+          "dra.cpu/socketID": "0",
           "dra.net/numaNode": "1"
         },
         "node": "node-a.example.com"
@@ -33,7 +39,10 @@
       "subject": "dra.cpu/node-a.example.com/cpudevnuma002",
       "details": {
         "attributes": {
+          "dra.cpu/numCPUs": "32",
           "dra.cpu/numaNodeID": "2",
+          "dra.cpu/smtEnabled": "true",
+          "dra.cpu/socketID": "1",
           "dra.net/numaNode": "2"
         },
         "node": "node-a.example.com"
@@ -45,7 +54,10 @@
       "subject": "dra.cpu/node-a.example.com/cpudevnuma003",
       "details": {
         "attributes": {
+          "dra.cpu/numCPUs": "32",
           "dra.cpu/numaNodeID": "3",
+          "dra.cpu/smtEnabled": "true",
+          "dra.cpu/socketID": "1",
           "dra.net/numaNode": "3"
         },
         "node": "node-a.example.com"
@@ -58,7 +70,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "2",
+          "dra.memory/hugeTLB": "true",
           "dra.memory/numaNode": "2",
+          "dra.memory/pageSize": "2Mi",
           "dra.net/numaNode": "2"
         },
         "node": "node-a.example.com"
@@ -71,7 +85,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "3",
+          "dra.memory/hugeTLB": "true",
           "dra.memory/numaNode": "3",
+          "dra.memory/pageSize": "2Mi",
           "dra.net/numaNode": "3"
         },
         "node": "node-a.example.com"
@@ -84,7 +100,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "0",
+          "dra.memory/hugeTLB": "true",
           "dra.memory/numaNode": "0",
+          "dra.memory/pageSize": "2Mi",
           "dra.net/numaNode": "0"
         },
         "node": "node-a.example.com"
@@ -97,7 +115,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "1",
+          "dra.memory/hugeTLB": "true",
           "dra.memory/numaNode": "1",
+          "dra.memory/pageSize": "2Mi",
           "dra.net/numaNode": "1"
         },
         "node": "node-a.example.com"
@@ -110,7 +130,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "1",
+          "dra.memory/hugeTLB": "false",
           "dra.memory/numaNode": "1",
+          "dra.memory/pageSize": "4Ki",
           "dra.net/numaNode": "1"
         },
         "node": "node-a.example.com"
@@ -123,7 +145,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "2",
+          "dra.memory/hugeTLB": "false",
           "dra.memory/numaNode": "2",
+          "dra.memory/pageSize": "4Ki",
           "dra.net/numaNode": "2"
         },
         "node": "node-a.example.com"
@@ -136,7 +160,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "3",
+          "dra.memory/hugeTLB": "false",
           "dra.memory/numaNode": "3",
+          "dra.memory/pageSize": "4Ki",
           "dra.net/numaNode": "3"
         },
         "node": "node-a.example.com"
@@ -149,7 +175,9 @@
       "details": {
         "attributes": {
           "dra.cpu/numaNodeID": "0",
+          "dra.memory/hugeTLB": "false",
           "dra.memory/numaNode": "0",
+          "dra.memory/pageSize": "4Ki",
           "dra.net/numaNode": "0"
         },
         "node": "node-a.example.com"
@@ -161,10 +189,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-1-128",
       "details": {
         "attributes": {
+          "cardIndex": "1",
+          "deviceID": "0000:cd:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "3",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:cd:02.0",
           "productName": "",
+          "renderIndex": "128",
           "resource.kubernetes.io/pciBusID": "0000:cd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:c7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:c7",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -175,10 +212,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-17-144",
       "details": {
         "attributes": {
+          "cardIndex": "17",
+          "deviceID": "0000:4e:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "1",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:4e:02.0",
           "productName": "",
+          "renderIndex": "144",
           "resource.kubernetes.io/pciBusID": "0000:4e:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:48"
+          "resource.kubernetes.io/pcieRoot": "pci0000:48",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -189,10 +235,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-25-152",
       "details": {
         "attributes": {
+          "cardIndex": "25",
+          "deviceID": "0000:dd:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "2",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:dd:02.0",
           "productName": "",
+          "renderIndex": "152",
           "resource.kubernetes.io/pciBusID": "0000:dd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:d7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:d7",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -203,10 +258,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-33-160",
       "details": {
         "attributes": {
+          "cardIndex": "33",
+          "deviceID": "0000:1b:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "0",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:1b:02.0",
           "productName": "",
+          "renderIndex": "160",
           "resource.kubernetes.io/pciBusID": "0000:1b:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -217,10 +281,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-41-168",
       "details": {
         "attributes": {
+          "cardIndex": "41",
+          "deviceID": "0000:9d:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "2",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:9d:02.0",
           "productName": "",
+          "renderIndex": "168",
           "resource.kubernetes.io/pciBusID": "0000:9d:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -231,10 +304,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-49-176",
       "details": {
         "attributes": {
+          "cardIndex": "49",
+          "deviceID": "0000:5f:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "0",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:5f:02.0",
           "productName": "",
+          "renderIndex": "176",
           "resource.kubernetes.io/pciBusID": "0000:5f:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:59"
+          "resource.kubernetes.io/pcieRoot": "pci0000:59",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -245,10 +327,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-57-184",
       "details": {
         "attributes": {
+          "cardIndex": "57",
+          "deviceID": "0000:bd:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "3",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:bd:02.0",
           "productName": "",
+          "renderIndex": "184",
           "resource.kubernetes.io/pciBusID": "0000:bd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:b7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:b7",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -259,10 +350,19 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-9-136",
       "details": {
         "attributes": {
+          "cardIndex": "9",
+          "deviceID": "0000:3d:02:0",
+          "driverSrcVersion": "",
+          "driverVersion": "0.0.0",
+          "family": "AI",
           "numaNode": "1",
+          "partitionProfile": "spx_nps1",
+          "pciAddr": "0000:3d:02.0",
           "productName": "",
+          "renderIndex": "136",
           "resource.kubernetes.io/pciBusID": "0000:3d:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:37"
+          "resource.kubernetes.io/pcieRoot": "pci0000:37",
+          "type": "amdgpu"
         },
         "node": "node-a.example.com"
       }
@@ -273,9 +373,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-0",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "364",
+          "isVF": "true",
           "numaNode": "2",
+          "parentPciAddr": "0000:dd:00.0",
+          "pciAddr": "0000:dd:02.0",
           "resource.kubernetes.io/pciBusID": "0000:dd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:d7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:d7",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000006",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -286,9 +394,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-1",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "365",
+          "isVF": "true",
           "numaNode": "0",
+          "parentPciAddr": "0000:1b:00.0",
+          "pciAddr": "0000:1b:02.0",
           "resource.kubernetes.io/pciBusID": "0000:1b:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000003",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -299,9 +415,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-2",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "362",
+          "isVF": "true",
           "numaNode": "1",
+          "parentPciAddr": "0000:3d:00.0",
+          "pciAddr": "0000:3d:02.0",
           "resource.kubernetes.io/pciBusID": "0000:3d:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:37"
+          "resource.kubernetes.io/pcieRoot": "pci0000:37",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000004",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -312,9 +436,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-3",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "363",
+          "isVF": "true",
           "numaNode": "1",
+          "parentPciAddr": "0000:4e:00.0",
+          "pciAddr": "0000:4e:02.0",
           "resource.kubernetes.io/pciBusID": "0000:4e:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:48"
+          "resource.kubernetes.io/pcieRoot": "pci0000:48",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000005",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -325,9 +457,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-4",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "367",
+          "isVF": "true",
           "numaNode": "0",
+          "parentPciAddr": "0000:5f:00.0",
+          "pciAddr": "0000:5f:02.0",
           "resource.kubernetes.io/pciBusID": "0000:5f:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:59"
+          "resource.kubernetes.io/pcieRoot": "pci0000:59",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000008",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -338,9 +478,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-5",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "366",
+          "isVF": "true",
           "numaNode": "2",
+          "parentPciAddr": "0000:9d:00.0",
+          "pciAddr": "0000:9d:02.0",
           "resource.kubernetes.io/pciBusID": "0000:9d:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000007",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -351,9 +499,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-6",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "368",
+          "isVF": "true",
           "numaNode": "3",
+          "parentPciAddr": "0000:bd:00.0",
+          "pciAddr": "0000:bd:02.0",
           "resource.kubernetes.io/pciBusID": "0000:bd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:b7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:b7",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000001",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -364,9 +520,17 @@
       "subject": "gpu.amd.com/node-a.example.com/gpu-vfio-7",
       "details": {
         "attributes": {
+          "deviceID": "0x74b5",
+          "iommuGroup": "361",
+          "isVF": "true",
           "numaNode": "3",
+          "parentPciAddr": "0000:cd:00.0",
+          "pciAddr": "0000:cd:02.0",
           "resource.kubernetes.io/pciBusID": "0000:cd:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:c7"
+          "resource.kubernetes.io/pcieRoot": "pci0000:c7",
+          "type": "vfio",
+          "uuid": "00000000-0000-4000-8000-000000000002",
+          "vendorID": "0x1002"
         },
         "node": "node-a.example.com"
       }
@@ -379,7 +543,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.2",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.2",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "0"
         },
         "node": "node-a.example.com"
       }
@@ -392,7 +566,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.3",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.3",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "1"
         },
         "node": "node-a.example.com"
       }
@@ -405,7 +589,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.4",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.4",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "2"
         },
         "node": "node-a.example.com"
       }
@@ -418,7 +612,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.5",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.5",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "3"
         },
         "node": "node-a.example.com"
       }
@@ -431,7 +635,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.6",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.6",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "4"
         },
         "node": "node-a.example.com"
       }
@@ -444,7 +658,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:00.7",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:00.7",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "5"
         },
         "node": "node-a.example.com"
       }
@@ -457,7 +681,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "6"
         },
         "node": "node-a.example.com"
       }
@@ -470,7 +704,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.1",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "7"
         },
         "node": "node-a.example.com"
       }
@@ -483,7 +727,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.2",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.2",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "0"
         },
         "node": "node-a.example.com"
       }
@@ -496,7 +750,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.3",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.3",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "1"
         },
         "node": "node-a.example.com"
       }
@@ -509,7 +773,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.4",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.4",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "2"
         },
         "node": "node-a.example.com"
       }
@@ -522,7 +796,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.5",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.5",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "3"
         },
         "node": "node-a.example.com"
       }
@@ -535,7 +819,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.6",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.6",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "4"
         },
         "node": "node-a.example.com"
       }
@@ -548,7 +842,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:01.7",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:01.7",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "5"
         },
         "node": "node-a.example.com"
       }
@@ -561,7 +865,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:02.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "6"
         },
         "node": "node-a.example.com"
       }
@@ -574,7 +888,17 @@
         "attributes": {
           "dra.net/numaNode": "0",
           "resource.kubernetes.io/pciBusID": "0000:1d:02.1",
-          "resource.kubernetes.io/pcieRoot": "pci0000:15"
+          "resource.kubernetes.io/pcieRoot": "pci0000:15",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens40f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:1d:02.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:1d:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "7"
         },
         "node": "node-a.example.com"
       }
@@ -587,7 +911,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.2",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.2",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "0"
         },
         "node": "node-a.example.com"
       }
@@ -600,7 +934,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.3",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.3",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "1"
         },
         "node": "node-a.example.com"
       }
@@ -613,7 +957,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.4",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.4",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "2"
         },
         "node": "node-a.example.com"
       }
@@ -626,7 +980,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.5",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.5",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "3"
         },
         "node": "node-a.example.com"
       }
@@ -639,7 +1003,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.6",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.6",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "4"
         },
         "node": "node-a.example.com"
       }
@@ -652,7 +1026,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:00.7",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:00.7",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "5"
         },
         "node": "node-a.example.com"
       }
@@ -665,7 +1049,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "6"
         },
         "node": "node-a.example.com"
       }
@@ -678,7 +1072,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.1",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f0np0",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "7"
         },
         "node": "node-a.example.com"
       }
@@ -691,7 +1095,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.2",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.2",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "0"
         },
         "node": "node-a.example.com"
       }
@@ -704,7 +1118,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.3",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.3",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "1"
         },
         "node": "node-a.example.com"
       }
@@ -717,7 +1141,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.4",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.4",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "2"
         },
         "node": "node-a.example.com"
       }
@@ -730,7 +1164,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.5",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.5",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "3"
         },
         "node": "node-a.example.com"
       }
@@ -743,7 +1187,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.6",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.6",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "4"
         },
         "node": "node-a.example.com"
       }
@@ -756,7 +1210,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:01.7",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:01.7",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "5"
         },
         "node": "node-a.example.com"
       }
@@ -769,7 +1233,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:02.0",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:02.0",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "6"
         },
         "node": "node-a.example.com"
       }
@@ -782,7 +1256,17 @@
         "attributes": {
           "dra.net/numaNode": "2",
           "resource.kubernetes.io/pciBusID": "0000:9f:02.1",
-          "resource.kubernetes.io/pcieRoot": "pci0000:97"
+          "resource.kubernetes.io/pcieRoot": "pci0000:97",
+          "sriovnetwork.k8snetworkplumbingwg.io/EswitchMode": "legacy",
+          "sriovnetwork.k8snetworkplumbingwg.io/PFName": "ens31f1np1",
+          "sriovnetwork.k8snetworkplumbingwg.io/deviceID": "101e",
+          "sriovnetwork.k8snetworkplumbingwg.io/linkType": "ethernet",
+          "sriovnetwork.k8snetworkplumbingwg.io/pciAddress": "0000:9f:02.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfDeviceID": "101d",
+          "sriovnetwork.k8snetworkplumbingwg.io/pfPciAddress": "0000:9f:00.1",
+          "sriovnetwork.k8snetworkplumbingwg.io/rdmaCapable": "false",
+          "sriovnetwork.k8snetworkplumbingwg.io/vendor": "15b3",
+          "sriovnetwork.k8snetworkplumbingwg.io/vfID": "7"
         },
         "node": "node-a.example.com"
       }

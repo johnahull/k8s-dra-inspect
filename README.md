@@ -27,7 +27,7 @@ exercised: [docs/harness-test-plan.md](docs/harness-test-plan.md). Coming from t
 
 ```text
 dra-inspect inspect slices | topology [--compact] | drivers [--attributes]
-dra-inspect inspect attributes [--all-attributes] [--include-capacity]
+dra-inspect inspect attributes [--topology] [--include-capacity]
 dra-inspect inspect deviceclasses [--selector LABEL_SELECTOR]
 dra-inspect inspect claims
 
@@ -46,6 +46,10 @@ dra-inspect version
 
 Global flags: `-n/--namespace`, `-o/--output text|table|json`, `--from FILE`,
 `--kubeconfig`, `--context`, `--timeout`, `--strict`, `--no-color`.
+
+`inspect attributes` shows every raw device attribute by default. Use
+`--topology` for the NUMA, PCIe, and device-identity attribute subset; add
+`--include-capacity` to either mode to show consumable device capacity.
 
 `--timeout` (default 30s; 0 means no deadline; negative values are a usage error) is one overall deadline for collecting from the
 cluster, all resource kinds together, so a hung API server costs about that

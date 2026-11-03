@@ -162,16 +162,28 @@ func TestClaimsPodsAndVMIUnavailableInWords(t *testing.T) {
 	for _, want := range []string{
 		"demo/shared-gpu → pods unavailable",
 		"? pods unavailable: forbidden: cannot list pods",
-		"? vmi unavailable: kubevirt.io/v1 not served",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)
 		}
 	}
+	if strings.Contains(got, "? vmi unavailable") {
+		t.Errorf("expected an unserved optional VMI API to stay quiet:\n%s", got)
+	}
 	// The reason is said once for the whole run, not once per claim.
-	for _, once := range []string{"? pods unavailable", "? vmi unavailable"} {
-		if n := strings.Count(got, once); n != 1 {
-			t.Errorf("%q printed %d times, want 1:\n%s", once, n, got)
-		}
+	if n := strings.Count(got, "? pods unavailable"); n != 1 {
+		t.Errorf("%q printed %d times, want 1:\n%s", "? pods unavailable", n, got)
+	}
+}
+
+func TestClaimsVMIUnavailableForAccessFailure(t *testing.T) {
+	snap := fx(t, "classes-claims")
+	snap.Collection["virtualmachineinstances"] = model.CollectionStatus{State: model.StateForbidden, Reason: "forbidden: cannot list virtualmachineinstances"}
+	got := claimsOut(t, snap)
+	if !hasLine(got, "? vmi unavailable: forbidden: cannot list virtualmachineinstances") {
+		t.Errorf("missing actionable VMI failure in:\n%s", got)
+	}
+	if n := strings.Count(got, "? vmi unavailable"); n != 1 {
+		t.Errorf("%q printed %d times, want 1:\n%s", "? vmi unavailable", n, got)
 	}
 }
