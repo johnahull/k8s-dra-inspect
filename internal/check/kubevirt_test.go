@@ -8,6 +8,9 @@ import (
 	"strings"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
+	"k8s.io/utils/ptr"
+
 	"github.com/johnahull/k8s-dra-inspect/internal/adapters/kubevirt"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/testutil"
@@ -82,8 +85,8 @@ func TestKubeVirtSplitWithPassthroughIsPass(t *testing.T) {
 func TestKubeVirtAllVMIsAndTargets(t *testing.T) {
 	snap := kvSnap(t)
 	all := run(KubeVirt("", ""), snap)
-	if len(all) != 8 {
-		t.Fatalf("want 8 results, got %d", len(all))
+	if len(all) != 9 {
+		t.Fatalf("want 9 results, got %d", len(all))
 	}
 	if n := len(run(KubeVirt("", "other"), snap)); n != 1 {
 		t.Fatalf("namespace other: %d results", n)
@@ -129,9 +132,76 @@ func TestKubeVirtUnresolvedClaims(t *testing.T) {
 	}
 	spec := u.Object["spec"].(map[string]any)
 	spec["resourceClaims"] = []any{map[string]any{"name": "partitions", "resourceClaimTemplateName": "tmpl"}}
-	wantStatus(t, kvOne(t, snap, "vm-ok"), model.StatusUnavailable, "claim partitions comes from a template")
+	r := kvOne(t, snap, "vm-ok")
+	wantStatus(t, r, model.StatusUnavailable, "claim partitions is template-backed; no active Pod status resolved its generated ResourceClaim")
+	if len(r.Findings) != 1 {
+		t.Fatalf("template claim findings: %+v", r.Findings)
+	}
 	spec["resourceClaims"] = []any{}
 	wantStatus(t, kvOne(t, snap, "vm-ok"), model.StatusFail, "claim alias partitions is not defined in spec.resourceClaims")
+}
+
+func TestKubeVirtResolvesTemplateClaimFromActivePod(t *testing.T) {
+	snap := templateClaimSnap(t)
+	r := kvOne(t, snap, "demo/vm-template")
+	if r.Status != model.StatusPass {
+		t.Fatalf("template claim was not resolved: %+v", r)
+	}
+}
+
+func templateClaimSnap(t *testing.T) model.Snapshot {
+	t.Helper()
+	return kvSnap(t)
+}
+
+func TestKubeVirtResolvesTemplateClaimFromEvidence(t *testing.T) {
+	snap := templateClaimSnap(t)
+	raw, err := kubevirt.New(kubevirt.Config{VMIs: snap.VMIs, State: snap.Collection["virtualmachineinstances"]}).Collect(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	snap.VMIs = nil
+	snap.Evidence = map[string]json.RawMessage{kubevirt.Name: raw}
+	if r := kvOne(t, snap, "demo/vm-template"); r.Status != model.StatusPass {
+		t.Fatalf("evidence-backed template claim was not resolved: %+v", r)
+	}
+}
+
+func TestKubeVirtTemplateClaimUnavailableWhenPodsAreForbidden(t *testing.T) {
+	snap := templateClaimSnap(t)
+	snap.Collection["pods"] = model.CollectionStatus{State: model.StateForbidden, Reason: "forbidden: pods"}
+	r := kvOne(t, snap, "demo/vm-template")
+	wantStatus(t, r, model.StatusUnavailable, "claim partitions is template-backed; Pods were not collected (forbidden: pods), so its generated ResourceClaim cannot be resolved")
+}
+
+func TestKubeVirtTemplateClaimUnavailableWhenPodsAreNotCollected(t *testing.T) {
+	snap := templateClaimSnap(t)
+	delete(snap.Collection, "pods")
+	r := kvOne(t, snap, "demo/vm-template")
+	wantStatus(t, r, model.StatusUnavailable, "claim partitions is template-backed; Pods were not collected (not collected), so its generated ResourceClaim cannot be resolved")
+}
+
+func TestKubeVirtTemplateClaimRejectsConflictingActivePods(t *testing.T) {
+	snap := templateClaimSnap(t)
+	var vmiIndex int
+	for i := range snap.VMIs {
+		if snap.VMIs[i].GetName() == "vm-template" {
+			vmiIndex = i
+			break
+		}
+	}
+	snap.VMIs[vmiIndex].Object["status"].(map[string]any)["activePods"] = map[string]any{
+		"pod-template-fixture": "node-a.example.com", "pod-template-2": "node-a.example.com",
+	}
+	snap.Pods = append(snap.Pods, model.PodRef{
+		Name: "virt-launcher-vm-template-fghij", Namespace: "demo", UID: "pod-template-2", NodeName: "node-a.example.com",
+		ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "partitions", ResourceClaimName: ptr.To("other-generated-partitions")}},
+	})
+	r := kvOne(t, snap, "demo/vm-template")
+	wantStatus(t, r, model.StatusUnavailable, "claim partitions is template-backed; active Pods reported different generated ResourceClaims")
+	if len(r.Findings) != 1 {
+		t.Fatalf("template claim findings: %+v", r.Findings)
+	}
 }
 
 func TestKubeVirtUsesEvidenceFromSnapshot(t *testing.T) {

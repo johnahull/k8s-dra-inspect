@@ -284,8 +284,8 @@ func TestCaptureWithAdaptersKeysAreAllowListed(t *testing.T) {
 	walk = func(path string, v any, allowed map[string]bool) {
 		switch x := v.(type) {
 		case map[string]any:
-			if path == ".vmis[].claims" {
-				return // alias -> claim name; the keys are data, not schema
+			if path == ".vmis[].claims" || path == ".status.activePods" {
+				return // map keys are data, not schema
 			}
 			for k, c := range x {
 				p := path + "." + k
@@ -314,7 +314,7 @@ func TestCaptureWithAdaptersKeysAreAllowListed(t *testing.T) {
 		".spec.domain.cpu.numa", ".spec.domain.cpu.numa.guestMappingPassthrough",
 		".spec.domain.devices", ".spec.domain.devices.hostDevices",
 		".spec.domain.devices.hostDevices[].name", ".spec.domain.devices.hostDevices[].claimName", ".spec.domain.devices.hostDevices[].requestName",
-		".status", ".status.nodeName", ".status.phase")
+		".status", ".status.nodeName", ".status.phase", ".status.activePods")
 	if len(doc.VMIs) == 0 {
 		t.Fatal("no VMIs captured")
 	}
@@ -325,7 +325,7 @@ func TestCaptureWithAdaptersKeysAreAllowListed(t *testing.T) {
 	if err := json.Unmarshal(doc.Evidence[kubevirt.Name], &ev); err != nil {
 		t.Fatal(err)
 	}
-	evAllowed := allow(".version", ".vmis", ".vmis[].namespace", ".vmis[].name", ".vmis[].nodeName", ".vmis[].phase", ".vmis[].claims",
+	evAllowed := allow(".version", ".vmis", ".vmis[].namespace", ".vmis[].name", ".vmis[].nodeName", ".vmis[].phase", ".vmis[].activePodUIDs", ".vmis[].claims",
 		".vmis[].hostDevices", ".vmis[].guestNUMAPassthrough", ".vmis[].dedicatedCPUPlacement", ".vmis[].sockets", ".vmis[].cores", ".vmis[].threads",
 		".vmis[].warnings", ".warnings", ".vmis[].hostDevices[].name", ".vmis[].hostDevices[].claimAlias", ".vmis[].hostDevices[].claimName", ".vmis[].hostDevices[].requestName")
 	walk("", ev, evAllowed)
@@ -337,7 +337,7 @@ func TestHelpDocumentsStrictAndTemplateClaims(t *testing.T) {
 		want []string
 	}{
 		{[]string{"report", "support", "--help"}, []string{"--strict", "unavailable adapter", "exit code 3"}},
-		{[]string{"check", "kubevirt", "--help"}, []string{"resourceClaimTemplateName", "not resolved", "resourceClaimStatuses"}},
+		{[]string{"check", "kubevirt", "--help"}, []string{"resourceClaimTemplateName", "activePods", "resourceClaimStatuses"}},
 	} {
 		out, _, _ := runHost(t, kvFixture(t), noHost(t), tc.args...)
 		for _, w := range tc.want {

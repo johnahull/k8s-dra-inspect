@@ -36,6 +36,7 @@ type VMI struct {
 	Name                  string            `json:"name"`
 	NodeName              string            `json:"nodeName,omitempty"`
 	Phase                 string            `json:"phase,omitempty"`
+	ActivePodUIDs         []string          `json:"activePodUIDs,omitempty"`
 	Claims                map[string]string `json:"claims"`
 	HostDevices           []HostDevice      `json:"hostDevices"`
 	GuestNUMAPassthrough  bool              `json:"guestNUMAPassthrough"`
@@ -59,6 +60,7 @@ const (
 	MaxVMIs        = 10000
 	MaxHostDevices = 1024
 	MaxClaims      = 1024
+	MaxActivePods  = 16
 	MaxString      = 253
 	maxWarnings    = 64
 )
@@ -126,6 +128,16 @@ func (v VMI) bound() VMI {
 		v.Warnings = addWarning(slices.Clone(v.Warnings), "hostDevices truncated at 1024")
 		v.HostDevices = v.HostDevices[:MaxHostDevices]
 	}
+	activePodUIDs := make([]string, 0, len(v.ActivePodUIDs))
+	for _, uid := range v.ActivePodUIDs {
+		activePodUIDs = append(activePodUIDs, trunc(uid))
+	}
+	slices.Sort(activePodUIDs)
+	v.ActivePodUIDs = activePodUIDs
+	if len(v.ActivePodUIDs) > MaxActivePods {
+		v.Warnings = addWarning(slices.Clone(v.Warnings), "activePods truncated at 16")
+		v.ActivePodUIDs = v.ActivePodUIDs[:MaxActivePods]
+	}
 	hds := make([]HostDevice, len(v.HostDevices))
 	for i, d := range v.HostDevices {
 		hds[i] = HostDevice{trunc(d.Name), trunc(d.ClaimAlias), trunc(d.ClaimName), trunc(d.RequestName)}
@@ -178,7 +190,8 @@ func (a *Adapter) Available(context.Context) (bool, string, error) {
 
 // Collect implements adapters.Adapter. Only the fields of VMI are read; every
 // other part of the object (volumes, cloud-init, credentials, interfaces,
-// annotations) is never copied.
+// annotations) is never copied. Active Pod UIDs are retained so checks can
+// join VMI resource-claim aliases to the generated claim in Pod status.
 func (a *Adapter) Collect(ctx context.Context) (model.Evidence, error) {
 	ev := Evidence{Version: Version, VMIs: []VMI{}}
 	for i := range a.cfg.VMIs {
@@ -250,6 +263,18 @@ func fromObject(obj map[string]any) VMI {
 	v.Name = str("metadata", "name")
 	v.NodeName = str("status", "nodeName")
 	v.Phase = str("status", "phase")
+	if x, ok := field(obj, "status", "activePods"); ok {
+		m, isMap := x.(map[string]any)
+		if !isMap {
+			warn("status.activePods is not an object")
+		} else {
+			for uid := range m {
+				if uid != "" {
+					v.ActivePodUIDs = append(v.ActivePodUIDs, uid)
+				}
+			}
+		}
+	}
 	v.Sockets, v.Cores, v.Threads = num("spec", "domain", "cpu", "sockets"), num("spec", "domain", "cpu", "cores"), num("spec", "domain", "cpu", "threads")
 	if x, ok := field(obj, "spec", "domain", "cpu", "dedicatedCpuPlacement"); ok {
 		b, isBool := x.(bool)

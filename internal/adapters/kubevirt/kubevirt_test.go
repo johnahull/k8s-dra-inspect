@@ -82,7 +82,7 @@ func TestEvidenceContentAndSort(t *testing.T) {
 	for _, v := range ev.VMIs {
 		names = append(names, v.Namespace+"/"+v.Name)
 	}
-	want := []string{"demo/vm-garbage", "demo/vm-missing-claim", "demo/vm-no-allocation", "demo/vm-ok", "demo/vm-pending", "demo/vm-secrets", "demo/vm-split", "demo/vm-wrong-node"}
+	want := []string{"demo/vm-garbage", "demo/vm-missing-claim", "demo/vm-no-allocation", "demo/vm-ok", "demo/vm-pending", "demo/vm-secrets", "demo/vm-split", "demo/vm-template", "demo/vm-wrong-node"}
 	if !reflect.DeepEqual(names, want) {
 		t.Fatalf("order %v", names)
 	}
@@ -104,6 +104,9 @@ func TestEvidenceContentAndSort(t *testing.T) {
 	if p := vmi(ev, "vm-pending"); p.NodeName != "" || p.Phase != "Pending" {
 		t.Fatalf("vm-pending %+v", p)
 	}
+	if p := vmi(ev, "vm-template"); !slices.Equal(p.ActivePodUIDs, []string{"pod-template-fixture"}) {
+		t.Fatalf("vm-template active pods %+v", p.ActivePodUIDs)
+	}
 }
 
 func TestTemplateClaimIsUnresolved(t *testing.T) {
@@ -116,6 +119,29 @@ func TestTemplateClaimIsUnresolved(t *testing.T) {
 	v := collect(t, Config{VMIs: []unstructured.Unstructured{*u}, State: model.CollectionStatus{State: model.StateOK}}).VMIs[0]
 	if v.Claims["a"] != "" || v.HostDevices[0].ClaimName != "" || v.HostDevices[0].ClaimAlias != "a" {
 		t.Fatalf("%+v", v)
+	}
+}
+
+func TestActivePodUIDsAreExtractedAndBounded(t *testing.T) {
+	activePods := map[string]any{}
+	for i := 0; i < 20; i++ {
+		activePods[fmt.Sprintf("pod-%02d", i)] = "node-a"
+	}
+	v := fromObject(map[string]any{"status": map[string]any{"activePods": activePods}}).bound()
+	if len(v.ActivePodUIDs) != 16 || v.ActivePodUIDs[0] != "pod-00" || v.ActivePodUIDs[15] != "pod-15" {
+		t.Fatalf("active pod UIDs: %+v", v.ActivePodUIDs)
+	}
+	if !hasWarning(v.Warnings, "activePods truncated at 16") {
+		t.Fatalf("warnings: %v", v.Warnings)
+	}
+}
+
+func TestActivePodUIDsAreLengthBounded(t *testing.T) {
+	v := fromObject(map[string]any{"status": map[string]any{
+		"activePods": map[string]any{strings.Repeat("u", MaxString+10): "node-a"},
+	}}).bound()
+	if got := len([]rune(v.ActivePodUIDs[0])); got != MaxString+1 {
+		t.Fatalf("active pod UID length %d, want %d", got, MaxString+1)
 	}
 }
 
@@ -183,7 +209,7 @@ func TestEvidenceFieldAllowList(t *testing.T) {
 		want []string
 	}{
 		{reflect.TypeOf(Evidence{}), []string{"version", "vmis", "warnings"}},
-		{reflect.TypeOf(VMI{}), []string{"claims", "cores", "dedicatedCPUPlacement", "guestNUMAPassthrough", "hostDevices", "name", "namespace", "nodeName", "phase", "sockets", "threads", "warnings"}},
+		{reflect.TypeOf(VMI{}), []string{"activePodUIDs", "claims", "cores", "dedicatedCPUPlacement", "guestNUMAPassthrough", "hostDevices", "name", "namespace", "nodeName", "phase", "sockets", "threads", "warnings"}},
 		{reflect.TypeOf(HostDevice{}), []string{"claimAlias", "claimName", "name", "requestName"}},
 	} {
 		if got := jsonFields(tc.typ); !slices.Equal(got, tc.want) {

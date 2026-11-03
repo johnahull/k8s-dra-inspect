@@ -176,6 +176,30 @@
     },
     {
       "check": "check.kubevirt",
+      "status": "pass",
+      "subject": "demo/vm-template",
+      "details": {
+        "dedicatedCPUPlacement": false,
+        "devices": [
+          {
+            "device": "gpu-0",
+            "driver": "gpu.example.com",
+            "hostDevice": "gpu0",
+            "node": "node-a.example.com",
+            "pciBusID": "0000:3b:00.0",
+            "pool": "node-a.example.com",
+            "request": "gpu0"
+          }
+        ],
+        "guestNUMAPassthrough": false,
+        "numa": [
+          "0"
+        ],
+        "summary": "1 device(s) on node node-a.example.com"
+      }
+    },
+    {
+      "check": "check.kubevirt",
       "status": "fail",
       "subject": "demo/vm-wrong-node",
       "details": {
