@@ -19,6 +19,8 @@ exec python3 -I - <<'PY'
 import os, re, subprocess, sys, yaml
 
 CHART, DOC = os.environ["CHART"], os.environ["RBAC_DOC"]
+with open(os.path.join(CHART, "Chart.yaml"), encoding="utf-8") as f:
+    CHART_APP_VERSION = str((yaml.safe_load(f) or {}).get("appVersion", ""))
 fails = []
 
 def fail(inv, msg):
@@ -161,7 +163,8 @@ def check_job(tag, docs, profile, nss, sa=SA_DEFAULT, strict=False):
     need(not any("hostPath" in v for v in pod.get("volumes", [])), "hostPath volume")
     r = c.get("resources", {})
     need(bool(r.get("requests")) and bool(r.get("limits")), "resource requests and limits required")
-    need(re.fullmatch(r"ghcr\.io/johnahull/k8s-dra-inspect:0\.1\.0", c.get("image", "")) is not None, f"image must be repository:appVersion, got {c.get('image')}")
+    expected_image = f"ghcr.io/johnahull/k8s-dra-inspect:{CHART_APP_VERSION}"
+    need(c.get("image") == expected_image, f"image must be repository:appVersion, got {c.get('image')}")
     args = c.get("args", [])
     exp = DEFAULT_ARGS + (["-n", nss[0]] if profile == "namespace" else []) + (["--strict"] if strict else [])
     need(args == exp, f"args must be {exp}, got {args}")
