@@ -23,6 +23,12 @@ and a Job run by the Job controller is **not yet run**. Exactly what was and was
 exercised: [docs/harness-test-plan.md](docs/harness-test-plan.md). Coming from the lab
 `dra-verify.sh`? See [docs/migration-from-dra-verify.md](docs/migration-from-dra-verify.md).
 
+## Demonstration
+
+See the [live diagnosis demo](demos/live-diagnosis/) for a recording of
+`dra-inspect` inspecting a live DRA cluster and validating an allocated
+workload.
+
 ## Commands
 
 ```text
