@@ -14,6 +14,8 @@ import (
 
 const lastAppliedAnnotation = "kubectl.kubernetes.io/last-applied-configuration"
 
+const maxActivePods = 16
+
 func deepCopy[T any, P interface {
 	*T
 	DeepCopy() *T
@@ -99,8 +101,9 @@ func Redact(s Snapshot) Snapshot {
 
 // redactVMI rebuilds a VMI from an allow-list of what replay and the kubevirt
 // adapter read. Everything else (labels, annotations, owners, networks,
-// volumes, cloud-init, credentials, status details) is never copied, and a
-// value of an unexpected type is dropped. The result shares nothing with obj.
+// volumes, cloud-init, credentials, and status details other than activePods)
+// is never copied, and a value of an unexpected type is dropped. The result
+// shares nothing with obj.
 func redactVMI(obj map[string]any) map[string]any {
 	out := map[string]any{}
 	keep(out, obj, "apiVersion", "kind")
@@ -108,7 +111,23 @@ func redactVMI(obj map[string]any) map[string]any {
 		put(out, "metadata", pick(m, "name", "namespace", "uid"))
 	}
 	if st := sub(obj, "status"); st != nil {
-		put(out, "status", pick(st, "nodeName", "phase"))
+		status := pick(st, "nodeName", "phase")
+		if active, ok := st["activePods"].(map[string]any); ok {
+			uids := slices.Sorted(maps.Keys(active))
+			if len(uids) > maxActivePods {
+				uids = uids[:maxActivePods]
+			}
+			pods := map[string]any{}
+			for _, uid := range uids {
+				if node, ok := active[uid].(string); ok {
+					pods[uid] = node
+				}
+			}
+			if len(pods) > 0 {
+				status["activePods"] = pods
+			}
+		}
+		put(out, "status", status)
 	}
 	spec := map[string]any{}
 	if sp := sub(obj, "spec"); sp != nil {

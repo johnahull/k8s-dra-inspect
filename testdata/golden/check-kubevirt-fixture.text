@@ -56,6 +56,15 @@ demo/vm-split
   dedicated CPU placement: yes
   ! devices span NUMA nodes 0,1 without guestMappingPassthrough; the guest cannot see the topology
 
+demo/vm-template
+  gpu0
+    gpu-0 (0000:3b:00.0)  gpu.example.com
+    hostDevice gpu0  node node-a.example.com
+  devices on NUMA 0
+  guest NUMA passthrough: no
+  dedicated CPU placement: no
+  ✓ 1 device on node node-a.example.com
+
 demo/vm-wrong-node
   gpu0
     gpu-b0 (0000:3b:00.0)  gpu.example.com

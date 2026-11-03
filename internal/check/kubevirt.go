@@ -92,19 +92,29 @@ func loadKubeVirt(ctx context.Context, snap model.Snapshot, name string) (kubevi
 
 func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Result {
 	var (
-		fs      []finding
-		devices = []map[string]any{}
-		numaSet = map[string]bool{}
-		unknown bool
+		fs                      []finding
+		devices                 = []map[string]any{}
+		numaSet                 = map[string]bool{}
+		reportedTemplateAliases = map[string]bool{}
+		unknown                 bool
 	)
 	for _, hd := range v.HostDevices {
-		switch cl, found := kubevirtClaim(snap, v, hd); {
-		case hd.ClaimName == "" && !claimDefined(v, hd.ClaimAlias):
+		claimName := hd.ClaimName
+		var unavailable string
+		if claimName == "" && claimDefined(v, hd.ClaimAlias) {
+			claimName, unavailable = resolveTemplateClaimName(snap, v, hd.ClaimAlias)
+		}
+		cl, found := kubevirtClaim(snap, v.Namespace, claimName)
+		switch {
+		case claimName == "" && !claimDefined(v, hd.ClaimAlias):
 			fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("claim alias %s is not defined in spec.resourceClaims", hd.ClaimAlias)})
-		case hd.ClaimName == "":
-			fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindClaimRef, reason: fmt.Sprintf("claim %s comes from a template; its generated name is not in the VMI", hd.ClaimAlias)})
+		case unavailable != "":
+			if !reportedTemplateAliases[hd.ClaimAlias] {
+				fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindClaimRef, reason: unavailable})
+				reportedTemplateAliases[hd.ClaimAlias] = true
+			}
 		case !found:
-			fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("claim %s/%s not found", v.Namespace, hd.ClaimName)})
+			fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("claim %s/%s not found", v.Namespace, claimName)})
 		default:
 			var results []resourcev1.DeviceRequestAllocationResult
 			if cl.Status.Allocation != nil {
@@ -115,7 +125,7 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 				}
 			}
 			if len(results) == 0 {
-				fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("request %s has no allocation result in claim %s/%s", hd.RequestName, v.Namespace, hd.ClaimName)})
+				fs = append(fs, finding{status: model.StatusFail, kind: model.KindClaimRef, reason: fmt.Sprintf("request %s has no allocation result in claim %s/%s", hd.RequestName, v.Namespace, claimName)})
 			}
 			for _, r := range results {
 				d := map[string]any{"hostDevice": hd.Name, "request": r.Request, "driver": r.Driver, "pool": r.Pool, "device": r.Device}
@@ -197,9 +207,51 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 
 func claimDefined(v kubevirt.VMI, alias string) bool { _, ok := v.Claims[alias]; return ok }
 
-func kubevirtClaim(snap model.Snapshot, v kubevirt.VMI, hd kubevirt.HostDevice) (resourcev1.ResourceClaim, bool) {
+func resolveTemplateClaimName(snap model.Snapshot, v kubevirt.VMI, alias string) (string, string) {
+	if st := snap.Collection["pods"]; st.State != model.StateOK {
+		reason := st.Reason
+		if reason == "" {
+			reason = "not collected"
+			if st.State != "" {
+				reason = "collection state: " + st.State
+			}
+		}
+		return "", fmt.Sprintf("claim %s is template-backed; Pods were not collected (%s), so its generated ResourceClaim cannot be resolved", alias, reason)
+	}
+	if len(v.ActivePodUIDs) == 0 {
+		return "", fmt.Sprintf("claim %s is template-backed; no active Pod status resolved its generated ResourceClaim", alias)
+	}
+	active := make(map[string]bool, len(v.ActivePodUIDs))
+	for _, uid := range v.ActivePodUIDs {
+		active[uid] = true
+	}
+	names := map[string]bool{}
+	for _, p := range snap.Pods {
+		if p.Namespace != v.Namespace || !active[string(p.UID)] || (v.NodeName != "" && p.NodeName != v.NodeName) {
+			continue
+		}
+		for _, st := range p.ResourceClaimStatuses {
+			if st.Name == alias && st.ResourceClaimName != nil && *st.ResourceClaimName != "" {
+				names[*st.ResourceClaimName] = true
+			}
+		}
+	}
+	switch len(names) {
+	case 1:
+		for name := range names {
+			return name, ""
+		}
+	case 0:
+		return "", fmt.Sprintf("claim %s is template-backed; no active Pod status resolved its generated ResourceClaim", alias)
+	default:
+		return "", fmt.Sprintf("claim %s is template-backed; active Pods reported different generated ResourceClaims", alias)
+	}
+	return "", fmt.Sprintf("claim %s is template-backed; no active Pod status resolved its generated ResourceClaim", alias)
+}
+
+func kubevirtClaim(snap model.Snapshot, namespace, name string) (resourcev1.ResourceClaim, bool) {
 	for _, c := range snap.ResourceClaims {
-		if c.Namespace == v.Namespace && c.Name == hd.ClaimName {
+		if c.Namespace == namespace && c.Name == name {
 			return c, true
 		}
 	}

@@ -15,6 +15,6 @@ check.kubevirt
 
 adapters
   ✓ adapter.host: host evidence for node node-a.example.com
-  ✓ adapter.kubevirt: 8 VMIs
+  ✓ adapter.kubevirt: 9 VMIs
 
 Details: run the individual check or inspect commands, or use -o json.

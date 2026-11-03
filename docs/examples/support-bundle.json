@@ -206,9 +206,64 @@
           }
         }
       }
+    },
+    {
+      "kind": "ResourceClaim",
+      "apiVersion": "resource.k8s.io/v1",
+      "metadata": {
+        "name": "generated-partitions",
+        "namespace": "demo"
+      },
+      "spec": {
+        "devices": {
+          "requests": [
+            {
+              "name": "gpu0",
+              "exactly": {
+                "deviceClassName": "gpu.example.com",
+                "allocationMode": "ExactCount",
+                "count": 1
+              }
+            }
+          ]
+        }
+      },
+      "status": {
+        "allocation": {
+          "devices": {
+            "results": [
+              {
+                "request": "gpu0",
+                "driver": "gpu.example.com",
+                "pool": "node-a.example.com",
+                "device": "gpu-0"
+              }
+            ]
+          }
+        }
+      }
     }
   ],
-  "pods": null,
+  "pods": [
+    {
+      "name": "virt-launcher-vm-template-abcde",
+      "namespace": "demo",
+      "uid": "pod-template-fixture",
+      "nodeName": "node-a.example.com",
+      "resourceClaims": [
+        {
+          "name": "partitions",
+          "resourceClaimTemplateName": "partitions-template"
+        }
+      ],
+      "resourceClaimStatuses": [
+        {
+          "name": "partitions",
+          "resourceClaimName": "generated-partitions"
+        }
+      ]
+    }
+  ],
   "nodes": null,
   "virtualMachineInstances": [
     {
@@ -461,6 +516,40 @@
       "apiVersion": "kubevirt.io/v1",
       "kind": "VirtualMachineInstance",
       "metadata": {
+        "name": "vm-template",
+        "namespace": "demo"
+      },
+      "spec": {
+        "domain": {
+          "devices": {
+            "hostDevices": [
+              {
+                "claimName": "partitions",
+                "name": "gpu0",
+                "requestName": "gpu0"
+              }
+            ]
+          }
+        },
+        "resourceClaims": [
+          {
+            "name": "partitions",
+            "resourceClaimTemplateName": "partitions-template"
+          }
+        ]
+      },
+      "status": {
+        "activePods": {
+          "pod-template-fixture": "node-a.example.com"
+        },
+        "nodeName": "node-a.example.com",
+        "phase": "Running"
+      }
+    },
+    {
+      "apiVersion": "kubevirt.io/v1",
+      "kind": "VirtualMachineInstance",
+      "metadata": {
         "name": "vm-wrong-node",
         "namespace": "demo"
       },
@@ -701,6 +790,27 @@
           "sockets": 1,
           "cores": 4,
           "threads": 2
+        },
+        {
+          "namespace": "demo",
+          "name": "vm-template",
+          "nodeName": "node-a.example.com",
+          "phase": "Running",
+          "activePodUIDs": [
+            "pod-template-fixture"
+          ],
+          "claims": {
+            "partitions": ""
+          },
+          "hostDevices": [
+            {
+              "name": "gpu0",
+              "claimAlias": "partitions",
+              "requestName": "gpu0"
+            }
+          ],
+          "guestNUMAPassthrough": false,
+          "dedicatedCPUPlacement": false
         },
         {
           "namespace": "demo",

@@ -51,8 +51,9 @@ ns/name; -n scopes it. Fails when the claim or its allocation result is
 missing or a device is on another node than the VMI; warns when devices span
 NUMA nodes without guestMappingPassthrough, or when guestMappingPassthrough is
 set without dedicatedCpuPlacement. Claims generated from
-resourceClaimTemplateName are not resolved in v1 and stay unavailable (upgrade path: join through the virt-launcher pod's
-resourceClaimStatuses). Works from the VMIs already in the
+resourceClaimTemplateName are resolved through activePods and the virt-launcher
+Pod's resourceClaimStatuses; they stay unavailable when that Pod status is not
+available. Works from the VMIs already in the
 snapshot and calls no extra API. Only host-device, claim, NUMA and CPU fields
 of a VMI are read; cloud-init data, credentials and interfaces never are.`
 

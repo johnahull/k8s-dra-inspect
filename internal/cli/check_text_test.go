@@ -241,7 +241,7 @@ func TestReportSupportTextAdapterRowsAndCounts(t *testing.T) {
 		out, code := c.run(t, 0, false)
 		for _, want := range []string{
 			"Summary: 13 checks: 9 ok, 1 warning, 1 failure, 2 unavailable, 0 errors\n",
-			"adapters\n  ? adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)\n  ✓ adapter.kubevirt: 8 VMIs\n",
+			"adapters\n  ? adapter.host: no sysfs under /nonexistent/host-root; run on the node (or pass --host-root)\n  ✓ adapter.kubevirt: 9 VMIs\n",
 			"\nDetails: run the individual check or inspect commands, or use -o json.\n",
 		} {
 			if !strings.Contains(out, want) {

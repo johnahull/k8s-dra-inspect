@@ -42,6 +42,7 @@ func redactInput() model.Snapshot {
 			"annotations":   map[string]any{lastApplied: "SECRET-APPLIED"},
 			"managedFields": []any{map[string]any{"manager": "SECRET-MANAGER"}},
 		},
+		"status": map[string]any{"nodeName": "node-a", "phase": "Running", "activePods": map[string]any{"pod-uid": "node-a"}, "conditions": []any{"drop"}},
 		"spec": map[string]any{
 			"accessCredentials": []any{map[string]any{"sshPublicKey": "SECRET-KEY"}},
 			"volumes": []any{
@@ -120,6 +121,10 @@ func TestRedact(t *testing.T) {
 	}
 	if out.VMIs[0].GetName() != "vmi" || len(out.VMIs[0].GetManagedFields()) != 0 || len(out.VMIs[0].GetAnnotations()) != 0 {
 		t.Errorf("vmi: %v", out.VMIs[0].Object)
+	}
+	status, _ := out.VMIs[0].Object["status"].(map[string]any)
+	if status["activePods"] == nil || status["conditions"] != nil {
+		t.Errorf("vmi status: %v", status)
 	}
 
 	after, _ := json.Marshal(in)
@@ -238,7 +243,7 @@ func allowVMI() unstructured.Unstructured {
 			"guestOSInfo":    map[string]any{"name": "GUEST-LEAK"},
 			"volumeStatus":   []any{map[string]any{"name": "VOLSTATUS-LEAK"}},
 			"migrationState": map[string]any{"sourceNode": "MIG-LEAK"},
-			"activePods":     map[string]any{"p": "ACTIVEPOD-LEAK"},
+			"activePods":     map[string]any{"p": "node-a"},
 		},
 	}}
 }
@@ -262,7 +267,7 @@ func TestRedactVMIAllowList(t *testing.T) {
 				"devices": map[string]any{"hostDevices": []any{map[string]any{"name": "hd", "claimName": "al", "requestName": "r"}}},
 			},
 		},
-		"status": map[string]any{"nodeName": "node-a", "phase": "Running"},
+		"status": map[string]any{"activePods": map[string]any{"p": "node-a"}, "nodeName": "node-a", "phase": "Running"},
 	}
 	if !reflect.DeepEqual(out.VMIs[0].Object, want) {
 		t.Errorf("got  %v\nwant %v", out.VMIs[0].Object, want)

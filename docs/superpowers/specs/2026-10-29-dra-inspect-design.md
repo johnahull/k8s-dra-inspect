@@ -77,18 +77,20 @@ capture` does not collect adapter evidence unless `--with-adapters` is given;
 
 The KubeVirt adapter makes no API calls: it derives evidence
 (`Evidence["kubevirt"]`, version 1) from the VMIs the core collector already put
-in the snapshot, keeping only namespace, name, node, phase, claim aliases and
-names, host devices, guest NUMA passthrough, dedicated CPU placement and CPU
-topology (never volumes, cloud-init, credentials, annotations, interfaces or
-guest info). It is unavailable when the VMI collection is not ok (for example
-`kubevirt.io/v1 not served`). `check kubevirt [VMI]` maps each VMI host device
-to its claim's allocation result and reports a missing claim or allocation, a
-device on another node than the VMI (fail), and devices on two or more NUMA
-nodes without `guestMappingPassthrough` (warn), as well as
+in the snapshot, keeping only namespace, name, node, phase, active Pod UIDs,
+claim aliases and names, host devices, guest NUMA passthrough, dedicated CPU
+placement and CPU topology (never volumes, cloud-init, credentials, annotations,
+interfaces or guest info). It is unavailable when the VMI collection is not ok
+(for example `kubevirt.io/v1 not served`). `check kubevirt [VMI]` maps each VMI
+host device to its claim's allocation result, resolving template-backed claim
+aliases through the active Pod's `resourceClaimStatuses`, and reports a missing
+claim or allocation, a device on another node than the VMI (fail), and devices
+on two or more NUMA nodes without `guestMappingPassthrough` (warn), as well as
 `guestMappingPassthrough` without `dedicatedCpuPlacement` (warn: KubeVirt will
 not schedule such a VMI). Evidence is bounded: at most 10000 VMIs, 1024 host
-devices and 1024 claim aliases per VMI, strings cut to 253 characters, and
-duplicate VMIs (same namespace/name) ignored, each with a fixed-text warning.
+devices, 1024 claim aliases and 16 active Pod UIDs per VMI, strings cut to 253
+characters, and duplicate VMIs (same namespace/name) ignored, each with a
+fixed-text warning.
 Evidence read with `--from` is validated only for version and shape, then
 bounded the same way.
 
@@ -151,9 +153,11 @@ v1 does not evaluate: `distinctAttribute` constraints, derived attributes
 A claim's status is the worst of its findings: error, then fail, then
 unavailable, then warn, then pass.
 
-`check kubevirt` does not resolve claims generated from
-`resourceClaimTemplateName` in v1; they stay `unavailable`. Upgrade path: join
-through the virt-launcher pod's `resourceClaimStatuses`.
+`check kubevirt` resolves claims generated from `resourceClaimTemplateName` by
+joining VMI `status.activePods` to the matching virt-launcher Pod and its
+`resourceClaimStatuses`. They stay `unavailable` when Pods or the active Pod
+status are not available, or when active Pods report conflicting generated
+claim names.
 
 ## JSON Output
 
@@ -200,10 +204,10 @@ the file may contain sensitive data.
   `spec.domain.cpu.{sockets,cores,threads,dedicatedCpuPlacement}`,
   `spec.domain.cpu.numa` (only whether `guestMappingPassthrough` is set),
   `spec.domain.devices.hostDevices[].{name,claimName,requestName}`, and
-  `status.{nodeName,phase}`. Everything else is dropped: all labels and
-  annotations, ownerReferences, networks, nodeSelector, hostname, subdomain,
+  `status.{nodeName,phase,activePods}`. Everything else is dropped: all labels
+  and annotations, ownerReferences, networks, nodeSelector, hostname, subdomain,
   volumes (cloud-init), accessCredentials, firmware, interfaces, guest info,
-  migration state, activePods, and any value of an unexpected type.
+  migration state, and any value of an unexpected type.
   `--no-redact` keeps full objects.
 - Intentionally kept, because replay needs it and it is not secret on its own:
   DeviceClass and ResourceClaim CEL selector text (user-facing inspect output
@@ -221,8 +225,8 @@ the file may contain sensitive data.
 - A namespace-scoped run records `namespace` in the snapshot and marks the
   resourceclaims and pods collection entries `ok` with reason
   `namespace <ns> only`.
-- Keep Pods only as name, namespace, uid, nodeName, and resourceClaims. Never
-  capture env, annotations, or managedFields.
+- Keep Pods only as name, namespace, uid, nodeName, resourceClaims and
+  resourceClaimStatuses. Never capture env, annotations, or managedFields.
 - Never capture kubeconfig contents.
 
 ## Terminal Output

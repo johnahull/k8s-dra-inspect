@@ -63,6 +63,28 @@ items:
       devices:
         results:
         - {request: gpu0, driver: gpu.example.com, pool: node-b.example.com, device: gpu-b0}
+- apiVersion: resource.k8s.io/v1
+  kind: ResourceClaim
+  metadata: {name: generated-partitions, namespace: demo}
+  spec:
+    devices:
+      requests:
+      - {name: gpu0, exactly: {deviceClassName: gpu.example.com, allocationMode: ExactCount, count: 1}}
+  status:
+    allocation:
+      devices:
+        results:
+        - {request: gpu0, driver: gpu.example.com, pool: node-a.example.com, device: gpu-0}
+- apiVersion: v1
+  kind: Pod
+  metadata: {name: virt-launcher-vm-template-abcde, namespace: demo, uid: pod-template-fixture}
+  spec:
+    nodeName: node-a.example.com
+    resourceClaims:
+    - {name: partitions, resourceClaimTemplateName: partitions-template}
+  status:
+    resourceClaimStatuses:
+    - {name: partitions, resourceClaimName: generated-partitions}
 - apiVersion: kubevirt.io/v1
   kind: VirtualMachineInstance
   metadata: {name: vm-ok, namespace: demo}
@@ -172,3 +194,17 @@ items:
         - {name: 7, claimName: partitions, requestName: gpu0}
         - {name: ok, claimName: 5, requestName: [SECRET-GARBAGE-MARKER]}
   status: {phase: 12, nodeName: 7}
+- apiVersion: kubevirt.io/v1
+  kind: VirtualMachineInstance
+  metadata: {name: vm-template, namespace: demo}
+  spec:
+    domain:
+      devices:
+        hostDevices:
+        - {name: gpu0, claimName: partitions, requestName: gpu0}
+    resourceClaims:
+    - {name: partitions, resourceClaimTemplateName: partitions-template}
+  status:
+    phase: Running
+    nodeName: node-a.example.com
+    activePods: {pod-template-fixture: node-a.example.com}
