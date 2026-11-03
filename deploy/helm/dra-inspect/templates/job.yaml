@@ -37,8 +37,10 @@ spec:
       # Pod Security "restricted" by construction.
       securityContext:
         runAsNonRoot: true
-        runAsUser: {{ .Values.job.runAsUser }}
-        runAsGroup: {{ .Values.job.runAsUser }}
+        {{ with .Values.job.runAsUser }}
+        runAsUser: {{ . }}
+        runAsGroup: {{ . }}
+        {{ end }}
         seccompProfile:
           type: RuntimeDefault
       containers:
