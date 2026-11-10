@@ -14,20 +14,23 @@ import (
 )
 
 type counterPool struct {
-	sets    map[string]map[string]resource.Quantity // counterSet -> counter -> capacity
-	devices map[string]resourcev1.Device
-	used    map[string]map[string]*resource.Quantity // counterSet -> counter -> consumed
-	by      map[string]map[string]bool               // counterSet -> claims consuming it
-	setFind map[string][]string                      // counterSet -> publication/overcommit problems
-	pool    []finding                                // problems affecting every set of the pool
-	refs    map[string]bool                          // counter sets devices consume
+	sets       map[string]map[string]resource.Quantity // counterSet -> counter -> capacity
+	devices    map[string]resourcev1.Device
+	used       map[string]map[string]*resource.Quantity // counterSet -> counter -> consumed
+	by         map[string]map[string]bool               // counterSet -> claims allocating a device that consumes it
+	capacityBy map[string]map[string]bool               // counterSet -> ordinary claims consuming capacity
+	adminBy    map[string]map[string]bool               // counterSet -> admin-access claims
+	setFind    map[string][]string                      // counterSet -> publication/overcommit problems
+	pool       []finding                                // problems affecting every set of the pool
+	refs       map[string]bool                          // counter sets devices consume
 }
 
 // Counters checks shared-counter capacity against allocations. It ports the
 // legacy dra-counters.py arithmetic with exact resource.Quantity math and
-// the scheduler's semantics: every allocated claim consumes the counters of
-// its devices, whether or not it is reserved. The legacy PCI-sibling
-// correlation heuristic is deliberately not ported.
+// the scheduler's semantics: every ordinary allocated claim consumes the
+// counters of its devices, whether or not it is reserved. Admin-access claims
+// are reported separately because they do not consume ordinary allocations.
+// The legacy PCI-sibling correlation heuristic is deliberately not ported.
 func Counters() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
 		if r, ok := need(snap, NameCounters, "resourceslices", "resourceclaims"); ok {
@@ -38,7 +41,8 @@ func Counters() Check {
 		get := func(k model.PoolKey) *counterPool {
 			if pools[k] == nil {
 				pools[k] = &counterPool{sets: map[string]map[string]resource.Quantity{}, devices: map[string]resourcev1.Device{},
-					used: map[string]map[string]*resource.Quantity{}, by: map[string]map[string]bool{}, setFind: map[string][]string{}, refs: map[string]bool{}}
+					used: map[string]map[string]*resource.Quantity{}, by: map[string]map[string]bool{}, capacityBy: map[string]map[string]bool{}, adminBy: map[string]map[string]bool{},
+					setFind: map[string][]string{}, refs: map[string]bool{}}
 			}
 			return pools[k]
 		}
@@ -102,6 +106,21 @@ func Counters() Check {
 					}
 					continue
 				}
+				claim := c.Namespace + "/" + c.Name
+				adminAccess := r.AdminAccess != nil && *r.AdminAccess
+				if adminAccess {
+					for _, cc := range d.ConsumesCounters {
+						if p.by[cc.CounterSet] == nil {
+							p.by[cc.CounterSet] = map[string]bool{}
+						}
+						p.by[cc.CounterSet][claim] = true
+						if p.adminBy[cc.CounterSet] == nil {
+							p.adminBy[cc.CounterSet] = map[string]bool{}
+						}
+						p.adminBy[cc.CounterSet][claim] = true
+					}
+					continue
+				}
 				// A device that cannot be shared is one allocation however many results name it.
 				if d.AllowMultipleAllocations == nil || !*d.AllowMultipleAllocations {
 					if seen[k] == nil {
@@ -116,10 +135,14 @@ func Counters() Check {
 					if p.used[cc.CounterSet] == nil {
 						p.used[cc.CounterSet] = map[string]*resource.Quantity{}
 					}
+					if p.capacityBy[cc.CounterSet] == nil {
+						p.capacityBy[cc.CounterSet] = map[string]bool{}
+					}
 					if p.by[cc.CounterSet] == nil {
 						p.by[cc.CounterSet] = map[string]bool{}
 					}
-					p.by[cc.CounterSet][c.Namespace+"/"+c.Name] = true
+					p.by[cc.CounterSet][claim] = true
+					p.capacityBy[cc.CounterSet][claim] = true
 					for cn, v := range cc.Counters {
 						if p.used[cc.CounterSet][cn] == nil {
 							p.used[cc.CounterSet][cn] = &resource.Quantity{Format: v.Value.Format}
@@ -179,7 +202,13 @@ func (p *counterPool) result(k model.PoolKey, set string) model.Result {
 	for _, cn := range slices.Sorted(maps.Keys(counters)) {
 		sum = append(sum, fmt.Sprintf("%s %s/%s", cn, counters[cn]["used"], counters[cn]["capacity"]))
 	}
-	det := map[string]any{"summary": strings.Join(sum, ", "), "counters": counters, "allocatedBy": nonNil(slices.Sorted(maps.Keys(p.by[set]))), "driver": k[0], "pool": k[1], "counterSet": set}
+	det := map[string]any{
+		"summary": strings.Join(sum, ", "), "counters": counters,
+		"allocatedBy":    nonNil(slices.Sorted(maps.Keys(p.by[set]))),
+		"capacityUsedBy": nonNil(slices.Sorted(maps.Keys(p.capacityBy[set]))),
+		"adminAccessBy":  nonNil(slices.Sorted(maps.Keys(p.adminBy[set]))),
+		"driver":         k[0], "pool": k[1], "counterSet": set,
+	}
 	if _, defined := p.sets[set]; !defined {
 		delete(det, "counters")
 		delete(det, "summary")

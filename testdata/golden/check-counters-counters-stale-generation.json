@@ -8,7 +8,9 @@
       "status": "warn",
       "subject": "gpu.example.com/node-a.example.com/pf-0",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0",
         "counters": {
           "vf-slots": {

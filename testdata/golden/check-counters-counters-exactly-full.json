@@ -8,7 +8,11 @@
       "status": "pass",
       "subject": "gpu.example.com/node-a.example.com/pf-0",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [
+          "demo/vfs"
+        ],
+        "capacityUsedBy": [
           "demo/vfs"
         ],
         "counterSet": "pf-0",

@@ -8,7 +8,9 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0000-0c-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0000-0c-00-0-counter-set",
         "counters": {
           "vf-slots": {
@@ -27,7 +29,9 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0000-3d-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0000-3d-00-0-counter-set",
         "counters": {
           "vf-slots": {
@@ -46,7 +50,9 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0000-a8-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0000-a8-00-0-counter-set",
         "counters": {
           "vf-slots": {
@@ -65,7 +71,11 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0000-dc-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "capacityUsedBy": [
           "default/vm-final-all"
         ],
         "counterSet": "pf-0000-dc-00-0-counter-set",
@@ -86,7 +96,9 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0001-0d-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0001-0d-00-0-counter-set",
         "counters": {
           "vf-slots": {
@@ -105,7 +117,9 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0001-3d-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0001-3d-00-0-counter-set",
         "counters": {
           "vf-slots": {
@@ -124,7 +138,11 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0001-a5-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "capacityUsedBy": [
           "default/vm-final-all"
         ],
         "counterSet": "pf-0001-a5-00-0-counter-set",
@@ -145,7 +163,11 @@
       "status": "pass",
       "subject": "gpu.amd.com/node-a.example.com/pf-0001-dc-00-0-counter-set",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [
+          "default/vm-final-all"
+        ],
+        "capacityUsedBy": [
           "default/vm-final-all"
         ],
         "counterSet": "pf-0001-dc-00-0-counter-set",

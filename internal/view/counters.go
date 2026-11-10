@@ -37,8 +37,11 @@ func Counters(p *render.Printer, _ model.Snapshot, results []model.Result) {
 		for _, name := range slices.Sorted(maps.Keys(counters)) {
 			p.Line(4, "%s: %s of %s in use", name, counters[name]["used"], counters[name]["capacity"])
 		}
-		for _, by := range detail[[]string](&d, r, "allocatedBy") {
+		for _, by := range detail[[]string](&d, r, "capacityUsedBy") {
 			p.Line(4, "used by %s", by)
+		}
+		for _, by := range detail[[]string](&d, r, "adminAccessBy") {
+			p.Line(4, "admin access (not counted) by %s", by)
 		}
 		if notes(p, 4, r, nil) == 0 {
 			p.Note(4, model.StatusPass, "within capacity")
