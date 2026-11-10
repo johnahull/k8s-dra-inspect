@@ -295,7 +295,7 @@ func TestSlicesArrowsAreAllClaimsWhenPodsAreNotCollected(t *testing.T) {
 func TestCountersBlankLineBetweenSets(t *testing.T) {
 	mk := func(set string) model.Result {
 		return model.Result{Check: check.NameCounters, Status: model.StatusPass, Subject: "d/p/" + set, Details: map[string]any{
-			"driver": "d", "pool": "p", "counterSet": set, "allocatedBy": []string{},
+			"driver": "d", "pool": "p", "counterSet": set, "allocatedBy": []string{}, "capacityUsedBy": []string{}, "adminAccessBy": []string{},
 			"counters": map[string]map[string]string{"slots": {"used": "0", "capacity": "2"}}}}
 	}
 	got := showResults(t, model.Snapshot{}, []model.Result{mk("pf-0"), mk("pf-1")}, view.Counters)

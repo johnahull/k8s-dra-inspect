@@ -111,6 +111,24 @@ func TestCountersSaysInUseNotARatio(t *testing.T) {
 	}
 }
 
+func TestCountersSeparatesAdminAccessFromCapacityUse(t *testing.T) {
+	r := model.Result{Check: check.NameCounters, Status: model.StatusPass, Subject: "gpu.example.com/node-a/pf-0", Details: map[string]any{
+		"driver": "gpu.example.com", "pool": "node-a", "counterSet": "pf-0",
+		"allocatedBy":    []string{"default/mig", "gpu-operator/exporter"},
+		"capacityUsedBy": []string{"default/mig"}, "adminAccessBy": []string{"gpu-operator/exporter"},
+		"counters": map[string]map[string]string{"vf-slots": {"used": "1", "capacity": "2"}},
+	}}
+	got := showResults(t, model.Snapshot{}, []model.Result{r}, view.Counters)
+	want := lines(
+		"═══ Shared Counters ═══", "", "gpu.example.com (pool: node-a)", "  counter set pf-0",
+		"    vf-slots: 1 of 2 in use", "    used by default/mig",
+		"    admin access (not counted) by gpu-operator/exporter", "    ✓ within capacity",
+	)
+	if got != want {
+		t.Errorf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
 func TestCountersFitsAndNoneAndUnknownSet(t *testing.T) {
 	got := showCheck(t, fx(t, "counters/fits"), check.Counters(), view.Counters)
 	if !strings.Contains(got, "    ✓ within capacity\n") || !strings.Contains(got, " of ") {

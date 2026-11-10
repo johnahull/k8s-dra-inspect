@@ -44,7 +44,7 @@ machines.
 | `drivers` | `inspect drivers`: per node, one line per driver with its current devices and pools on that node; with `--attributes` the attribute keys those devices publish, indented below. Named nodes sort as plain strings (`node-10` before `node-2`); devices not bound to one node follow under `Node: (no node)`, `Node: (all nodes)` or `Node: (selector)`. An incomplete-pool warning prints under each node that holds devices of that pool, naming only that node's pools. A warning no node can own (and a driver with no devices) comes last, under `Other notes`. |
 | `attributes` | `inspect attributes`: per node, then driver (with its device count on that node), then device; one `key = value` line per attribute, `=` aligned per device, list values as `[0, 1]`. A device heading names its pool only when the pool is not called like the node. Placeholder nodes and warnings follow the same rules as `drivers`. |
 | `alignment` | `check alignment`: each request name on its own line with its device, NUMA nodes and PCIe root indented below; then one sentence per finding. A sentence naming devices (a NUMA split, a violated `matchAttribute`) is followed by one line per group (`NUMA 0,1: gpu-0, gpu-2`). |
-| `counters` | `check counters`: per pool and counter set, "N of M in use", the claims using it, then the verdict. |
+| `counters` | `check counters`: per pool and counter set, "N of M in use", ordinary claims counted against capacity, admin-access claims listed separately as not counted, then the verdict. |
 
 Long device lists wrap at the terminal width (100 columns when piped) and
 never lose a name.

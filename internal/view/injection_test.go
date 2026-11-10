@@ -118,6 +118,7 @@ func evilResults() map[string][]model.Result {
 		}}},
 		"counters": {{Check: "check.counters", Status: model.StatusFail, Subject: "x", Findings: f, Details: map[string]any{
 			"driver": "d" + evil, "pool": "p" + evil, "counterSet": "s" + evil, "allocatedBy": []string{"c" + evil},
+			"capacityUsedBy": []string{"c" + evil}, "adminAccessBy": []string{"a" + evil},
 			"counters": map[string]map[string]string{"n" + evil: {"used": "u" + evil, "capacity": "c" + evil}}}}},
 		"capacity": {{Check: "check.capacity", Status: model.StatusFail, Subject: "s" + evil, Findings: f, Details: map[string]any{
 			"allocatedBy": []string{"c" + evil}, "capacities": map[string]map[string]string{"n" + evil: {"consumed": "c" + evil, "published": "p" + evil, "remaining": "r" + evil}}}}},

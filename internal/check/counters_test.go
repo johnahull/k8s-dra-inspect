@@ -76,6 +76,90 @@ func TestCountersAllocationIsSubtracted(t *testing.T) {
 	}
 }
 
+func TestCountersAdminAccessDoesNotConsumeCapacity(t *testing.T) {
+	adminDevice := cdev("gpu-0", consume("pf-0", map[string]string{"vf-slots": "2"}))
+	migDevice := vf("gpu-0-mig-1g")
+	admin := res("admin", "gpu-0")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(pf0(adminDevice, migDevice),
+		claim("gpu-operator", "exporter", nil, admin),
+		claim("default", "mig", nil, res("r", "gpu-0-mig-1g"))))
+	if r.Status != model.StatusPass {
+		t.Fatalf("admin access caused a capacity failure: %+v", r)
+	}
+	if got := counterVals(t, r, "vf-slots"); got["used"] != "1" || got["remaining"] != "1" {
+		t.Errorf("counter = %v, want only the MIG allocation counted", got)
+	}
+	if got := fmt.Sprint(r.Details["allocatedBy"]); got != "[default/mig gpu-operator/exporter]" {
+		t.Errorf("allocatedBy = %s", got)
+	}
+	if got := fmt.Sprint(r.Details["capacityUsedBy"]); got != "[default/mig]" {
+		t.Errorf("capacityUsedBy = %s", got)
+	}
+	if got := fmt.Sprint(r.Details["adminAccessBy"]); got != "[gpu-operator/exporter]" {
+		t.Errorf("adminAccessBy = %s", got)
+	}
+}
+
+func TestCountersAdminOnlyPassesAndRemainsVisible(t *testing.T) {
+	admin := res("admin", "gpu-0")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(pf0(vf("gpu-0")), claim("gpu-operator", "exporter", nil, admin)))
+	if r.Status != model.StatusPass || counterVals(t, r, "vf-slots")["used"] != "0" {
+		t.Fatalf("admin-only allocation affected capacity: %+v", r)
+	}
+	if got := fmt.Sprint(r.Details["capacityUsedBy"]); got != "[]" {
+		t.Errorf("capacityUsedBy = %s", got)
+	}
+	if got := fmt.Sprint(r.Details["adminAccessBy"]); got != "[gpu-operator/exporter]" {
+		t.Errorf("adminAccessBy = %s", got)
+	}
+}
+
+func TestCountersAdminAccessDoesNotHideOrdinaryAllocationOfSameDevice(t *testing.T) {
+	admin := res("admin", "vf-0")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(pf0(vf("vf-0")),
+		claim("gpu-operator", "exporter", nil, admin),
+		claim("default", "workload", nil, res("r", "vf-0"))))
+	if got := counterVals(t, r, "vf-slots"); got["used"] != "1" {
+		t.Errorf("counter = %v, admin allocation suppressed ordinary usage", got)
+	}
+}
+
+func TestCountersMixedAdminAndOrdinaryResultsInOneClaim(t *testing.T) {
+	admin := res("admin", "vf-0")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(pf0(vf("vf-0"), vf("vf-1")),
+		claim("ns", "mixed", nil, admin, res("ordinary", "vf-1"))))
+	if got := counterVals(t, r, "vf-slots"); got["used"] != "1" {
+		t.Errorf("counter = %v, want only ordinary result counted", got)
+	}
+	for key, want := range map[string]string{
+		"allocatedBy": "[ns/mixed]", "capacityUsedBy": "[ns/mixed]", "adminAccessBy": "[ns/mixed]",
+	} {
+		if got := fmt.Sprint(r.Details[key]); got != want {
+			t.Errorf("%s = %s, want %s", key, got, want)
+		}
+	}
+}
+
+func TestCountersMissingAdminAccessDeviceStillFails(t *testing.T) {
+	admin := res("admin", "vf-missing")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(pf0(vf("vf-0")), claim("gpu-operator", "exporter", nil, admin)))
+	wantStatus(t, r, model.StatusFail, "vf-missing")
+}
+
+func TestCountersFalseAdminAccessStillConsumesCapacity(t *testing.T) {
+	ordinary := res("r", "vf-0")
+	ordinary.AdminAccess = ptr.To(false)
+	r := counters(t, snapOf(pf0(vf("vf-0")), claim("ns", "c", nil, ordinary)))
+	if got := counterVals(t, r, "vf-slots"); got["used"] != "1" {
+		t.Errorf("counter = %v, false AdminAccess was not counted", got)
+	}
+}
+
 func TestCountersExactlyFullPassesOvercommitFails(t *testing.T) {
 	full := snapOf(pf0(vf("vf-0"), vf("vf-1")), claim("ns", "c", nil, res("r", "vf-0"), res("r", "vf-1")))
 	r := counters(t, full)
@@ -188,6 +272,17 @@ func TestCountersStaleGenerationAllocationWarns(t *testing.T) {
 	if counterVals(t, r, "vf-slots")["used"] != "0" {
 		t.Errorf("stale device must not be counted: %+v", r)
 	}
+}
+
+func TestCountersStaleAdminAccessAllocationStillWarns(t *testing.T) {
+	sl := []resourcev1.ResourceSlice{
+		counterSlice("c1", "p", 1, 2, cset("pf-0", map[string]string{"vf-slots": "2"})), slice("d1", "p", 1, 2, vf("vf-old")),
+		counterSlice("c2", "p", 2, 2, cset("pf-0", map[string]string{"vf-slots": "2"})), slice("d2", "p", 2, 2, vf("vf-new")),
+	}
+	admin := res("admin", "vf-old")
+	admin.AdminAccess = ptr.To(true)
+	r := counters(t, snapOf(sl, claim("gpu-operator", "exporter", nil, admin)))
+	wantStatus(t, r, model.StatusWarn, "stale generation")
 }
 
 func TestCountersUsesNewestCompleteGenerationAcrossSlices(t *testing.T) {

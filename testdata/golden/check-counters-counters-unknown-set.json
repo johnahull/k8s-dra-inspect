@@ -8,7 +8,9 @@
       "status": "pass",
       "subject": "gpu.example.com/node-a.example.com/pf-0",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [],
+        "capacityUsedBy": [],
         "counterSet": "pf-0",
         "counters": {
           "vf-slots": {
@@ -27,7 +29,11 @@
       "status": "fail",
       "subject": "gpu.example.com/node-a.example.com/pf-9",
       "details": {
+        "adminAccessBy": [],
         "allocatedBy": [
+          "demo/vfs"
+        ],
+        "capacityUsedBy": [
           "demo/vfs"
         ],
         "counterSet": "pf-9",
