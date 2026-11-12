@@ -32,8 +32,8 @@ job:
   strict: false
   ttlSecondsAfterFinished: 3600
   activeDeadlineSeconds: 300
-  # Used as both runAsUser and runAsGroup; the image is built for 65532.
-  runAsUser: 65532
+  # Optional fixed UID/GID. Leave unset so OpenShift can assign the project UID.
+  runAsUser: null
   resources:
     requests:
       cpu: 50m

@@ -115,7 +115,10 @@
           "minimum": 1
         },
         "runAsUser": {
-          "type": "integer",
+          "type": [
+            "integer",
+            "null"
+          ],
           "minimum": 1000,
           "maximum": 65535
         },
