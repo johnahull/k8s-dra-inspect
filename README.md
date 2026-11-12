@@ -192,7 +192,7 @@ by a test.
 ## Install
 
 Release binaries need no local Go toolchain; building from source needs
-Go >= 1.26.10 (older toolchains auto-download it unless `GOTOOLCHAIN=local`).
+Go >= 1.26.11 (older toolchains auto-download it unless `GOTOOLCHAIN=local`).
 
 Once a release is published (publishing is a manual maintainer step for now),
 download the archive for your platform from the GitHub releases page, verify it
@@ -308,7 +308,7 @@ permitted; slices, DeviceClasses, and nodes will then be reported unavailable.
 
 Requirements:
 
-- Go 1.26.10 or newer
+- Go 1.26.11 or newer
 
 Run the checks with:
 

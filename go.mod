@@ -1,6 +1,6 @@
 module github.com/johnahull/k8s-dra-inspect
 
-go 1.26.10
+go 1.26.11
 
 require (
 	github.com/mattn/go-runewidth v0.0.24
