@@ -1,0 +1,21 @@
+name: Update Krew plugin
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  update:
+    if: ${{ !github.event.release.prerelease }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: rajatjindal/krew-release-bot@a7e82ae57ca41a16fca2691ef00e8a8d35bc77d4 # v0.0.50
+        with:
+          krew_template_file: deploy/krew/dra.template.yaml
+          krew_plugin_release_tag: ${{ github.event.release.tag_name }}

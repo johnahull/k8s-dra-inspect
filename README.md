@@ -310,13 +310,12 @@ Requirements:
 
 - Go 1.26.11 or newer
 
-After publishing a release, update [`deploy/krew/dra.yaml`](deploy/krew/dra.yaml):
-set its version and four archive URLs to the new release, and copy the SHA-256
-values from the published `checksums.txt`. Test the manifest with
-`kubectl krew install --manifest=deploy/krew/dra.yaml` in an isolated Krew root,
-then submit the same manifest as an update to `plugins/dra.yaml` in
-[krew-index](https://github.com/kubernetes-sigs/krew-index). Krew users receive
-the new version only after that index update merges.
+Publishing a GitHub release triggers the Krew update workflow. It renders
+[`deploy/krew/dra.template.yaml`](deploy/krew/dra.template.yaml) using the
+published archives and opens an update PR in
+[krew-index](https://github.com/kubernetes-sigs/krew-index). The first Krew
+submission must be accepted before automatic updates can run. Krew users
+receive a new version after its index update merges.
 
 Run the checks with:
 
