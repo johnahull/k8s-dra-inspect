@@ -310,6 +310,14 @@ Requirements:
 
 - Go 1.26.11 or newer
 
+After publishing a release, update [`deploy/krew/dra.yaml`](deploy/krew/dra.yaml):
+set its version and four archive URLs to the new release, and copy the SHA-256
+values from the published `checksums.txt`. Test the manifest with
+`kubectl krew install --manifest=deploy/krew/dra.yaml` in an isolated Krew root,
+then submit the same manifest as an update to `plugins/dra.yaml` in
+[krew-index](https://github.com/kubernetes-sigs/krew-index). Krew users receive
+the new version only after that index update merges.
+
 Run the checks with:
 
 ```bash
