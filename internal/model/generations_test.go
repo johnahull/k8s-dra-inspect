@@ -46,3 +46,12 @@ func TestSelectedGenerationInvalidWhenCountsDisagree(t *testing.T) {
 		t.Fatalf("selection = %+v, want invalid and incomplete", got)
 	}
 }
+
+func TestSelectedGenerationInvalidWhenTooManySlicesObserved(t *testing.T) {
+	snap := Snapshot{ResourceSlices: []resourcev1.ResourceSlice{
+		gslice("a", "p", 1, 2, "a"), gslice("b", "p", 1, 2, "b"), gslice("c", "p", 1, 2, "c"),
+	}}
+	if got := SelectGenerations(snap)[PoolKey{"d.example.com", "p"}]; !got.Invalid || !got.Incomplete {
+		t.Fatalf("selection = %+v, want invalid and incomplete", got)
+	}
+}

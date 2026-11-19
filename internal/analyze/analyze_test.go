@@ -47,6 +47,23 @@ func TestExplainPendingClaimNamesMissingDeviceClass(t *testing.T) {
 	}
 }
 
+func TestExplainReportsInvalidDeviceNodeSelector(t *testing.T) {
+	claim := &resourceapi.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "claim"}, Spec: resourceapi.ResourceClaimSpec{
+		Devices: resourceapi.DeviceClaim{Requests: []resourceapi.DeviceRequest{{Name: "gpu", Exactly: &resourceapi.ExactDeviceRequest{DeviceClassName: "gpu"}}}},
+	}}
+	class := resourceapi.DeviceClass{ObjectMeta: metav1.ObjectMeta{Name: "gpu"}}
+	slice := resourceapi.ResourceSlice{ObjectMeta: metav1.ObjectMeta{Name: "slice"}, Spec: resourceapi.ResourceSliceSpec{
+		Driver: "gpu.example.com", NodeSelector: &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "zone", Operator: corev1.NodeSelectorOperator("invalid")}}}}},
+		Pool: resourceapi.ResourcePool{Name: "pool", Generation: 1, ResourceSliceCount: 1}, Devices: []resourceapi.Device{{Name: "gpu-0"}},
+	}}
+	s := &Snapshot{DeviceClasses: []*resourceapi.DeviceClass{&class}, ResourceSlices: []*resourceapi.ResourceSlice{&slice}, Nodes: []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "node"}}}}
+
+	e := Explain(context.Background(), s, claim, nil)
+	if e.Verdict != VerdictError || e.Requests[0].Alternatives[0].Error == "" {
+		t.Fatalf("explanation = %+v, want node-selector evaluation error", e)
+	}
+}
+
 func TestExplainHintsUseDraInspectCommands(t *testing.T) {
 	s := load(t, "why.yaml")
 	var claim *resourceapi.ResourceClaim
@@ -115,6 +132,19 @@ func TestPodWarningsDoesNotMatchReusedNameWithDifferentUID(t *testing.T) {
 	}
 	if got := podWarnings([]*corev1.Event{event}, pod); len(got) != 0 {
 		t.Fatalf("warnings for a reused pod name = %q, want no warnings from the old pod", got)
+	}
+}
+
+func TestPodWarningsDoesNotCrossEventNamespace(t *testing.T) {
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "pending-pod", Namespace: "team-a", UID: "pod-uid"}}
+	event := &corev1.Event{
+		ObjectMeta:     metav1.ObjectMeta{Namespace: "other"},
+		InvolvedObject: corev1.ObjectReference{Kind: "Pod", Namespace: "team-a", Name: "pending-pod", UID: "pod-uid"},
+		Type:           corev1.EventTypeWarning,
+		Reason:         "FailedScheduling",
+	}
+	if got := podWarnings([]*corev1.Event{event}, pod); len(got) != 0 {
+		t.Fatalf("warnings from another Event namespace = %q, want none", got)
 	}
 }
 

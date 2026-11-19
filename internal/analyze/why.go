@@ -255,9 +255,13 @@ func (env *whyEnv) funnel(name, className string, selectors []resourceapi.Device
 	// selection it understands. Remember unusable pools the class would
 	// select from, for the pool warnings.
 	unusable := map[string]bool{}
-	_ = filter(StageUsable, func(d *DeviceInfo) (string, string, error) {
+	if err := filter(StageUsable, func(d *DeviceInfo) (string, string, error) {
 		if !d.Pool.Usable() && !unusable[d.Pool.ID.String()] {
-			if m, err := env.cel.Match(env.ctx, d.Slice.Spec.Driver, d.Device, class.Spec.Selectors); err == nil && m == nil {
+			m, err := env.cel.Match(env.ctx, d.Slice.Spec.Driver, d.Device, class.Spec.Selectors)
+			if err != nil {
+				return "", "", err
+			}
+			if m == nil {
 				unusable[d.Pool.ID.String()] = true
 				f.unusablePools = append(f.unusablePools, d.Pool.ID.String())
 			}
@@ -271,7 +275,10 @@ func (env *whyEnv) funnel(name, className string, selectors []resourceapi.Device
 			return "no node selection that this version understands", "", nil
 		}
 		return "", "", nil
-	})
+	}); err != nil {
+		f.Error = err.Error()
+		return f
+	}
 
 	selectorStage := func(stage, label string, sels []resourceapi.DeviceSelector, owner string) error {
 		return filter(stage, func(d *DeviceInfo) (string, string, error) {
@@ -349,7 +356,12 @@ func (env *whyEnv) funnel(name, className string, selectors []resourceapi.Device
 	reachable := map[*DeviceInfo]bool{}
 	for _, d := range survivors {
 		for _, n := range env.candidates {
-			if ok, _ := d.Scope.Matches(n); ok {
+			ok, err := d.Scope.Matches(n)
+			if err != nil {
+				f.Error = err.Error()
+				return f
+			}
+			if ok {
 				reachable[d] = true
 				break
 			}
@@ -593,9 +605,16 @@ func explainAllocated(e *Explanation, s *Snapshot, claim *resourceapi.ResourceCl
 func podWarnings(events []*corev1.Event, pod *corev1.Pod) []string {
 	var matched []*corev1.Event
 	for _, ev := range events {
+		eventNamespace := ev.Namespace
+		if eventNamespace == "" {
+			eventNamespace = ev.InvolvedObject.Namespace
+		}
+		if eventNamespace != pod.Namespace {
+			continue
+		}
 		samePod := false
 		if ev.InvolvedObject.UID != "" && pod.UID != "" {
-			samePod = ev.InvolvedObject.UID == pod.UID && ev.Namespace == pod.Namespace
+			samePod = ev.InvolvedObject.UID == pod.UID
 		} else {
 			samePod = ev.InvolvedObject.Kind == "Pod" && ev.InvolvedObject.Namespace == pod.Namespace && ev.InvolvedObject.Name == pod.Name
 		}

@@ -261,13 +261,18 @@ func TestRedactDropsPluginOnlyFieldsFromOrdinaryPods(t *testing.T) {
 		}}, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "ReplicaSet", Name: "SECRET-CONTROLLER", Controller: ptr.To(true)}}}},
 		NodePluginPods: []model.PodRef{{Name: "plugin", Namespace: "system", Volumes: []corev1.Volume{{
 			Name: "plugin-dir", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins_registry"}},
+		}, {
+			Name: "driver-dir", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins/dra.example"}},
+		}, {
+			Name: "unrelated", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/etc/shadow"}},
 		}}, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "DaemonSet", Name: "dra-plugin", Controller: ptr.To(true)}}}},
 	}
 	out := model.Redact(in)
 	if len(out.Pods[0].Volumes) != 0 || len(out.Pods[0].OwnerReferences) != 0 {
 		t.Fatalf("ordinary pod retained plugin-only fields: %+v", out.Pods[0])
 	}
-	if len(out.NodePluginPods[0].Volumes) != 1 || out.NodePluginPods[0].Volumes[0].HostPath.Path != "/var/lib/kubelet/plugins_registry" ||
+	if len(out.NodePluginPods[0].Volumes) != 2 || out.NodePluginPods[0].Volumes[0].HostPath.Path != "/var/lib/kubelet/plugins_registry" ||
+		out.NodePluginPods[0].Volumes[1].HostPath.Path != "/var/lib/kubelet/plugins/dra.example" ||
 		len(out.NodePluginPods[0].OwnerReferences) != 1 {
 		t.Fatalf("node plugin projection lost analysis inputs: %+v", out.NodePluginPods[0])
 	}

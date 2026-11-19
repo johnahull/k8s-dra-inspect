@@ -9,13 +9,14 @@ type PoolKey [2]string
 type PoolSel struct {
 	Gen        int64
 	Incomplete bool // no generation has all of its slices observed
-	Invalid    bool // slices in the selected generation disagree on resourceSliceCount
+	Invalid    bool // slices disagree with each other or the observed count is overfull
 }
 
 // SelectGenerations picks the newest generation for every pool. Older
 // generations are never used to fill holes in the newest one: the scheduler
-// ignores them. A selected generation is incomplete when fewer slices than
-// declared were observed, and invalid when its slices disagree on the count.
+// ignores them. A selected generation is incomplete when its observed count
+// differs from the declaration, and invalid when slices disagree on the count
+// or too many are observed.
 func SelectGenerations(snap Snapshot) map[PoolKey]PoolSel {
 	type gk struct {
 		pool PoolKey
@@ -34,10 +35,10 @@ func SelectGenerations(snap Snapshot) map[PoolKey]PoolSel {
 	}
 	sel := map[PoolKey]PoolSel{}
 	for k := range seen {
-		complete := seen[k] >= want[k]
+		complete := seen[k] == want[k]
 		cur, have := sel[k.pool]
 		if !have || k.gen > cur.Gen {
-			sel[k.pool] = PoolSel{Gen: k.gen, Incomplete: !complete, Invalid: len(counts[k]) > 1}
+			sel[k.pool] = PoolSel{Gen: k.gen, Incomplete: !complete, Invalid: len(counts[k]) > 1 || seen[k] > want[k]}
 		}
 	}
 	return sel

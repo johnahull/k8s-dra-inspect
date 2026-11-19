@@ -10,6 +10,8 @@ import (
 	"os"
 	"slices"
 
+	corev1 "k8s.io/api/core/v1"
+
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
@@ -80,7 +82,7 @@ func (p fileSource) Snapshot(context.Context) (model.Snapshot, error) { return L
 // touches the network.
 func NewFileSource(path string) model.Source { return fileSource(path) }
 
-// Scope narrows s to namespace ns: claims, pods and VMIs outside it are
+// Scope narrows s to namespace ns: claims, pods, Events and VMIs outside it are
 // dropped. It never widens: a snapshot captured for another namespace is an
 // error. An empty ns returns s unchanged.
 func Scope(s model.Snapshot, ns string) (model.Snapshot, error) {
@@ -110,8 +112,21 @@ func Scope(s model.Snapshot, ns string) (model.Snapshot, error) {
 		}
 	}
 	s.Pods = pods
+	if s.Collection["events"].State == model.StateOK {
+		events := make([]corev1.Event, 0, len(s.Events))
+		for _, event := range s.Events {
+			eventNamespace := event.Namespace
+			if eventNamespace == "" {
+				eventNamespace = event.InvolvedObject.Namespace
+			}
+			if eventNamespace == ns {
+				events = append(events, event)
+			}
+		}
+		s.Events = events
+	}
 	s.Collection = maps.Clone(s.Collection)
-	for _, k := range []string{"resourceclaims", "pods", "virtualmachineinstances"} {
+	for _, k := range []string{"resourceclaims", "pods", "events", "virtualmachineinstances"} {
 		if st, ok := s.Collection[k]; ok && st.State == model.StateOK {
 			s.Collection[k] = model.CollectionStatus{State: model.StateOK, Reason: "namespace " + ns + " only"}
 		}

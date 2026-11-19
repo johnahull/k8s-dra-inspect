@@ -206,6 +206,30 @@ func TestScopeKeepsMaskedForeignAllocationSummary(t *testing.T) {
 	}
 }
 
+func TestScopeFiltersEventsToNamespace(t *testing.T) {
+	s := fixture(t)
+	s.Collection["resourceclaims"] = model.CollectionStatus{State: model.StateOK}
+	s.Collection["events"] = model.CollectionStatus{State: model.StateOK}
+	s.Events = []corev1.Event{
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "a"}},
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "other", Name: "b"}},
+		{ObjectMeta: metav1.ObjectMeta{Name: "c"}, InvolvedObject: corev1.ObjectReference{Namespace: "team-a"}},
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "other", Name: "d"}, InvolvedObject: corev1.ObjectReference{Namespace: "team-a"}},
+	}
+	got, err := snapshot.Scope(s, "team-a")
+	if err != nil || len(got.Events) != 2 {
+		t.Fatalf("scoped events = %d, err=%v", len(got.Events), err)
+	}
+	for _, event := range got.Events {
+		if event.Namespace != "team-a" && event.InvolvedObject.Namespace != "team-a" {
+			t.Errorf("event leaked: %+v", event)
+		}
+	}
+	if reason := got.Collection["events"].Reason; reason != "namespace team-a only" {
+		t.Fatalf("events collection reason = %q", reason)
+	}
+}
+
 // The golden file doubles as a sample snapshot and proves old files stay loadable.
 func TestGoldenSnapshot(t *testing.T) {
 	s := model.Redact(testutil.LoadFixture(t, "testdata/fixtures/xe9785l"))

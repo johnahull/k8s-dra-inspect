@@ -62,6 +62,9 @@ func Why(p *render.Printer, _ model.Snapshot, results []model.Result) {
 			for _, alt := range req.Alternatives {
 				detail := alt.Problem
 				if detail == "" {
+					detail = alt.Error
+				}
+				if detail == "" {
 					detail = fmt.Sprintf("%d of %d needed; best node %s", alt.BestCount, alt.Need, alt.BestNode)
 				}
 				p.Line(4, "%s: %s", alt.Request, detail)

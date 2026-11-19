@@ -145,11 +145,11 @@ func Pools() Inspector {
 	return Inspector{Spec: Spec{
 		Columns: []render.Column{{Header: "DRIVER", Min: 12}, {Header: "POOL", Min: 12}, {Header: "NODES", Min: 10}, {Header: "GEN", Min: 4}, {Header: "SLICES", Min: 7}, {Header: "DEVICES", Min: 7}, {Header: "ALLOCATED", Min: 9}, {Header: "STATE", Min: 10}, {Header: "DETAIL", Min: 12, Truncate: render.TruncateTail}},
 		Row: func(r model.Result) []string {
-			return []string{r.Subject, str(r, "pool"), dash(str(r, "nodeScope")), str(r, "generation"), str(r, "slices"), str(r, "devices"), str(r, "allocated"), str(r, "state"), str(r, "detail")}
+			return []string{str(r, "driver"), str(r, "pool"), dash(str(r, "nodeScope")), str(r, "generation"), str(r, "slices"), str(r, "devices"), str(r, "allocated"), str(r, "state"), str(r, "detail")}
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
 		const check = "inspect.pools"
-		if r, ok := needAnalysis(s, check, "resourceslices"); ok {
+		if r, ok := needAnalysis(s, check, append([]string{"resourceslices"}, allocationKeys(s)...)...); ok {
 			return r
 		}
 		data := analysisData(s)
@@ -179,8 +179,8 @@ func Pools() Inspector {
 			if p.ResourceSliceCount <= 0 {
 				expected = "?"
 			}
-			out = append(out, model.Result{Check: check, Status: status, Subject: p.ID.Driver, Details: map[string]any{
-				"pool": p.ID.Pool, "nodeScope": p.ScopeSummary(), "generation": p.Generation, "slices": fmt.Sprintf("%d/%s", len(p.Slices), expected),
+			out = append(out, model.Result{Check: check, Status: status, Subject: p.ID.String(), Details: map[string]any{
+				"driver": p.ID.Driver, "pool": p.ID.Pool, "nodeScope": p.ScopeSummary(), "generation": p.Generation, "slices": fmt.Sprintf("%d/%s", len(p.Slices), expected),
 				"slicesSeen": len(p.Slices), "resourceSliceCount": p.ResourceSliceCount, "outdatedSlices": p.OutdatedSlices,
 				"devices": len(p.Devices()), "allocated": allocated, "state": state, "problems": problems, "detail": strings.Join(problems, "; "),
 			}})

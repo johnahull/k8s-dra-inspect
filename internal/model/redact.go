@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"maps"
+	"path"
 	"slices"
 
 	corev1 "k8s.io/api/core/v1"
@@ -153,11 +154,16 @@ func redactPodRef(p PodRef, nodePlugin bool) PodRef {
 func hostPathVolumes(in []corev1.Volume) []corev1.Volume {
 	var out []corev1.Volume
 	for _, v := range in {
-		if v.HostPath != nil {
+		if v.HostPath != nil && isPluginHostPath(v.HostPath.Path) {
 			out = append(out, corev1.Volume{Name: v.Name, VolumeSource: corev1.VolumeSource{HostPath: v.HostPath.DeepCopy()}})
 		}
 	}
 	return out
+}
+
+func isPluginHostPath(hostPath string) bool {
+	hostPath = path.Clean(hostPath)
+	return path.Base(hostPath) == "plugins_registry" || path.Base(path.Dir(hostPath)) == "plugins"
 }
 
 func controllerRefs(in []metav1.OwnerReference) []metav1.OwnerReference {

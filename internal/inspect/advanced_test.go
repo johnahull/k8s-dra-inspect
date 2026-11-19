@@ -64,10 +64,31 @@ func TestPoolsUsesNewestGenerationEvenWhenIncomplete(t *testing.T) {
 	newest.Spec.Pool.Generation, newest.Spec.Pool.ResourceSliceCount = 2, 2
 	newest.Spec.Devices[0].Name = "new-device"
 	results := inspect.Pools().Run(model.Snapshot{Collection: map[string]model.CollectionStatus{
-		"resourceslices": {State: model.StateOK},
+		"resourceslices": {State: model.StateOK}, "resourceclaims": {State: model.StateOK},
 	}, ResourceSlices: []resourcev1.ResourceSlice{old, *newest}})
 	if len(results) != 1 || results[0].Details["generation"] != int64(2) || results[0].Details["state"] != "Incomplete" || results[0].Details["outdatedSlices"] != 1 {
 		t.Fatalf("pool results = %+v", results)
+	}
+}
+
+func TestPoolsRequiresAllocationEvidence(t *testing.T) {
+	results := inspect.Pools().Run(model.Snapshot{Collection: map[string]model.CollectionStatus{
+		"resourceslices": {State: model.StateOK},
+	}})
+	if len(results) != 1 || results[0].Status != model.StatusUnavailable || !strings.Contains(results[0].Details["reason"].(string), "resourceclaims") {
+		t.Fatalf("pools without allocation evidence = %+v", results)
+	}
+}
+
+func TestPoolsUseUniqueDriverPoolSubjects(t *testing.T) {
+	ok := model.CollectionStatus{State: model.StateOK}
+	slices := []resourcev1.ResourceSlice{
+		{ObjectMeta: metav1.ObjectMeta{Name: "a"}, Spec: resourcev1.ResourceSliceSpec{Driver: "gpu.example.com", Pool: resourcev1.ResourcePool{Name: "pool-a", Generation: 1, ResourceSliceCount: 1}}},
+		{ObjectMeta: metav1.ObjectMeta{Name: "b"}, Spec: resourcev1.ResourceSliceSpec{Driver: "gpu.example.com", Pool: resourcev1.ResourcePool{Name: "pool-b", Generation: 1, ResourceSliceCount: 1}}},
+	}
+	results := inspect.Pools().Run(model.Snapshot{Collection: map[string]model.CollectionStatus{"resourceslices": ok, "resourceclaims": ok}, ResourceSlices: slices})
+	if len(results) != 2 || results[0].Subject == results[1].Subject || results[0].Subject != "gpu.example.com/pool-a" || results[1].Subject != "gpu.example.com/pool-b" {
+		t.Fatalf("pool subjects = %+v", results)
 	}
 }
 

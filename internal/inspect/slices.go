@@ -52,15 +52,17 @@ func Slices() Inspector {
 					"deviceCount":       len(s.Spec.Devices),
 					"sharedCounterSets": len(s.Spec.SharedCounters),
 				}
-				if state == "incomplete" {
+				switch state {
+				case "incomplete":
 					det["reason"] = incompleteReason(s.Spec.Pool.Name)
-				} else if state == "invalid" {
+				case "invalid":
 					det["reason"] = invalidGenerationReason(s.Spec.Pool.Name)
 				}
 				res := model.Result{Check: check, Status: status, Subject: s.Name, Details: det}
-				if state == "incomplete" {
+				switch state {
+				case "incomplete":
 					res.Findings = incompleteFinding(s.Spec.Pool.Name)
-				} else if state == "invalid" {
+				case "invalid":
 					res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidGenerationReason(s.Spec.Pool.Name), Items: []string{s.Spec.Pool.Name}}}
 				}
 				out = append(out, res)
