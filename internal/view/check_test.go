@@ -1,6 +1,7 @@
 package view_test
 
 import (
+	"context"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -33,6 +34,22 @@ func TestAlignmentSplitNamesTheDevicesAndNUMASets(t *testing.T) {
 	)
 	if got != want {
 		t.Errorf("got:\n%s\nwant:\n%s", got, want)
+	}
+}
+
+func TestWhyTextShowsPodSchedulingMessageAndEvents(t *testing.T) {
+	snap := fx(t, "analyze/why")
+	snap.Collection["devicetaintrules"] = model.CollectionStatus{State: model.StateOK}
+	results := check.Why(context.Background(), snap, "bound")
+	got := showResults(t, snap, results, view.Why)
+	for _, want := range []string{
+		"Pod scheduling: 0/3 nodes are available:",
+		"Warning event: FailedScheduling: 0/3 nodes are available:",
+		"does not match the pod's nodeSelector or node affinity",
+	} {
+		if !strings.Contains(got, want) {
+			t.Errorf("why output missing %q:\n%s", want, got)
+		}
 	}
 }
 

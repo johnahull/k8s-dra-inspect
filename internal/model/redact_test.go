@@ -176,14 +176,14 @@ func identNode() corev1.Node {
 	}
 }
 
-func TestRedactNodeKeepsOnlyNameLabelsAllocatable(t *testing.T) {
+func TestRedactNodeKeepsSchedulerInputs(t *testing.T) {
 	in := model.Snapshot{Nodes: []corev1.Node{identNode()}}
 	before, _ := json.Marshal(in)
 	out := model.Redact(in)
 	b, _ := json.Marshal(out)
 	for _, leak := range []string{"10." + "1.2.3", "host.example.com", "MACHINEID-LEAK", "SYSUUID-LEAK", "BOOTID-LEAK", "IMAGE-LEAK",
 		"VOLINUSE-LEAK", "VOLATTACHED-LEAK", "10250", "ANNOT-LEAK", "SECRET-APPLIED", "SECRET-MANAGER", "PROVIDER-LEAK",
-		"192.0.2.0", "uid-LEAK", "rv-LEAK", "TAINT-LEAK", "COND-LEAK"} {
+		"192.0.2.0", "uid-LEAK", "rv-LEAK", "COND-LEAK"} {
 		if strings.Contains(string(b), leak) {
 			t.Errorf("redacted bytes contain %q", leak)
 		}
@@ -195,7 +195,8 @@ func TestRedactNodeKeepsOnlyNameLabelsAllocatable(t *testing.T) {
 	if cpu := n.Status.Allocatable["cpu"]; cpu.String() != "8" || len(n.Status.Allocatable) != 1 {
 		t.Errorf("allocatable lost: %v", n.Status.Allocatable)
 	}
-	if n.Status.Capacity != nil || n.Spec.Unschedulable {
+	if n.Status.Capacity != nil || !n.Spec.Unschedulable || len(n.Spec.Taints) != 1 || len(n.Status.Conditions) != 1 ||
+		n.Status.Conditions[0].Type != corev1.NodeReady || n.Status.Conditions[0].Message != "" {
 		t.Errorf("unexpected kept fields: %+v", n.Status.Capacity)
 	}
 	if after, _ := json.Marshal(in); string(before) != string(after) {
@@ -203,6 +204,72 @@ func TestRedactNodeKeepsOnlyNameLabelsAllocatable(t *testing.T) {
 	}
 	if twice, _ := json.Marshal(model.Redact(out)); string(twice) != string(b) {
 		t.Fatalf("not idempotent:\n%s\n%s", b, twice)
+	}
+}
+
+func TestRedactMasksForeignAllocationMetadata(t *testing.T) {
+	s := model.Snapshot{GlobalAllocations: []resourcev1.AllocationResult{{
+		NodeSelector: &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{MatchFields: []corev1.NodeSelectorRequirement{{
+			Key: "metadata.name", Operator: corev1.NodeSelectorOpIn, Values: []string{"SECRET-NODE"},
+		}}}}},
+		Devices: resourcev1.DeviceAllocationResult{
+			Results: []resourcev1.DeviceRequestAllocationResult{{Driver: "d", Pool: "p", Device: "gpu"}},
+			Config: []resourcev1.DeviceAllocationConfiguration{{Source: resourcev1.AllocationConfigSourceClaim, DeviceConfiguration: resourcev1.DeviceConfiguration{
+				Opaque: &resourcev1.OpaqueDeviceConfiguration{Driver: "d", Parameters: runtime.RawExtension{Raw: []byte(`{"token":"SECRET-PARAM"}`)}},
+			}}},
+		},
+	}}}
+	out := model.Redact(s)
+	encoded, _ := json.Marshal(out.GlobalAllocations)
+	if out.GlobalAllocations[0].NodeSelector != nil || len(out.GlobalAllocations[0].Devices.Config) != 0 ||
+		len(out.GlobalAllocations[0].Devices.Results) != 1 || strings.Contains(string(encoded), "SECRET-") {
+		t.Fatalf("foreign allocation summary retained sensitive data: %s", encoded)
+	}
+}
+
+func TestRedactEventsKeepsUIDForOfflineMatching(t *testing.T) {
+	in := model.Snapshot{Events: []corev1.Event{{
+		ObjectMeta:     metav1.ObjectMeta{Name: "pending-pod.1", Namespace: "team-a"},
+		InvolvedObject: corev1.ObjectReference{Kind: "Pod", Namespace: "team-a", Name: "pending-pod", UID: "pod-uid"},
+		Type:           corev1.EventTypeWarning, Reason: "FailedScheduling", Message: "SECRET-EVENT-MESSAGE",
+	}}}
+	out := model.Redact(in)
+	event := out.Events[0]
+	if event.Namespace != "team-a" || event.InvolvedObject.UID != "pod-uid" || event.Reason != "FailedScheduling" ||
+		event.Message != "" || event.Name != "" || event.InvolvedObject.Name != "pending-pod" || event.InvolvedObject.Kind != "Pod" {
+		t.Fatalf("redacted Event = %+v", event)
+	}
+}
+
+func TestRedactScrubsDeviceTaintRuleMetadata(t *testing.T) {
+	in := model.Snapshot{DeviceTaintRules: []resourcev1.DeviceTaintRule{{
+		ObjectMeta: secretMeta("maintenance"),
+		Spec:       resourcev1.DeviceTaintRuleSpec{Taint: resourcev1.DeviceTaint{Key: "maintenance", Effect: resourcev1.DeviceTaintEffectNoSchedule}},
+	}}}
+	out := model.Redact(in)
+	encoded, _ := json.Marshal(out.DeviceTaintRules)
+	if strings.Contains(string(encoded), "SECRET-") || len(out.DeviceTaintRules[0].ManagedFields) != 0 ||
+		out.DeviceTaintRules[0].Annotations["keep"] != "yes" {
+		t.Fatalf("redacted DeviceTaintRule metadata = %s", encoded)
+	}
+}
+
+func TestRedactDropsPluginOnlyFieldsFromOrdinaryPods(t *testing.T) {
+	in := model.Snapshot{
+		Pods: []model.PodRef{{Name: "workload", Namespace: "team-a", Volumes: []corev1.Volume{{
+			Name: "host", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/SECRET-PATH"}},
+		}}, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "ReplicaSet", Name: "SECRET-CONTROLLER", Controller: ptr.To(true)}}}},
+		NodePluginPods: []model.PodRef{{Name: "plugin", Namespace: "system", Volumes: []corev1.Volume{{
+			Name: "plugin-dir", VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins_registry"}},
+		}}, OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "DaemonSet", Name: "dra-plugin", Controller: ptr.To(true)}}}},
+	}
+	out := model.Redact(in)
+	if len(out.Pods[0].Volumes) != 0 || len(out.Pods[0].OwnerReferences) != 0 {
+		t.Fatalf("ordinary pod retained plugin-only fields: %+v", out.Pods[0])
+	}
+	if len(out.NodePluginPods[0].Volumes) != 1 || out.NodePluginPods[0].Volumes[0].HostPath.Path != "/var/lib/kubelet/plugins_registry" ||
+		len(out.NodePluginPods[0].OwnerReferences) != 1 {
+		t.Fatalf("node plugin projection lost analysis inputs: %+v", out.NodePluginPods[0])
 	}
 }
 

@@ -8,14 +8,16 @@ import (
 
 // Options holds the global flags shared by every command.
 type Options struct {
-	Kubeconfig string
-	Context    string
-	Namespace  string
-	Output     string
-	NoColor    bool
-	Timeout    time.Duration
-	From       string // snapshot path; empty means live cluster
-	Strict     bool
+	Kubeconfig         string
+	Context            string
+	Namespace          string
+	Output             string
+	NoColor            bool
+	Timeout            time.Duration
+	From               string // snapshot path; empty means live cluster
+	Strict             bool
+	CollectEvents      bool
+	CollectNodePlugins bool
 }
 
 // Validate rejects unsupported flag values.

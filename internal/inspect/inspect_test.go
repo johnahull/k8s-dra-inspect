@@ -101,12 +101,12 @@ func TestStaleOlderGeneration(t *testing.T) {
 	}
 }
 
-func TestIncompleteNewestKeepsOlderComplete(t *testing.T) {
+func TestIncompleteNewestDoesNotUseOlderComplete(t *testing.T) {
 	snap := snapOf(mkSlice("old", "p", 1, 1, dev("a")), mkSlice("new", "p", 2, 2, dev("b")))
-	if got := stateOf(snap); got["old"] != "current" || got["new"] != "stale" {
+	if got := stateOf(snap); got["old"] != "stale" || got["new"] != "incomplete" {
 		t.Errorf("states = %v", got)
 	}
-	if r := Drivers(false).Run(snap)[0]; r.Details["devices"] != 1 || r.Status != model.StatusPass {
+	if r := Drivers(false).Run(snap)[0]; r.Details["devices"] != 1 || r.Status != model.StatusWarn {
 		t.Errorf("drivers = %+v", r)
 	}
 }

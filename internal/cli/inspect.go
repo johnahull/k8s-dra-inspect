@@ -80,7 +80,7 @@ func liveSource(o *Options) (model.Source, error) {
 	if err != nil {
 		return nil, err
 	}
-	live.Scope = collect.Scope{Namespace: o.Namespace}
+	live.Scope = collect.Scope{Namespace: o.Namespace, Events: o.CollectEvents, NodePlugins: o.CollectNodePlugins}
 	return live, nil
 }
 
@@ -111,6 +111,13 @@ func addInspectCommands(parent *cobra.Command, opts *Options, d Deps) {
 	t := add("topology", "Group devices by node, NUMA node and PCIe root", view.Topology, plain(func() inspect.Inspector { return inspect.Topology(compact) }))
 	t.Flags().BoolVarP(&compact, "compact", "t", false, "counts only, no device names")
 	add("claims", "List ResourceClaims with allocation, node and consumers", view.Claims, plain(inspect.Claims))
+	add("map", "Map pods to the ResourceClaims they use", nil, plain(inspect.Map))
+	add("devices", "Show allocation and taint status for each device", nil, plain(inspect.Devices))
+	add("pools", "Summarize current ResourceSlice pools", nil, plain(inspect.Pools))
+	add("nodes", "Compare node plugins with published DRA devices", nil, func() (inspect.Inspector, error) {
+		opts.CollectNodePlugins = true
+		return inspect.Nodes(), nil
+	})
 	dc := add("deviceclasses", "List DeviceClasses with selectors and safe config drivers", view.DeviceClasses, func() (inspect.Inspector, error) {
 		sel, err := labels.Parse(selector)
 		if err != nil {

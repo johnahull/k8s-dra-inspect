@@ -127,7 +127,8 @@ func TestTextColourOnlyOnATerminal(t *testing.T) {
 func TestTextUsageScopeFromTheCLI(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/classes-claims")
 	snap.Namespace = "demo"
-	if out := textRun(t, snap, 0, false, "inspect", "slices"); !strings.Contains(out, "2 in use (namespace demo only)") {
+	snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
+	if out := textRun(t, snap, 0, false, "inspect", "slices"); !strings.Contains(out, "2 in use (view filtered to namespace demo; external allocations included)") {
 		t.Errorf("-n scope missing:\n%s", out)
 	}
 	snap = testutil.LoadFixture(t, "testdata/fixtures/classes-claims")

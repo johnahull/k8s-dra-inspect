@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
+	"io"
 	"os"
 	"path/filepath"
 	"testing"
@@ -13,7 +14,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
-	"sigs.k8s.io/yaml"
+	utilyaml "k8s.io/apimachinery/pkg/util/yaml"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
@@ -41,7 +42,7 @@ func repoRoot(t testing.TB) string {
 }
 
 // LoadFixture reads every *.yaml in dir (repo-relative unless absolute). Each
-// file is a `kind: List` or a single object.
+// file may contain a List, a single object, or a YAML document stream.
 func LoadFixture(t testing.TB, dir string) model.Snapshot {
 	t.Helper()
 	if !filepath.IsAbs(dir) {
@@ -65,22 +66,33 @@ func LoadFixture(t testing.TB, dir string) model.Snapshot {
 		if err != nil {
 			t.Fatal(err)
 		}
-		var list struct {
-			Kind  string            `json:"kind"`
-			Items []json.RawMessage `json:"items"`
-		}
-		if err := yaml.Unmarshal(data, &list); err != nil {
-			t.Fatalf("%s: %v", f, err)
-		}
-		items := list.Items
-		if list.Kind != "List" {
-			j, err := yaml.YAMLToJSON(data)
+		decoder := utilyaml.NewYAMLOrJSONDecoder(bytes.NewReader(data), 4096)
+		for {
+			var doc map[string]json.RawMessage
+			if err := decoder.Decode(&doc); err != nil {
+				if err == io.EOF {
+					break
+				}
+				t.Fatalf("%s: %v", f, err)
+			}
+			var kind string
+			if err := json.Unmarshal(doc["kind"], &kind); err != nil {
+				t.Fatalf("%s: missing or invalid kind: %v", f, err)
+			}
+			if kind == "List" {
+				var items []json.RawMessage
+				if err := json.Unmarshal(doc["items"], &items); err != nil {
+					t.Fatalf("%s: invalid List items: %v", f, err)
+				}
+				for _, raw := range items {
+					add(t, &snap, raw, f)
+				}
+				continue
+			}
+			raw, err := json.Marshal(doc)
 			if err != nil {
 				t.Fatalf("%s: %v", f, err)
 			}
-			items = []json.RawMessage{j}
-		}
-		for _, raw := range items {
 			add(t, &snap, raw, f)
 		}
 	}
@@ -110,6 +122,10 @@ func add(t testing.TB, snap *model.Snapshot, raw json.RawMessage, file string) {
 		var o resourcev1.ResourceClaim
 		err = json.Unmarshal(raw, &o)
 		snap.ResourceClaims = append(snap.ResourceClaims, o)
+	case "DeviceTaintRule":
+		var o resourcev1.DeviceTaintRule
+		err = json.Unmarshal(raw, &o)
+		snap.DeviceTaintRules = append(snap.DeviceTaintRules, o)
 	case "Pod":
 		var o corev1.Pod
 		err = json.Unmarshal(raw, &o)
@@ -118,10 +134,16 @@ func add(t testing.TB, snap *model.Snapshot, raw json.RawMessage, file string) {
 		var o corev1.Node
 		err = json.Unmarshal(raw, &o)
 		snap.Nodes = append(snap.Nodes, o)
+	case "Event":
+		var o corev1.Event
+		err = json.Unmarshal(raw, &o)
+		snap.Events = append(snap.Events, o)
 	case "VirtualMachineInstance":
 		var o unstructured.Unstructured
 		err = json.Unmarshal(raw, &o)
 		snap.VMIs = append(snap.VMIs, o)
+	case "ConfigMap", "ResourceClaimTemplate":
+		return // these fixture objects are not used by dra-inspect analysis
 	default:
 		t.Fatalf("%s: unsupported kind %q", file, tm.Kind)
 	}

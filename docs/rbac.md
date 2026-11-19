@@ -14,7 +14,9 @@ YAML blocks below (the KubeVirt rule only with `rbac.kubevirt=true`), and CI
 | `resource.k8s.io` | resourceslices | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
 | `resource.k8s.io` | deviceclasses | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
 | `resource.k8s.io` | resourceclaims | get, list | yes | yes |
+| `resource.k8s.io` | devicetaintrules | get, list | yes | no (`inspect devices` and `check why` report `unavailable`) |
 | core | pods | get, list | yes | yes |
+| core | events | get, list | yes | yes (only when requested) |
 | core | nodes | get, list | yes | no (`forbidden` in snapshot; analyzers report `unavailable`) |
 | `kubevirt.io` | virtualmachineinstances | get, list | optional | optional |
 
@@ -32,10 +34,10 @@ metadata:
   name: dra-inspect
 rules:
 - apiGroups: ["resource.k8s.io"]
-  resources: ["resourceslices", "deviceclasses", "resourceclaims"]
+  resources: ["resourceslices", "deviceclasses", "resourceclaims", "devicetaintrules"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["pods", "nodes"]
+  resources: ["pods", "nodes", "events"]
   verbs: ["get", "list"]
 - apiGroups: ["kubevirt.io"]   # optional
   resources: ["virtualmachineinstances"]
@@ -55,7 +57,7 @@ rules:
   resources: ["resourceclaims"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "events"]
   verbs: ["get", "list"]
 - apiGroups: ["kubevirt.io"]   # optional
   resources: ["virtualmachineinstances"]

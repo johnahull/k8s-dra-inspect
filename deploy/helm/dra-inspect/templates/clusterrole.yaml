@@ -8,10 +8,10 @@ metadata:
     {{- include "dra-inspect.labels" . | nindent 4 }}
 rules:
 - apiGroups: ["resource.k8s.io"]
-  resources: ["resourceslices", "deviceclasses", "resourceclaims"]
+  resources: ["resourceslices", "deviceclasses", "resourceclaims", "devicetaintrules"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["pods", "nodes"]
+  resources: ["pods", "nodes", "events"]
   verbs: ["get", "list"]
 {{- include "dra-inspect.kubevirtRule" . }}
 {{- end }}

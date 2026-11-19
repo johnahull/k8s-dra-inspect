@@ -31,7 +31,11 @@ import (
 var vmiGVR = schema.GroupVersionResource{Group: "kubevirt.io", Version: "v1", Resource: "virtualmachineinstances"}
 
 // Scope limits namespaced collection; empty Namespace means all namespaces.
-type Scope struct{ Namespace string }
+type Scope struct {
+	Namespace   string
+	Events      bool
+	NodePlugins bool
+}
 
 // Live collects a Snapshot from a cluster using only get/list calls.
 type Live struct {
@@ -105,9 +109,28 @@ func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error)
 	if items, err := listAll(ctx, rc.DeviceClasses().List, func(l *resourcev1.DeviceClassList) []resourcev1.DeviceClass { return l.Items }); l.record(&snap, "deviceclasses", err) {
 		snap.DeviceClasses = items
 	}
-	if items, err := listAll(ctx, rc.ResourceClaims(ns).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); l.record(&snap, "resourceclaims", err) {
-		snap.ResourceClaims = items
-		scoped(&snap, "resourceclaims", ns)
+	if ns == "" {
+		if items, err := listAll(ctx, rc.ResourceClaims(metav1.NamespaceAll).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); l.record(&snap, "resourceclaims", err) {
+			snap.ResourceClaims = items
+			snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
+		} else {
+			snap.Collection["globalallocations"] = snap.Collection["resourceclaims"]
+		}
+	} else {
+		if items, err := listAll(ctx, rc.ResourceClaims(ns).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); l.record(&snap, "resourceclaims", err) {
+			snap.ResourceClaims = items
+			scoped(&snap, "resourceclaims", ns)
+		}
+		if items, err := listAll(ctx, rc.ResourceClaims(metav1.NamespaceAll).List, func(l *resourcev1.ResourceClaimList) []resourcev1.ResourceClaim { return l.Items }); l.record(&snap, "globalallocations", err) {
+			for i := range items {
+				if items[i].Namespace != ns && items[i].Status.Allocation != nil {
+					snap.GlobalAllocations = append(snap.GlobalAllocations, model.AllocationSummary(*items[i].Status.Allocation))
+				}
+			}
+		}
+	}
+	if items, err := listAll(ctx, rc.DeviceTaintRules().List, func(l *resourcev1.DeviceTaintRuleList) []resourcev1.DeviceTaintRule { return l.Items }); l.record(&snap, "devicetaintrules", err) {
+		snap.DeviceTaintRules = items
 	}
 	if items, err := listAll(ctx, l.Client.CoreV1().Pods(ns).List, func(l *corev1.PodList) []corev1.Pod { return l.Items }); l.record(&snap, "pods", err) {
 		for i := range items {
@@ -115,10 +138,23 @@ func (l *Live) Collect(ctx context.Context, scope Scope) (model.Snapshot, error)
 		}
 		scoped(&snap, "pods", ns)
 	}
+	if scope.NodePlugins {
+		if items, err := listAll(ctx, l.Client.CoreV1().Pods(metav1.NamespaceAll).List, func(l *corev1.PodList) []corev1.Pod { return l.Items }); l.record(&snap, "nodepluginpods", err) {
+			for i := range items {
+				snap.NodePluginPods = append(snap.NodePluginPods, model.NewNodePluginPodRef(items[i]))
+			}
+		}
+	}
 	if items, err := listAll(ctx, l.Client.CoreV1().Nodes().List, func(l *corev1.NodeList) []corev1.Node { return l.Items }); l.record(&snap, "nodes", err) {
 		snap.Nodes = items
 	}
 	l.collectVMIs(ctx, &snap, ns)
+	if scope.Events {
+		if items, err := listAll(ctx, l.Client.CoreV1().Events(ns).List, func(l *corev1.EventList) []corev1.Event { return l.Items }); l.record(&snap, "events", err) {
+			snap.Events = items
+			scoped(&snap, "events", ns)
+		}
+	}
 
 	snap.Normalize()
 	return snap, nil

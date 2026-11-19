@@ -91,9 +91,13 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 				}
 			}
 			for _, f := range findingsOf(r) {
-				if f.Kind == model.KindIncomplete {
+				if f.Kind == model.KindIncomplete || f.Kind == model.KindInvalid {
 					if items := held(f.Items, c); len(items) > 0 {
-						printFinding(p, 4, poolNote(f, items), "", nil)
+						if f.Kind == model.KindInvalid {
+							printFinding(p, 4, invalidPoolNote(f, items), "", nil)
+						} else {
+							printFinding(p, 4, poolNote(f, items), "", nil)
+						}
 					}
 				}
 			}
@@ -117,7 +121,7 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	}
 	for _, name := range slices.Sorted(maps.Keys(byDriver)) {
 		for _, f := range findingsOf(byDriver[name]) {
-			if f.Kind != model.KindIncomplete || len(f.Items) == 0 {
+			if (f.Kind != model.KindIncomplete && f.Kind != model.KindInvalid) || len(f.Items) == 0 {
 				others = append(others, other{name, f})
 				continue
 			}
@@ -128,7 +132,11 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			if rest := slices.DeleteFunc(slices.Clone(f.Items), func(x string) bool { return len(held([]string{x}, all...)) > 0 }); len(rest) == len(f.Items) {
 				others = append(others, other{name, f})
 			} else if len(rest) > 0 {
-				others = append(others, other{name, poolNote(f, rest)})
+				if f.Kind == model.KindInvalid {
+					others = append(others, other{name, invalidPoolNote(f, rest)})
+				} else {
+					others = append(others, other{name, poolNote(f, rest)})
+				}
 			}
 		}
 	}
@@ -140,6 +148,12 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 		}
 		d.flush(p, 2)
 	}
+}
+
+func invalidPoolNote(f model.Finding, pools []string) model.Finding {
+	f.Items = pools
+	f.Text = "slices in the newest generation disagree on resourceSliceCount: " + strings.Join(pools, ", ")
+	return f
 }
 
 // poolNote is an incomplete-pool finding narrowed to the given pools, worded

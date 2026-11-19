@@ -56,7 +56,8 @@ func Attributes(all, capacity bool) Inspector {
 			var out []model.Result
 			cur, sel := current(snap)
 			for _, s := range cur {
-				incomplete := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete
+				pool := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}]
+				incomplete := pool.Incomplete || pool.Invalid
 				for _, d := range s.Spec.Devices {
 					attrs := map[string]string{}
 					for k, v := range d.Attributes {
@@ -70,6 +71,9 @@ func Attributes(all, capacity bool) Inspector {
 						status = model.StatusWarn
 						det["incomplete"] = true
 						det["reason"] = incompleteReason(s.Spec.Pool.Name)
+						if pool.Invalid {
+							det["reason"] = invalidGenerationReason(s.Spec.Pool.Name)
+						}
 					}
 					if capacity {
 						caps := map[string]string{}
@@ -81,7 +85,11 @@ func Attributes(all, capacity bool) Inspector {
 					res := model.Result{Check: check, Status: status,
 						Subject: s.Spec.Driver + "/" + s.Spec.Pool.Name + "/" + d.Name, Details: det}
 					if incomplete {
-						res.Findings = incompleteFinding(s.Spec.Pool.Name)
+						if pool.Invalid {
+							res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidGenerationReason(s.Spec.Pool.Name)}}
+						} else {
+							res.Findings = incompleteFinding(s.Spec.Pool.Name)
+						}
 					}
 					out = append(out, res)
 				}

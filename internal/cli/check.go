@@ -2,6 +2,7 @@ package cli
 
 import (
 	"context"
+	"slices"
 
 	"github.com/spf13/cobra"
 
@@ -58,8 +59,8 @@ snapshot and calls no extra API. Only host-device, claim, NUMA and CPU fields
 of a VMI are read; cloud-init data, credentials and interfaces never are.`
 
 func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
-	add := func(use, short, long string, text textView, args cobra.PositionalArgs, build func(args []string) check.Check) {
-		parent.AddCommand(&cobra.Command{
+	add := func(use, short, long string, text textView, args cobra.PositionalArgs, build func(args []string) check.Check) *cobra.Command {
+		c := &cobra.Command{
 			Use: use, Short: short, Long: long, Args: args,
 			RunE: func(cmd *cobra.Command, args []string) error {
 				c := build(args)
@@ -69,7 +70,9 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 					},
 					func(rs []model.Result) error { return renderTable(cmd, opts, d, checkSpec, rs) }, text)
 			},
-		})
+		}
+		parent.AddCommand(c)
+		return c
 	}
 	add("alignment [POD|CLAIM]", "Check allocated devices against claim constraints and NUMA/PCIe placement", alignmentHelp, view.Alignment, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
@@ -82,6 +85,28 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 	add("counters", "Check shared-counter capacity against allocated claims", "", view.Counters, cobra.NoArgs, func([]string) check.Check { return check.Counters() })
 	add("capacity", "Check consumable-capacity allocations against published capacity", capacityHelp, view.Capacity, cobra.NoArgs, func([]string) check.Check { return check.Capacity() })
 	add("topology", "Validate published NUMA and PCIe-root attributes", "", view.CheckTopology, cobra.NoArgs, func([]string) check.Check { return check.Topology() })
+	var noRedactEvents bool
+	why := add("why [CLAIM|pod/POD]", "Explain why a ResourceClaim is pending or a pod is stuck", "", view.Why, cobra.ExactArgs(1), func(args []string) check.Check {
+		opts.CollectEvents = true
+		target := args[0]
+		return func(ctx context.Context, snap model.Snapshot) []model.Result {
+			if !noRedactEvents {
+				snap.Events = slices.Clone(snap.Events)
+				for i := range snap.Events {
+					snap.Events[i].Message = ""
+				}
+				snap.Pods = slices.Clone(snap.Pods)
+				for i := range snap.Pods {
+					snap.Pods[i].Conditions = slices.Clone(snap.Pods[i].Conditions)
+					for j := range snap.Pods[i].Conditions {
+						snap.Pods[i].Conditions[j].Message = ""
+					}
+				}
+			}
+			return check.Why(ctx, snap, target)
+		}
+	})
+	why.Flags().BoolVar(&noRedactEvents, "no-redact", false, "include full Event messages in the explanation")
 	add("kubevirt [VMI]", "Check KubeVirt VMI host devices against their DRA claims (derived from the snapshot's VMIs)", kubevirtHelp, view.KubeVirt, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
 			target := ""

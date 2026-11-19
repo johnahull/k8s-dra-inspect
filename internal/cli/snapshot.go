@@ -19,7 +19,7 @@ import (
 
 func addSnapshotCommands(parent *cobra.Command, opts *Options, d Deps) {
 	var file string
-	var noRedact, force, withAdapters bool
+	var noRedact, force, withAdapters, withEvents, withNodePlugins bool
 	var root, nodeName string
 	c := &cobra.Command{
 		Use:   "capture",
@@ -33,6 +33,10 @@ snapshot (replay needs it), as are Node labels, reservedFor pod names and VMI
 names, UIDs and node names: review a snapshot before sharing it.
 Collections that could not be read are recorded in the file and listed on
 stderr; they do not fail the capture unless --strict is set.
+
+--with-events records Events for check why. Event messages are removed by
+default; use --no-redact to retain them. --with-node-plugins records the
+clusterwide pod scheduling fields needed by inspect nodes.
 
 --with-adapters also stores the evidence of the optional adapters in the file
 so that report support --from can replay it: host evidence read below
@@ -52,6 +56,8 @@ evidence is redacted by its producer and is kept even with --no-redact.`,
 			if _, err := os.Lstat(file); file != "" && !force && err == nil {
 				return fmt.Errorf("%s already exists; use --force to overwrite", file)
 			}
+			opts.CollectEvents = withEvents
+			opts.CollectNodePlugins = withNodePlugins
 			src, err := d.NewSource(opts)
 			if err != nil {
 				return err
@@ -85,6 +91,8 @@ evidence is redacted by its producer and is kept even with --no-redact.`,
 	c.Flags().BoolVar(&noRedact, "no-redact", false, "keep opaque parameters, cloud-init data and full Node/VMI objects (default removes them; CEL selector text is kept either way)")
 	c.Flags().BoolVar(&force, "force", false, "overwrite an existing --file")
 	c.Flags().BoolVar(&withAdapters, "with-adapters", false, "also store host and KubeVirt adapter evidence (replay with report support --from)")
+	c.Flags().BoolVar(&withEvents, "with-events", false, "also collect Events for check why (messages are redacted unless --no-redact)")
+	c.Flags().BoolVar(&withNodePlugins, "with-node-plugins", false, "also collect clusterwide pod scheduling data for inspect nodes")
 	c.Flags().StringVar(&root, "host-root", "/", "root of the node filesystem to read (with --with-adapters)")
 	c.Flags().StringVar(&nodeName, "node-name", "", "cluster node name of this host (with --with-adapters; default $NODE_NAME, then the hostname)")
 	parent.AddCommand(c)

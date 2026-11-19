@@ -42,6 +42,12 @@ func Redact(s Snapshot) Snapshot {
 	out.ResourceSlices = deepCopy(s.ResourceSlices)
 	out.DeviceClasses = deepCopy(s.DeviceClasses)
 	out.ResourceClaims = deepCopy(s.ResourceClaims)
+	out.GlobalAllocations = deepCopy(s.GlobalAllocations)
+	for i := range out.GlobalAllocations {
+		out.GlobalAllocations[i] = AllocationSummary(out.GlobalAllocations[i])
+	}
+	out.DeviceTaintRules = deepCopy(s.DeviceTaintRules)
+	out.Events = deepCopy(s.Events)
 	out.Nodes = deepCopy(s.Nodes)
 	out.VMIs = nil
 	if s.VMIs != nil {
@@ -49,8 +55,11 @@ func Redact(s Snapshot) Snapshot {
 	}
 	out.Pods = slices.Clone(s.Pods)
 	for i := range out.Pods {
-		out.Pods[i].ResourceClaims = deepCopy(out.Pods[i].ResourceClaims)
-		out.Pods[i].ResourceClaimStatuses = deepCopy(out.Pods[i].ResourceClaimStatuses)
+		out.Pods[i] = redactPodRef(out.Pods[i], false)
+	}
+	out.NodePluginPods = slices.Clone(s.NodePluginPods)
+	for i := range out.NodePluginPods {
+		out.NodePluginPods[i] = redactPodRef(out.NodePluginPods[i], true)
 	}
 	if s.Evidence != nil {
 		out.Evidence = make(map[string]json.RawMessage, len(s.Evidence))
@@ -64,11 +73,29 @@ func Redact(s Snapshot) Snapshot {
 	}
 	for i := range out.Nodes {
 		n := &out.Nodes[i]
-		// Allow-list: addresses, machine IDs, images, volumes and annotations never survive.
+		// Keep scheduler inputs only; addresses, machine IDs, images and annotations never survive.
+		var ready []corev1.NodeCondition
+		for _, c := range n.Status.Conditions {
+			if c.Type == corev1.NodeReady {
+				ready = append(ready, corev1.NodeCondition{Type: c.Type, Status: c.Status})
+			}
+		}
 		*n = corev1.Node{
 			TypeMeta:   n.TypeMeta,
-			ObjectMeta: metav1.ObjectMeta{Name: n.Name, Labels: n.Labels},
-			Status:     corev1.NodeStatus{Allocatable: n.Status.Allocatable},
+			ObjectMeta: metav1.ObjectMeta{Name: n.Name, Labels: maps.Clone(n.Labels)},
+			Spec:       corev1.NodeSpec{Taints: deepCopy(n.Spec.Taints), Unschedulable: n.Spec.Unschedulable},
+			Status:     corev1.NodeStatus{Allocatable: maps.Clone(n.Status.Allocatable), Conditions: ready},
+		}
+	}
+	for i := range out.Events {
+		e := out.Events[i]
+		out.Events[i] = corev1.Event{
+			ObjectMeta: metav1.ObjectMeta{Namespace: e.Namespace},
+			InvolvedObject: corev1.ObjectReference{
+				Kind: e.InvolvedObject.Kind, Namespace: e.InvolvedObject.Namespace,
+				Name: e.InvolvedObject.Name, UID: e.InvolvedObject.UID,
+			},
+			Reason: e.Reason, Type: e.Type, LastTimestamp: e.LastTimestamp,
 		}
 	}
 	for i := range s.VMIs {
@@ -80,6 +107,9 @@ func Redact(s Snapshot) Snapshot {
 		for j := range dc.Spec.Config {
 			dropParameters(&dc.Spec.Config[j].DeviceConfiguration)
 		}
+	}
+	for i := range out.DeviceTaintRules {
+		scrubMeta(&out.DeviceTaintRules[i])
 	}
 	for i := range out.ResourceClaims {
 		c := &out.ResourceClaims[i]
@@ -94,6 +124,56 @@ func Redact(s Snapshot) Snapshot {
 		}
 		for j := range c.Status.Devices {
 			c.Status.Devices[j].Data = nil
+		}
+	}
+	return out
+}
+
+func redactPodRef(p PodRef, nodePlugin bool) PodRef {
+	p.ResourceClaims = deepCopy(p.ResourceClaims)
+	p.ResourceClaimStatuses = deepCopy(p.ResourceClaimStatuses)
+	p.NodeSelector = maps.Clone(p.NodeSelector)
+	affinity := p.Affinity
+	p.Affinity = nil
+	if affinity != nil && affinity.NodeAffinity != nil {
+		p.Affinity = &corev1.Affinity{NodeAffinity: affinity.NodeAffinity.DeepCopy()}
+	}
+	p.Tolerations = deepCopy(p.Tolerations)
+	if nodePlugin {
+		p.Volumes = hostPathVolumes(p.Volumes)
+		p.OwnerReferences = controllerRefs(p.OwnerReferences)
+	} else {
+		p.Volumes = nil
+		p.OwnerReferences = nil
+	}
+	p.Conditions = podSchedulingConditions(p.Conditions)
+	return p
+}
+
+func hostPathVolumes(in []corev1.Volume) []corev1.Volume {
+	var out []corev1.Volume
+	for _, v := range in {
+		if v.HostPath != nil {
+			out = append(out, corev1.Volume{Name: v.Name, VolumeSource: corev1.VolumeSource{HostPath: v.HostPath.DeepCopy()}})
+		}
+	}
+	return out
+}
+
+func controllerRefs(in []metav1.OwnerReference) []metav1.OwnerReference {
+	for _, ref := range in {
+		if ref.Controller != nil && *ref.Controller {
+			return []metav1.OwnerReference{*ref.DeepCopy()}
+		}
+	}
+	return nil
+}
+
+func podSchedulingConditions(in []corev1.PodCondition) []corev1.PodCondition {
+	var out []corev1.PodCondition
+	for _, c := range in {
+		if c.Type == corev1.PodReady || c.Type == corev1.PodScheduled {
+			out = append(out, corev1.PodCondition{Type: c.Type, Status: c.Status})
 		}
 	}
 	return out

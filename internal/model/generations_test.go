@@ -17,7 +17,7 @@ func gslice(name, pool string, gen, count int64, devs ...string) resourcev1.Reso
 	return s
 }
 
-func TestCurrentSlicesPicksNewestComplete(t *testing.T) {
+func TestCurrentSlicesPicksNewestEvenWhenIncomplete(t *testing.T) {
 	snap := Snapshot{ResourceSlices: []resourcev1.ResourceSlice{
 		gslice("old", "p", 1, 1, "a"), gslice("new-partial", "p", 2, 2, "b"),
 		gslice("only", "q", 5, 2, "c"),
@@ -27,13 +27,22 @@ func TestCurrentSlicesPicksNewestComplete(t *testing.T) {
 	for _, s := range cur {
 		names[s.Name] = true
 	}
-	if !names["old"] || names["new-partial"] || !names["only"] || len(cur) != 2 {
+	if names["old"] || !names["new-partial"] || !names["only"] || len(cur) != 2 {
 		t.Errorf("current = %v", names)
 	}
-	if s := sel[PoolKey{"d.example.com", "p"}]; s.Gen != 1 || s.Incomplete {
+	if s := sel[PoolKey{"d.example.com", "p"}]; s.Gen != 2 || !s.Incomplete {
 		t.Errorf("p = %+v", s)
 	}
 	if s := sel[PoolKey{"d.example.com", "q"}]; s.Gen != 5 || !s.Incomplete {
 		t.Errorf("q = %+v", s)
+	}
+}
+
+func TestSelectedGenerationInvalidWhenCountsDisagree(t *testing.T) {
+	snap := Snapshot{ResourceSlices: []resourcev1.ResourceSlice{
+		gslice("a", "p", 1, 2, "a"), gslice("b", "p", 1, 3, "b"),
+	}}
+	if got := SelectGenerations(snap)[PoolKey{"d.example.com", "p"}]; !got.Invalid || !got.Incomplete {
+		t.Fatalf("selection = %+v, want invalid and incomplete", got)
 	}
 }

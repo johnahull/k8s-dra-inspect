@@ -91,6 +91,16 @@ func Scope(s model.Snapshot, ns string) (model.Snapshot, error) {
 		return model.Snapshot{}, fmt.Errorf("snapshot was captured for namespace %q; cannot widen to %q", s.Namespace, ns)
 	}
 	s.Namespace = ns
+	if s.Collection["resourceclaims"].State == model.StateOK {
+		s.GlobalAllocations = nil
+		for i := range s.ResourceClaims {
+			if s.ResourceClaims[i].Namespace != ns && s.ResourceClaims[i].Status.Allocation != nil {
+				s.GlobalAllocations = append(s.GlobalAllocations, model.AllocationSummary(*s.ResourceClaims[i].Status.Allocation))
+			}
+		}
+		s.Collection = maps.Clone(s.Collection)
+		s.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK, Reason: "cluster-wide allocation summary"}
+	}
 	s.ResourceClaims = filter(s.ResourceClaims, ns)
 	s.VMIs = filter(s.VMIs, ns)
 	pods := make([]model.PodRef, 0, len(s.Pods))

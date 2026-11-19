@@ -14,7 +14,7 @@ rules:
   resources: ["resourceclaims"]
   verbs: ["get", "list"]
 - apiGroups: [""]
-  resources: ["pods"]
+  resources: ["pods", "events"]
   verbs: ["get", "list"]
 {{- include "dra-inspect.kubevirtRule" $ }}
 {{- end }}
