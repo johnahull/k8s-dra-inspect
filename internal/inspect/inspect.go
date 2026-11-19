@@ -92,6 +92,10 @@ func incompleteReason(pools ...string) string {
 	return "pool has fewer ResourceSlices than expected for its newest generation: " + strings.Join(pools, ", ")
 }
 
+func invalidGenerationReason(pool string) string {
+	return "slices in the newest generation disagree on resourceSliceCount: " + pool
+}
+
 // incompleteFinding is the Finding behind incompleteReason.
 func incompleteFinding(pools ...string) []model.Finding {
 	return []model.Finding{{Status: model.StatusWarn, Kind: model.KindIncomplete, Text: incompleteReason(pools...), Items: pools}}

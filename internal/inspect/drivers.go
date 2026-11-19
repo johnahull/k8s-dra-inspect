@@ -39,6 +39,7 @@ func Drivers(attributes bool) Inspector {
 				attrs        map[string]bool
 				placeholders map[string]bool // (all nodes)/(selector): never counted as nodes
 				incomplete   []string
+				invalid      []string
 			}
 			byDriver := map[string]*agg{}
 			cur, sel := current(snap)
@@ -48,8 +49,14 @@ func Drivers(attributes bool) Inspector {
 					a = &agg{pools: map[string]bool{}, nodes: map[string]bool{}, attrs: map[string]bool{}, placeholders: map[string]bool{}}
 					byDriver[s.Spec.Driver] = a
 				}
-				if !a.pools[s.Spec.Pool.Name] && sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}].Incomplete {
-					a.incomplete = append(a.incomplete, s.Spec.Pool.Name)
+				if !a.pools[s.Spec.Pool.Name] {
+					ps := sel[poolKey{s.Spec.Driver, s.Spec.Pool.Name}]
+					if ps.Incomplete {
+						a.incomplete = append(a.incomplete, s.Spec.Pool.Name)
+					}
+					if ps.Invalid {
+						a.invalid = append(a.invalid, s.Spec.Pool.Name)
+					}
 				}
 				a.pools[s.Spec.Pool.Name] = true
 				for _, r := range sliceNodes(s) {
@@ -83,6 +90,13 @@ func Drivers(attributes bool) Inspector {
 					status = model.StatusWarn
 					d["incompletePools"] = a.incomplete
 					d["reason"] = incompleteReason(a.incomplete...)
+				}
+				if len(a.invalid) > 0 {
+					slices.Sort(a.invalid)
+					findings = append(findings, model.Finding{Status: model.StatusWarn, Kind: model.KindInvalid, Text: invalidGenerationReason(strings.Join(a.invalid, ", ")), Items: a.invalid})
+					status = model.StatusWarn
+					d["invalidPools"] = a.invalid
+					d["reason"] = invalidGenerationReason(strings.Join(a.invalid, ", "))
 				}
 				if len(a.placeholders) > 0 {
 					d["nodeSelection"] = slices.Sorted(maps.Keys(a.placeholders))

@@ -160,6 +160,35 @@ func TestCheckErrorStatusInJSON(t *testing.T) {
 	}
 }
 
+func TestWhyRedactsSchedulerMessagesUnlessRequested(t *testing.T) {
+	snap := testutil.LoadFixture(t, "testdata/fixtures/analyze/why")
+	snap.Collection["devicetaintrules"] = model.CollectionStatus{State: model.StateOK}
+
+	redacted, code := cmdRun(t, snap, "check", "why", "bound", "-o", "text")
+	if code != 0 || strings.Contains(redacted, "0/3 nodes are available") {
+		t.Fatalf("default why output exposed scheduler messages (exit %d):\n%s", code, redacted)
+	}
+	var podScheduledMessage string
+	for _, pod := range snap.Pods {
+		if pod.Name == "pending-pod" {
+			for _, condition := range pod.Conditions {
+				if condition.Type == corev1.PodScheduled {
+					podScheduledMessage = condition.Message
+				}
+			}
+		}
+	}
+	if len(snap.Events) != 1 || snap.Events[0].Message == "" || podScheduledMessage == "" {
+		t.Fatal("default why command mutated the source snapshot")
+	}
+	full, code := cmdRun(t, snap, "check", "why", "bound", "--no-redact", "-o", "text")
+	if code != 0 || !strings.Contains(full, "Pod scheduling: 0/3 nodes are available") ||
+		!strings.Contains(full, "Warning event: FailedScheduling: 0/3 nodes are available") {
+		json, _ := cmdRun(t, snap, "check", "why", "bound", "--no-redact", "-o", "json")
+		t.Fatalf("--no-redact did not show scheduler messages (exit %d):\n%s\nJSON:\n%s", code, full, json)
+	}
+}
+
 func TestCheckAlignmentArguments(t *testing.T) {
 	snap := testutil.LoadFixture(t, "testdata/fixtures/numa-split")
 	other := snap.ResourceClaims[0].DeepCopy()

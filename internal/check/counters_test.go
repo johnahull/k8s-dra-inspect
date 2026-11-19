@@ -2,6 +2,7 @@ package check
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 
 	resourcev1 "k8s.io/api/resource/v1"
@@ -73,6 +74,20 @@ func TestCountersAllocationIsSubtracted(t *testing.T) {
 	got := fmt.Sprint(counterVals(t, r, "vf-slots"))
 	if got != "map[capacity:2 remaining:1 used:1]" {
 		t.Errorf("counter = %s", got)
+	}
+}
+
+func TestCountersIncludesMaskedClusterAllocationsInNamespaceScope(t *testing.T) {
+	s := snapOf(pf0(vf("vf-0"), vf("vf-1")), claim("team-a", "local", nil, res("r", "vf-0")))
+	s.Namespace = "team-a"
+	s.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
+	s.GlobalAllocations = []resourcev1.AllocationResult{{Devices: resourcev1.DeviceAllocationResult{Results: []resourcev1.DeviceRequestAllocationResult{res("r", "vf-1")}}}}
+	r := counters(t, s)
+	if got := counterVals(t, r, "vf-slots"); got["used"] != "2" || got["remaining"] != "0" {
+		t.Fatalf("foreign allocation was not counted: %+v", got)
+	}
+	if strings.Contains(fmt.Sprint(r.Details), "foreign-claim") {
+		t.Fatalf("foreign claim identity leaked: %+v", r.Details)
 	}
 }
 
@@ -285,7 +300,7 @@ func TestCountersStaleAdminAccessAllocationStillWarns(t *testing.T) {
 	wantStatus(t, r, model.StatusWarn, "stale generation")
 }
 
-func TestCountersUsesNewestCompleteGenerationAcrossSlices(t *testing.T) {
+func TestCountersUsesNewestIncompleteGenerationWithoutFallback(t *testing.T) {
 	// gen 2 has counters in one slice and devices in another; gen 3 is partial.
 	sl := []resourcev1.ResourceSlice{
 		counterSlice("c1", "p", 1, 2, cset("pf-0", map[string]string{"vf-slots": "9"})),
@@ -293,7 +308,7 @@ func TestCountersUsesNewestCompleteGenerationAcrossSlices(t *testing.T) {
 		counterSlice("c3", "p", 3, 2, cset("pf-0", map[string]string{"vf-slots": "100"})),
 	}
 	r := counters(t, snapOf(sl, claim("ns", "c", nil, res("r", "vf-0"))))
-	if got := counterVals(t, r, "vf-slots"); got["capacity"] != "2" || got["used"] != "1" {
+	if got := counterVals(t, r, "vf-slots"); got["capacity"] != "100" || got["used"] != "0" {
 		t.Fatalf("%v", got)
 	}
 }

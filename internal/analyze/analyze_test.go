@@ -1,0 +1,683 @@
+// Adapted from github.com/kphatak/kubectl-dra/pkg/analyze/analyze_test.go
+// (Apache-2.0); fixture loading uses dra-inspect's model and test utilities.
+package analyze
+
+import (
+	"context"
+	"reflect"
+	"slices"
+	"strings"
+	"testing"
+
+	corev1 "k8s.io/api/core/v1"
+	resourceapi "k8s.io/api/resource/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/dynamic-resource-allocation/structured"
+	"k8s.io/utils/ptr"
+
+	"github.com/johnahull/k8s-dra-inspect/internal/model"
+	"github.com/johnahull/k8s-dra-inspect/internal/testutil"
+)
+
+func load(t *testing.T, name string) *Snapshot {
+	t.Helper()
+	return FromModel(testutil.LoadFixture(t, "testdata/fixtures/analyze/"+strings.TrimSuffix(name, ".yaml")))
+}
+
+func TestExplainPendingClaimNamesMissingDeviceClass(t *testing.T) {
+	s := load(t, "why.yaml")
+	var claim *resourceapi.ResourceClaim
+	for i := range s.ResourceClaims {
+		if s.ResourceClaims[i].Name == "unknown-class" {
+			claim = s.ResourceClaims[i]
+			break
+		}
+	}
+	if claim == nil {
+		t.Fatal("unknown-class fixture claim not found")
+	}
+
+	e := Explain(context.Background(), s, claim, nil)
+	if e.Verdict != VerdictNotAllocatable || len(e.Requests) != 1 || len(e.Requests[0].Alternatives) != 1 {
+		t.Fatalf("explanation = %+v, want a not-allocatable request funnel", e)
+	}
+	if got := e.Requests[0].Alternatives[0].Problem; got != `DeviceClass "missing" does not exist` {
+		t.Fatalf("request problem = %q, want missing DeviceClass explanation", got)
+	}
+}
+
+func TestExplainReportsInvalidDeviceNodeSelector(t *testing.T) {
+	claim := &resourceapi.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "claim"}, Spec: resourceapi.ResourceClaimSpec{
+		Devices: resourceapi.DeviceClaim{Requests: []resourceapi.DeviceRequest{{Name: "gpu", Exactly: &resourceapi.ExactDeviceRequest{DeviceClassName: "gpu"}}}},
+	}}
+	class := resourceapi.DeviceClass{ObjectMeta: metav1.ObjectMeta{Name: "gpu"}}
+	slice := resourceapi.ResourceSlice{ObjectMeta: metav1.ObjectMeta{Name: "slice"}, Spec: resourceapi.ResourceSliceSpec{
+		Driver: "gpu.example.com", NodeSelector: &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "zone", Operator: corev1.NodeSelectorOperator("invalid")}}}}},
+		Pool: resourceapi.ResourcePool{Name: "pool", Generation: 1, ResourceSliceCount: 1}, Devices: []resourceapi.Device{{Name: "gpu-0"}},
+	}}
+	s := &Snapshot{DeviceClasses: []*resourceapi.DeviceClass{&class}, ResourceSlices: []*resourceapi.ResourceSlice{&slice}, Nodes: []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "node"}}}}
+
+	e := Explain(context.Background(), s, claim, nil)
+	if e.Verdict != VerdictError || e.Requests[0].Alternatives[0].Error == "" {
+		t.Fatalf("explanation = %+v, want node-selector evaluation error", e)
+	}
+}
+
+func TestExplainHintsUseDraInspectCommands(t *testing.T) {
+	s := load(t, "why.yaml")
+	var claim *resourceapi.ResourceClaim
+	for i := range s.ResourceClaims {
+		if s.ResourceClaims[i].Name == "all-busy" {
+			claim = s.ResourceClaims[i]
+			break
+		}
+	}
+	if claim == nil {
+		t.Fatal("all-busy fixture claim not found")
+	}
+	got := strings.Join(Explain(context.Background(), s, claim, nil).Hints, "\n")
+	if strings.Contains(got, "kubectl dra") || !strings.Contains(got, "dra-inspect inspect devices") || !strings.Contains(got, "dra-inspect inspect pools") {
+		t.Fatalf("hints = %q, want dra-inspect commands", got)
+	}
+}
+
+func TestExplainAllocatedPendingPodIncludesSchedulingEvidence(t *testing.T) {
+	s := load(t, "why.yaml")
+	var claim *resourceapi.ResourceClaim
+	var pod *corev1.Pod
+	for i := range s.ResourceClaims {
+		if s.ResourceClaims[i].Name == "bound" {
+			claim = s.ResourceClaims[i]
+		}
+	}
+	for i := range s.Pods {
+		if s.Pods[i].Name == "pending-pod" {
+			pod = s.Pods[i]
+		}
+	}
+	if claim == nil || pod == nil {
+		t.Fatalf("fixture claim and pod missing: claim=%v pod=%v", claim != nil, pod != nil)
+	}
+
+	e := Explain(context.Background(), s, claim, pod)
+	if e.Verdict != VerdictAllocatedPodPending || e.PodScheduled == "" {
+		t.Fatalf("explanation = %+v, want allocated-pod-pending with scheduler message", e)
+	}
+	if len(e.Events) != 1 || e.Events[0] != "FailedScheduling: 0/3 nodes are available: 1 node(s) cannot allocate all claims." {
+		t.Fatalf("warning events = %q, want the pod's FailedScheduling event", e.Events)
+	}
+}
+
+func TestPodWarningsMatchesRedactedEventByUID(t *testing.T) {
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "pending-pod", Namespace: "why", UID: "pod-uid"}}
+	event := &corev1.Event{
+		ObjectMeta:     metav1.ObjectMeta{Namespace: "why"},
+		InvolvedObject: corev1.ObjectReference{UID: "pod-uid"},
+		Type:           corev1.EventTypeWarning,
+		Reason:         "FailedScheduling",
+	}
+	if got := podWarnings([]*corev1.Event{event}, pod); !slices.Equal(got, []string{"FailedScheduling"}) {
+		t.Fatalf("redacted pod warnings = %q, want reason matched by UID", got)
+	}
+}
+
+func TestPodWarningsDoesNotMatchReusedNameWithDifferentUID(t *testing.T) {
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "pending-pod", Namespace: "why", UID: "new-pod-uid"}}
+	event := &corev1.Event{
+		ObjectMeta:     metav1.ObjectMeta{Namespace: "why"},
+		InvolvedObject: corev1.ObjectReference{Kind: "Pod", Namespace: "why", Name: "pending-pod", UID: "old-pod-uid"},
+		Type:           corev1.EventTypeWarning,
+		Reason:         "FailedScheduling",
+	}
+	if got := podWarnings([]*corev1.Event{event}, pod); len(got) != 0 {
+		t.Fatalf("warnings for a reused pod name = %q, want no warnings from the old pod", got)
+	}
+}
+
+func TestPodWarningsDoesNotCrossEventNamespace(t *testing.T) {
+	pod := &corev1.Pod{ObjectMeta: metav1.ObjectMeta{Name: "pending-pod", Namespace: "team-a", UID: "pod-uid"}}
+	event := &corev1.Event{
+		ObjectMeta:     metav1.ObjectMeta{Namespace: "other"},
+		InvolvedObject: corev1.ObjectReference{Kind: "Pod", Namespace: "team-a", Name: "pending-pod", UID: "pod-uid"},
+		Type:           corev1.EventTypeWarning,
+		Reason:         "FailedScheduling",
+	}
+	if got := podWarnings([]*corev1.Event{event}, pod); len(got) != 0 {
+		t.Fatalf("warnings from another Event namespace = %q, want none", got)
+	}
+}
+
+func TestFromModelMasksForeignPluginNamesAndPreservesGroups(t *testing.T) {
+	plugin := func(namespace, name, node, controller, uid string) model.PodRef {
+		return model.PodRef{
+			Namespace: namespace, Name: name, NodeName: node, Phase: corev1.PodRunning,
+			Volumes: []corev1.Volume{{Name: "registry", VolumeSource: corev1.VolumeSource{
+				HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins_registry"},
+			}}},
+			OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "DaemonSet", Name: controller, UID: types.UID(uid), Controller: ptr.To(true)}},
+		}
+	}
+	s := model.Snapshot{Namespace: "team-a", NodePluginPods: []model.PodRef{
+		plugin("gpu-operator", "gpu-a-node-1", "node-1", "gpu-a", "controller-a"),
+		plugin("gpu-operator", "gpu-a-node-2", "node-2", "gpu-a", "controller-a"),
+		plugin("network-operator", "nic-b-node-1", "node-3", "nic-b", "controller-b"),
+	}}
+	data := FromModel(s)
+	groups := pluginGroups(data.NodePluginPods)
+	if len(groups) != 2 || len(groups[0].pods)+len(groups[1].pods) != 3 {
+		t.Fatalf("foreign plugin groups = %+v, want two groups covering three pods", groups)
+	}
+	sizes := []int{len(groups[0].pods), len(groups[1].pods)}
+	slices.Sort(sizes)
+	if !slices.Equal(sizes, []int{1, 2}) {
+		t.Fatalf("foreign plugin group sizes = %v, want [1 2]", sizes)
+	}
+	for _, pod := range data.NodePluginPods {
+		if pod.Namespace != "outside namespace" || strings.Contains(pod.Name, "gpu-a-node") || strings.Contains(pod.Name, "nic-b-node") {
+			t.Errorf("foreign plugin identity was not safely masked: %s/%s", pod.Namespace, pod.Name)
+		}
+		if ref := metav1.GetControllerOfNoCopy(pod); ref != nil && (ref.UID != "" || strings.Contains(ref.Name, "gpu-a") || strings.Contains(ref.Name, "nic-b")) {
+			t.Errorf("foreign plugin controller identity was not safely masked: %+v", ref)
+		}
+	}
+}
+
+func TestPools(t *testing.T) {
+	pools := Pools(load(t, "pools.yaml").ResourceSlices)
+
+	byID := make(map[string]*Pool)
+	var order []string
+	for _, p := range pools {
+		byID[p.ID.String()] = p
+		order = append(order, p.ID.String())
+	}
+	wantOrder := []string{
+		"gpu.example.com/duplicate",
+		"gpu.example.com/mismatch",
+		"gpu.example.com/node-a",
+		"gpu.example.com/node-b",
+		"link.example.com/rack-r1",
+		"net.example.com/fabric",
+		"storage.example.com/zone-a",
+	}
+	if !slices.Equal(order, wantOrder) {
+		t.Fatalf("pool order:\n got %v\nwant %v", order, wantOrder)
+	}
+
+	tests := []struct {
+		pool       string
+		generation int64
+		slices     int
+		outdated   int
+		devices    int
+		complete   bool
+		usable     bool
+		problem    string
+	}{
+		{pool: "gpu.example.com/node-a", generation: 2, slices: 2, outdated: 1, devices: 4, complete: true, usable: true},
+		{pool: "gpu.example.com/node-b", generation: 1, slices: 1, devices: 1},
+		{pool: "gpu.example.com/duplicate", generation: 1, slices: 2, devices: 2, complete: true, problem: `device name "gpu-0" is published by both duplicate-part1 and duplicate-part2`},
+		{pool: "gpu.example.com/mismatch", generation: 1, slices: 2, devices: 2, problem: "disagree on resourceSliceCount (2, 3)"},
+		{pool: "net.example.com/fabric", generation: 1, slices: 1, devices: 1, complete: true, usable: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.pool, func(t *testing.T) {
+			p := byID[tt.pool]
+			if p.Generation != tt.generation {
+				t.Errorf("generation: got %d, want %d", p.Generation, tt.generation)
+			}
+			if len(p.Slices) != tt.slices {
+				t.Errorf("slices: got %d, want %d", len(p.Slices), tt.slices)
+			}
+			if p.OutdatedSlices != tt.outdated {
+				t.Errorf("outdated slices: got %d, want %d", p.OutdatedSlices, tt.outdated)
+			}
+			if got := len(p.Devices()); got != tt.devices {
+				t.Errorf("devices: got %d, want %d", got, tt.devices)
+			}
+			if p.Complete() != tt.complete {
+				t.Errorf("complete: got %v, want %v", p.Complete(), tt.complete)
+			}
+			if p.Usable() != tt.usable {
+				t.Errorf("usable: got %v, want %v", p.Usable(), tt.usable)
+			}
+			if tt.problem == "" && len(p.Problems) > 0 {
+				t.Errorf("unexpected problems: %q", p.Problems)
+			}
+			if tt.problem != "" && (len(p.Problems) != 1 || !strings.Contains(p.Problems[0], tt.problem)) {
+				t.Errorf("problems: got %q, want one containing %q", p.Problems, tt.problem)
+			}
+		})
+	}
+}
+
+func gpu(name string) structured.DeviceID {
+	return structured.MakeDeviceID("gpu.example.com", "node-a", name)
+}
+
+func TestBuildAllocations(t *testing.T) {
+	claims := load(t, "allocations.yaml").ResourceClaims
+
+	t.Run("consumable capacity on", func(t *testing.T) {
+		a := BuildAllocations(claims, true)
+
+		wantDedicated := []string{gpu("gpu-0").String(), gpu("gpu-2").String(), gpu("gpu-3").String()}
+		var gotDedicated []string
+		for id := range a.State.AllocatedDevices {
+			gotDedicated = append(gotDedicated, id.String())
+		}
+		slices.Sort(gotDedicated)
+		if !slices.Equal(gotDedicated, wantDedicated) {
+			t.Errorf("dedicated devices:\n got %v\nwant %v", gotDedicated, wantDedicated)
+		}
+		if n := a.State.AllocatedSharedDeviceIDs.Len(); n != 2 {
+			t.Errorf("shared device IDs: got %d, want 2", n)
+		}
+		if q := a.State.AggregatedCapacity[gpu("gpu-1")]["memory"]; q == nil || q.String() != "30Gi" {
+			t.Errorf("aggregated memory on gpu-1: got %v, want 30Gi", q)
+		}
+
+		for dev, want := range map[string]bool{"gpu-0": true, "gpu-1": true, "gpu-2": true, "gpu-3": true, "gpu-4": false, "gpu-9": false} {
+			if got := a.InUse(gpu(dev)); got != want {
+				t.Errorf("InUse(%s): got %v, want %v", dev, got, want)
+			}
+		}
+	})
+
+	t.Run("consumable capacity off", func(t *testing.T) {
+		a := BuildAllocations(claims, false)
+		if !a.State.AllocatedDevices.Has(gpu("gpu-1")) {
+			t.Error("gpu-1 should count as dedicated when consumable capacity is off")
+		}
+		if n := a.State.AllocatedSharedDeviceIDs.Len(); n != 0 {
+			t.Errorf("shared device IDs: got %d, want 0", n)
+		}
+	})
+
+	t.Run("holders", func(t *testing.T) {
+		a := BuildAllocations(claims, true)
+
+		h := a.Holders(gpu("gpu-0"))
+		if len(h) != 2 {
+			t.Fatalf("gpu-0 holders: got %d, want 2", len(h))
+		}
+		if h[0].Claim.Name != "dedicated" || h[0].AdminAccess {
+			t.Errorf("gpu-0 first holder: got %s admin=%v, want dedicated admin=false", h[0].Claim.Name, h[0].AdminAccess)
+		}
+		if h[1].Claim.Name != "monitor" || !h[1].AdminAccess {
+			t.Errorf("gpu-0 second holder: got %s admin=%v, want monitor admin=true", h[1].Claim.Name, h[1].AdminAccess)
+		}
+
+		p := a.Holders(gpu("gpu-2"))
+		if len(p) != 1 || p[0].Request != "gpu" || p[0].SubRequest != "large" {
+			t.Errorf("gpu-2 holder: got %+v, want request gpu, subrequest large", p)
+		}
+
+		o := a.Holders(gpu("gpu-3"))
+		if len(o) != 1 || o[0].Claim.Namespace != "team-b" {
+			t.Errorf("gpu-3 holder: got %+v, want the claim in team-b", o)
+		}
+
+		if s := a.Holders(gpu("gpu-1")); len(s) != 2 || s[0].ShareID == nil {
+			t.Errorf("gpu-1 holders: got %+v, want two shared holders", s)
+		}
+	})
+}
+
+func TestDevices(t *testing.T) {
+	s := load(t, "devices.yaml")
+	infos := Devices(Pools(s.ResourceSlices), BuildAllocations(s.ResourceClaims, true), s.DeviceTaintRules)
+
+	type want struct {
+		status  DeviceStatus
+		taints  []string
+		holders int
+		reason  string
+	}
+	wants := map[string]want{
+		"gpu.example.com/node-a/gpu-0": {status: DeviceAllocated, holders: 1},
+		"gpu.example.com/node-a/gpu-1": {status: DeviceTainted, taints: []string{"example.com/maintenance:NoSchedule"}},
+		"gpu.example.com/node-a/gpu-2": {status: DeviceTainted, taints: []string{"example.com/drain:NoExecute (drain-gpu-2)"}},
+		"gpu.example.com/node-a/gpu-3": {status: DeviceFree, taints: []string{"example.com/ecc-warning=1:None"}, holders: 1},
+		"gpu.example.com/node-b/gpu-0": {status: DeviceUnavailable, reason: "pool is incomplete (1 of 2 slices)"},
+		"net.example.com/fabric/nic-0": {status: DeviceShared, holders: 2},
+	}
+	if len(infos) != len(wants) {
+		t.Fatalf("got %d devices, want %d", len(infos), len(wants))
+	}
+	for _, d := range infos {
+		w, ok := wants[d.ID.String()]
+		if !ok {
+			t.Errorf("unexpected device %s", d.ID)
+			continue
+		}
+		var taints []string
+		for _, tn := range d.Taints {
+			taints = append(taints, tn.String())
+		}
+		if d.Status != w.status || d.Reason != w.reason || len(d.Holders) != w.holders || !slices.Equal(taints, w.taints) {
+			t.Errorf("%s: got status=%s reason=%q holders=%d taints=%v, want status=%s reason=%q holders=%d taints=%v",
+				d.ID, d.Status, d.Reason, len(d.Holders), taints, w.status, w.reason, w.holders, w.taints)
+		}
+	}
+}
+
+func TestMapClaims(t *testing.T) {
+	s := load(t, "map.yaml")
+	m := MapClaims(s.Pods, s.ResourceClaims)
+
+	consumers := make(map[string][]string)
+	for _, use := range m.Claims {
+		var cs []string
+		for _, c := range use.Consumers {
+			str := c.String()
+			if c.Reserved {
+				str += " reserved"
+			}
+			if c.Pod != nil {
+				str += " +pod"
+			}
+			cs = append(cs, str)
+		}
+		consumers[use.Claim.Namespace+"/"+use.Claim.Name] = cs
+	}
+	want := map[string][]string{
+		"team-a/big":          {"pod/big +pod"},
+		"team-a/orphan":       nil,
+		"team-a/prio":         {"pod/prio reserved +pod"},
+		"team-a/shared-nic":   {"pod/web-1 reserved +pod", "pod/web-2 reserved +pod"},
+		"team-a/train-gpu-x1": {"pod/train reserved +pod"},
+		"team-a/workload":     {"podgroups/train-group reserved"},
+		"team-b/other":        {"pod/other reserved +pod"},
+	}
+	if len(consumers) != len(want) {
+		t.Errorf("claims: got %d, want %d", len(consumers), len(want))
+	}
+	for claim, w := range want {
+		if got := consumers[claim]; !slices.Equal(got, w) {
+			t.Errorf("%s consumers: got %v, want %v", claim, got, w)
+		}
+	}
+
+	var missing []string
+	for _, mc := range m.Missing {
+		missing = append(missing, mc.Pod.Name+": "+mc.ClaimName+": "+mc.Reason)
+	}
+	wantMissing := []string{
+		"not-yet: : not created yet from ResourceClaimTemplate one-gpu",
+		"typo: does-not-exist: ResourceClaim not found",
+	}
+	if !slices.Equal(missing, wantMissing) {
+		t.Errorf("missing:\n got %q\nwant %q", missing, wantMissing)
+	}
+}
+
+func TestMapClaimsOwnerAndStaleReservation(t *testing.T) {
+	s := load(t, "map.yaml")
+
+	// A generated claim not owned by the pod is not the pod's claim.
+	for _, c := range s.ResourceClaims {
+		if c.Name == "train-gpu-x1" {
+			c.OwnerReferences = nil
+		}
+	}
+	// A reservation for a pod that has since been recreated (new UID) must
+	// not attach the new pod.
+	for _, p := range s.Pods {
+		if p.Name == "prio" {
+			p.UID = "00000000-0000-0000-0000-00000000ffff"
+		}
+	}
+	m := MapClaims(s.Pods, s.ResourceClaims)
+
+	var sawTrain bool
+	for _, mc := range m.Missing {
+		if mc.Pod.Name == "train" && strings.Contains(mc.Reason, "Pod is not owner") {
+			sawTrain = true
+		}
+	}
+	if !sawTrain {
+		t.Errorf("want train's claim reported as not owned by the pod, got %+v", m.Missing)
+	}
+	for _, use := range m.Claims {
+		if use.Claim.Name != "prio" {
+			continue
+		}
+		// The new pod references the claim but is not reserved; the old
+		// reservation stays a separate entry without a pod.
+		var current, stale int
+		for _, c := range use.Consumers {
+			switch {
+			case c.Pod != nil && !c.Reserved:
+				current++
+			case c.Pod == nil && c.Reserved:
+				stale++
+			}
+		}
+		if len(use.Consumers) != 2 || current != 1 || stale != 1 {
+			t.Errorf("prio consumers: got %+v, want the new pod unreserved and the stale reservation apart", use.Consumers)
+		}
+	}
+}
+
+func TestNodes(t *testing.T) {
+	s := load(t, "nodes.yaml")
+	pools := Pools(s.ResourceSlices)
+	devices := Devices(pools, BuildAllocations(s.ResourceClaims, true), s.DeviceTaintRules)
+	summaries, err := Nodes(s.Nodes, s.Pods, pools, devices)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	type want struct {
+		exists                             bool
+		devices, allocated, free, tainted  int
+		unavailable, reachable, pluginPods int
+		issues                             []string
+	}
+	wants := []struct {
+		name string
+		want
+	}{
+		{"cpu-1", want{exists: true, reachable: 2, pluginPods: 1}},
+		{"gpu-1", want{exists: true, devices: 4, allocated: 1, free: 2, tainted: 1, reachable: 2, pluginPods: 2}},
+		{"gpu-2", want{exists: true, reachable: 2, pluginPods: 2, issues: []string{
+			"kubelet plugin pod dra-driver/gpu-plugin-b is not Ready",
+			"DaemonSet dra-driver/gpu-plugin (dra-driver/gpu-plugin-b) seems to be the kubelet plugin for gpu.example.com, but no gpu.example.com ResourceSlice names this node",
+		}}},
+		{"gpu-3", want{exists: true, devices: 2, free: 2, reachable: 2, pluginPods: 2, issues: []string{
+			"node is NotReady; its ResourceSlices may be stale",
+		}}},
+		{"gpu-4", want{exists: true, devices: 1, unavailable: 1, reachable: 2, pluginPods: 2, issues: []string{
+			"pool gpu.example.com/gpu-4 is Incomplete (1 of 2 slices)",
+		}}},
+		{"gone-node", want{devices: 1, free: 1, issues: []string{
+			"node does not exist; its ResourceSlices are left over",
+		}}},
+	}
+	if len(summaries) != len(wants) {
+		var names []string
+		for _, s := range summaries {
+			names = append(names, s.Name)
+		}
+		t.Fatalf("got nodes %v, want %d", names, len(wants))
+	}
+	for i, w := range wants {
+		got := summaries[i]
+		if got.Name != w.name {
+			t.Errorf("node %d: got %s, want %s", i, got.Name, w.name)
+			continue
+		}
+		g := want{
+			exists: got.Node != nil, devices: got.Devices, allocated: got.Allocated, free: got.Free, tainted: got.Tainted,
+			unavailable: got.Unavailable, reachable: got.Reachable, pluginPods: len(got.PluginPods), issues: got.Issues,
+		}
+		if !reflect.DeepEqual(g, w.want) {
+			t.Errorf("%s:\n got %+v\nwant %+v", w.name, g, w.want)
+		}
+	}
+}
+
+// nodeIssues runs Nodes and returns the issues per node name.
+func nodeIssues(t *testing.T, s *Snapshot) map[string][]string {
+	t.Helper()
+	pools := Pools(s.ResourceSlices)
+	devices := Devices(pools, BuildAllocations(s.ResourceClaims, true), s.DeviceTaintRules)
+	summaries, err := Nodes(s.Nodes, s.Pods, pools, devices)
+	if err != nil {
+		t.Fatal(err)
+	}
+	issues := make(map[string][]string)
+	for _, sum := range summaries {
+		issues[sum.Name] = sum.Issues
+	}
+	return issues
+}
+
+func TestNodesPluginMatching(t *testing.T) {
+	t.Run("CSI plugin alone is never taken for a DRA driver", func(t *testing.T) {
+		s := load(t, "nodes.yaml")
+		s.Pods = slices.DeleteFunc(s.Pods, func(p *corev1.Pod) bool { return strings.HasPrefix(p.Name, "gpu-plugin-") })
+		for node, issues := range nodeIssues(t, s) {
+			for _, issue := range issues {
+				if strings.Contains(issue, "kubelet plugin") {
+					t.Errorf("%s: unexpected plugin issue %q", node, issue)
+				}
+			}
+		}
+	})
+
+	t.Run("a mounted plugins/<driver> directory names the driver directly", func(t *testing.T) {
+		s := load(t, "nodes.yaml")
+		for _, p := range s.Pods {
+			if strings.HasPrefix(p.Name, "gpu-plugin-") {
+				p.Spec.Volumes = append(p.Spec.Volumes, corev1.Volume{
+					Name:         "data",
+					VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins/gpu.example.com"}},
+				})
+			}
+		}
+		want := "DaemonSet dra-driver/gpu-plugin (dra-driver/gpu-plugin-b) is the kubelet plugin for gpu.example.com, but no gpu.example.com ResourceSlice names this node"
+		if got := nodeIssues(t, s)["gpu-2"]; !slices.Contains(got, want) {
+			t.Errorf("gpu-2 issues: got %q, want one of them to be %q", got, want)
+		}
+	})
+
+	t.Run("a tie between candidates only flags nodes both run on", func(t *testing.T) {
+		s := load(t, "nodes.yaml")
+		// A second plugin DaemonSet on gpu-1, gpu-3, gpu-4 and cpu-1 ties
+		// with gpu-plugin (four nodes each). They share no node without
+		// slices, so nothing may be flagged.
+		for _, node := range []string{"gpu-1", "gpu-3", "gpu-4", "cpu-1"} {
+			s.Pods = append(s.Pods, &corev1.Pod{
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "other-" + node, Namespace: "other",
+					OwnerReferences: []metav1.OwnerReference{{APIVersion: "apps/v1", Kind: "DaemonSet", Name: "other", UID: "o1", Controller: ptr.To(true)}},
+				},
+				Spec: corev1.PodSpec{NodeName: node, Volumes: []corev1.Volume{{
+					Name:         "registry",
+					VolumeSource: corev1.VolumeSource{HostPath: &corev1.HostPathVolumeSource{Path: "/var/lib/kubelet/plugins_registry"}},
+				}}},
+				Status: corev1.PodStatus{Phase: corev1.PodRunning, Conditions: []corev1.PodCondition{{Type: corev1.PodReady, Status: corev1.ConditionTrue}}},
+			})
+		}
+		for node, issues := range nodeIssues(t, s) {
+			for _, issue := range issues {
+				if strings.Contains(issue, "ResourceSlice names this node") {
+					t.Errorf("%s: unexpected issue %q", node, issue)
+				}
+			}
+		}
+	})
+}
+
+func TestNaturalLess(t *testing.T) {
+	// Equal values tie-break on the shorter digit run: nic-1 before nic-01.
+	sorted := []string{"gpu-0", "gpu-1", "gpu-2", "gpu-9", "gpu-10", "gpu-11", "gpu-100", "mig-1g.10gb-0", "nic", "nic-0", "nic-1", "nic-01"}
+	shuffled := []string{"gpu-10", "nic-1", "gpu-2", "mig-1g.10gb-0", "gpu-100", "gpu-0", "nic", "gpu-11", "nic-01", "gpu-9", "nic-0", "gpu-1"}
+	slices.SortFunc(shuffled, func(a, b string) int {
+		switch {
+		case NaturalLess(a, b):
+			return -1
+		case NaturalLess(b, a):
+			return 1
+		}
+		return 0
+	})
+	if !slices.Equal(shuffled, sorted) {
+		t.Errorf("got  %v\nwant %v", shuffled, sorted)
+	}
+}
+
+func TestPoolDevicesSorted(t *testing.T) {
+	// A driver that publishes gpu-2..gpu-11 then gpu-0, gpu-1, as the NVIDIA
+	// driver did on a real node.
+	order := []string{"gpu-2", "gpu-10", "gpu-11", "gpu-3", "gpu-0", "gpu-1"}
+	slice := &resourceapi.ResourceSlice{}
+	slice.Name = "s"
+	slice.Spec.Driver = "gpu.example.com"
+	slice.Spec.Pool = resourceapi.ResourcePool{Name: "p", Generation: 1, ResourceSliceCount: 1}
+	for _, n := range order {
+		slice.Spec.Devices = append(slice.Spec.Devices, resourceapi.Device{Name: n})
+	}
+	var got []string
+	for _, d := range Pools([]*resourceapi.ResourceSlice{slice})[0].Devices() {
+		got = append(got, d.Device.Name)
+	}
+	want := []string{"gpu-0", "gpu-1", "gpu-2", "gpu-3", "gpu-10", "gpu-11"}
+	if !slices.Equal(got, want) {
+		t.Errorf("got %v, want %v", got, want)
+	}
+}
+
+func TestNodeScope(t *testing.T) {
+	s := load(t, "pools.yaml")
+
+	tests := []struct {
+		device string // driver/pool/device
+		scope  string
+		nodes  []string
+	}{
+		{device: "gpu.example.com/node-a/gpu-0", scope: "node-a", nodes: []string{"node-a"}},
+		{device: "net.example.com/fabric/nic-0", scope: "all nodes", nodes: []string{"node-a", "node-b"}},
+		{device: "storage.example.com/zone-a/vol-0", scope: "topology.kubernetes.io/zone In (a)", nodes: []string{"node-a"}},
+		{device: "link.example.com/rack-r1/link-0", scope: "node-a", nodes: []string{"node-a"}},
+		{device: "link.example.com/rack-r1/link-1", scope: "all nodes", nodes: []string{"node-a", "node-b"}},
+		{device: "link.example.com/rack-r1/link-2", scope: "example.com/rack Exists", nodes: []string{"node-a"}},
+	}
+
+	refs := make(map[string]DeviceRef)
+	for _, p := range Pools(s.ResourceSlices) {
+		for _, d := range p.Devices() {
+			refs[d.ID.String()] = d
+		}
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.device, func(t *testing.T) {
+			ref, ok := refs[tt.device]
+			if !ok {
+				t.Fatalf("device %s not found", tt.device)
+			}
+			scope := ScopeOf(ref.Slice, ref.Device)
+			if !scope.Known() {
+				t.Error("scope should be known")
+			}
+			if got := scope.String(); got != tt.scope {
+				t.Errorf("String: got %q, want %q", got, tt.scope)
+			}
+			nodes, err := scope.Nodes(s.Nodes)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !slices.Equal(nodes, tt.nodes) {
+				t.Errorf("Nodes: got %v, want %v", nodes, tt.nodes)
+			}
+		})
+	}
+
+	if (NodeScope{}).Known() || (NodeScope{}).String() != "unknown" {
+		t.Error("an empty scope should be unknown")
+	}
+}

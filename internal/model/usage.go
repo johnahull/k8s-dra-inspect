@@ -21,6 +21,7 @@ type UsageScope struct {
 	Reason        string // why, when not Available
 	Namespace     string // claims and pods were limited to this namespace
 	PodsAvailable bool   // false: only reservedFor pods are known
+	ForeignClaims bool   // true: outside namespace allocations are known but names masked
 }
 
 func sortedUnique(v []string) []string {
@@ -67,7 +68,15 @@ func PodsUsing(snap Snapshot, c resourcev1.ResourceClaim) []string {
 // claims.
 func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
 	sc := UsageScope{Namespace: snap.Namespace, PodsAvailable: snap.Collection["pods"].State == StateOK}
+	collection := "resourceclaims"
 	st := snap.Collection["resourceclaims"]
+	if snap.Namespace != "" {
+		if st.State == StateOK {
+			st = snap.Collection["globalallocations"]
+			collection = "globalallocations"
+		}
+		sc.ForeignClaims = snap.Collection["globalallocations"].State == StateOK
+	}
 	if st.State != StateOK {
 		sc.Reason = st.Reason
 		if sc.Reason == "" {
@@ -75,7 +84,7 @@ func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
 			if state == "" {
 				state = "not collected"
 			}
-			sc.Reason = "resourceclaims collection state: " + state
+			sc.Reason = collection + " collection state: " + state
 		}
 		return map[DeviceKey]Usage{}, sc
 	}
@@ -106,6 +115,20 @@ func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
 		slices.Sort(u.Claims)
 		u.Pods = sortedUnique(u.Pods)
 		out[k] = u
+	}
+	if snap.Namespace != "" {
+		for _, allocation := range snap.GlobalAllocations {
+			for _, result := range allocation.Devices.Results {
+				k := DeviceKey{result.Driver, result.Pool, result.Device}
+				u := out[k]
+				if !slices.Contains(u.Claims, "allocated outside namespace") {
+					u.Claims = append(u.Claims, "allocated outside namespace")
+				}
+				slices.Sort(u.Claims)
+				u.Pods = sortedUnique(u.Pods)
+				out[k] = u
+			}
+		}
 	}
 	return out, sc
 }

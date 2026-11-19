@@ -13,7 +13,9 @@ import (
 	"strings"
 	"testing"
 
+	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/snapshot"
@@ -185,6 +187,46 @@ func TestScope(t *testing.T) {
 	}
 	if empty, err := snapshot.Scope(scoped, ""); err != nil || empty.Namespace != ns {
 		t.Fatalf("empty ns must keep file scope: %v %q", err, empty.Namespace)
+	}
+}
+
+func TestScopeKeepsMaskedForeignAllocationSummary(t *testing.T) {
+	claim := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "other", Name: "secret-claim"},
+		Status: resourcev1.ResourceClaimStatus{Allocation: &resourcev1.AllocationResult{
+			NodeSelector: &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{}}},
+			Devices:      resourcev1.DeviceAllocationResult{Results: []resourcev1.DeviceRequestAllocationResult{{Driver: "d", Pool: "p", Device: "gpu"}}},
+		}}}
+	s := model.Snapshot{Collection: map[string]model.CollectionStatus{"resourceclaims": {State: model.StateOK}}, ResourceClaims: []resourcev1.ResourceClaim{claim}}
+	got, err := snapshot.Scope(s, "team-a")
+	if err != nil || len(got.ResourceClaims) != 0 || len(got.GlobalAllocations) != 1 || got.GlobalAllocations[0].NodeSelector != nil {
+		t.Fatalf("scope=%+v err=%v", got, err)
+	}
+	if got.Collection["globalallocations"].State != model.StateOK {
+		t.Fatalf("global allocation status = %+v", got.Collection)
+	}
+}
+
+func TestScopeFiltersEventsToNamespace(t *testing.T) {
+	s := fixture(t)
+	s.Collection["resourceclaims"] = model.CollectionStatus{State: model.StateOK}
+	s.Collection["events"] = model.CollectionStatus{State: model.StateOK}
+	s.Events = []corev1.Event{
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "a"}},
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "other", Name: "b"}},
+		{ObjectMeta: metav1.ObjectMeta{Name: "c"}, InvolvedObject: corev1.ObjectReference{Namespace: "team-a"}},
+		{ObjectMeta: metav1.ObjectMeta{Namespace: "other", Name: "d"}, InvolvedObject: corev1.ObjectReference{Namespace: "team-a"}},
+	}
+	got, err := snapshot.Scope(s, "team-a")
+	if err != nil || len(got.Events) != 2 {
+		t.Fatalf("scoped events = %d, err=%v", len(got.Events), err)
+	}
+	for _, event := range got.Events {
+		if event.Namespace != "team-a" && event.InvolvedObject.Namespace != "team-a" {
+			t.Errorf("event leaked: %+v", event)
+		}
+	}
+	if reason := got.Collection["events"].Reason; reason != "namespace team-a only" {
+		t.Fatalf("events collection reason = %q", reason)
 	}
 }
 

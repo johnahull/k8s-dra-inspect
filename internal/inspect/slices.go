@@ -37,6 +37,8 @@ func Slices() Inspector {
 				switch {
 				case s.Spec.Pool.Generation != ps.Gen:
 					state = "stale"
+				case ps.Invalid:
+					state, status = "invalid", model.StatusWarn
 				case ps.Incomplete:
 					state, status = "incomplete", model.StatusWarn
 				}
@@ -50,12 +52,18 @@ func Slices() Inspector {
 					"deviceCount":       len(s.Spec.Devices),
 					"sharedCounterSets": len(s.Spec.SharedCounters),
 				}
-				if state == "incomplete" {
+				switch state {
+				case "incomplete":
 					det["reason"] = incompleteReason(s.Spec.Pool.Name)
+				case "invalid":
+					det["reason"] = invalidGenerationReason(s.Spec.Pool.Name)
 				}
 				res := model.Result{Check: check, Status: status, Subject: s.Name, Details: det}
-				if state == "incomplete" {
+				switch state {
+				case "incomplete":
 					res.Findings = incompleteFinding(s.Spec.Pool.Name)
+				case "invalid":
+					res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidGenerationReason(s.Spec.Pool.Name), Items: []string{s.Spec.Pool.Name}}}
 				}
 				out = append(out, res)
 			}

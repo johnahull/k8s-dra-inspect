@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	resourcev1 "k8s.io/api/resource/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
@@ -59,6 +60,13 @@ func need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bo
 			Findings: []model.Finding{{Status: model.StatusUnavailable, Kind: model.KindUnavailable, Text: reason}}}}, true
 	}
 	return nil, false
+}
+
+func needAllocations(snap model.Snapshot, check string) ([]model.Result, bool) {
+	if snap.Namespace != "" {
+		return need(snap, check, "resourceclaims", "globalallocations")
+	}
+	return need(snap, check, "resourceclaims")
 }
 
 func single(check string, st model.Status, subject, reason string) []model.Result {
@@ -139,6 +147,12 @@ func allocated(snap model.Snapshot) []resourcev1.ResourceClaim {
 		if c.Status.Allocation != nil {
 			out = append(out, c)
 		}
+	}
+	for i := range snap.GlobalAllocations {
+		out = append(out, resourcev1.ResourceClaim{
+			ObjectMeta: metav1.ObjectMeta{Namespace: "outside namespace", Name: "allocation"},
+			Status:     resourcev1.ResourceClaimStatus{Allocation: snap.GlobalAllocations[i].DeepCopy()},
+		})
 	}
 	return out
 }

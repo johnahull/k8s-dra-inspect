@@ -36,16 +36,17 @@ dra-inspect inspect slices | topology [--compact] | drivers [--attributes]
 dra-inspect inspect attributes [--topology] [--include-capacity]
 dra-inspect inspect deviceclasses [--selector LABEL_SELECTOR]
 dra-inspect inspect claims
+dra-inspect inspect map | devices | pools | nodes
 
 dra-inspect check alignment [POD|CLAIM]
-dra-inspect check counters | capacity | topology
+dra-inspect check counters | capacity | topology | why [CLAIM|pod/POD]
 dra-inspect check cpupinning POD [--host-root PATH] [--node-name NAME]
 dra-inspect check vfio [--host-root PATH] [--node-name NAME]
 dra-inspect check kubevirt [VMI]
 
 dra-inspect report cluster
 dra-inspect report support [--host-root PATH] [--node-name NAME]
-dra-inspect snapshot capture [--file FILE] [--force] [--no-redact] [--with-adapters]
+dra-inspect snapshot capture [--file FILE] [--force] [--no-redact] [--with-adapters] [--with-events] [--with-node-plugins]
 dra-inspect completion bash|zsh|fish
 dra-inspect version
 ```
@@ -180,6 +181,19 @@ Details: run the individual check or inspect commands, or use -o json.
 
 The same checks print flat rows with `-o table`, and JSON with `-o json`.
 These samples are checked against the real output by a test.
+
+`inspect map` maps pods to claims, `inspect devices` shows allocation and
+taint state, `inspect pools` summarizes the newest pool generations, and
+`inspect nodes` compares node plugin pods with published devices. `check why`
+explains one claim or a pod's claims; `check why --no-redact` includes full
+Event and PodScheduled messages. These commands use the same pure analysis
+code as kubectl-dra, adapted to dra-inspect snapshots. Namespace-filtered
+device and capacity checks include allocations from other namespaces while
+masking their claim names; clusterwide pod evidence for `inspect nodes` is
+collected only for that command or with `snapshot capture --with-node-plugins`.
+`check why` collects Events only for that command. Event messages are omitted
+unless `--no-redact` is supplied; `snapshot capture --with-events` follows the
+same snapshot redaction rule.
 
 The parent groups `inspect`, `check`, `report` and `snapshot` without a
 subcommand print help and exit 0.

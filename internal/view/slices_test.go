@@ -50,8 +50,9 @@ func TestSlicesDeviceLabelAndFreeDevices(t *testing.T) {
 func TestSlicesNamespaceScopeAnnotated(t *testing.T) {
 	snap := fx(t, "classes-claims")
 	snap.Namespace = "demo"
+	snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
 	got := slicesOut(t, snap)
-	if !hasLine(got, "  gpu.example.com (2 devices, 2 in use (namespace demo only))") {
+	if !hasLine(got, "  gpu.example.com (2 devices, 2 in use (view filtered to namespace demo; external allocations included))") {
 		t.Errorf("scope not annotated:\n%s", got)
 	}
 	if strings.Contains(got, " free") {
@@ -108,16 +109,16 @@ func TestSlicesStaleAndIncompleteGenerations(t *testing.T) {
 		t.Errorf("stale line missing:\n%s", got)
 	}
 
-	// Generation 2 lists 2 slices but only 1 was seen: generation 1 stays current.
+	// Generation 2 lists 2 slices but only 1 was seen: it is still current and unusable.
 	snap = fx(t, "classes-claims")
 	g2 = *snap.ResourceSlices[0].DeepCopy()
 	g2.Name = "gpu-node-a-new"
 	g2.Spec.Pool.Generation, g2.Spec.Pool.ResourceSliceCount = 2, 2
 	snap.ResourceSlices = append(snap.ResourceSlices, g2)
 	got = slicesOut(t, snap)
-	want := "! slice gpu-node-a-new (generation 2) is ignored: newer than current generation 1 but incomplete (1 of 2 slices observed)"
+	want := "! slice gpu-node-a-new (generation 2): pool node-a.example.com has 1 of 2 slices for its newest generation"
 	if !hasLine(got, "  "+want) {
-		t.Errorf("newer-incomplete line missing:\n%s", got)
+		t.Errorf("incomplete newest-generation line missing:\n%s", got)
 	}
 
 	// No complete generation at all: the newest is shown and flagged.

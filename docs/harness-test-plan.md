@@ -146,6 +146,10 @@ Accept: the driver pod is `Running` and the device count is greater than zero.
 B="$SCRATCH/dra-inspect --kubeconfig $KUBECONFIG"
 $B inspect slices -o json  | jq '.results | length'
 $B inspect drivers -o json | jq -r '.results[] | [.subject, .details.devices] | @tsv'
+$B inspect pools -o json | jq '.results | length'
+$B inspect devices -o json | jq '.results | length'
+$B inspect map -o json | jq '.results | length'
+$B inspect nodes -o json | jq '.results | length'
 $B inspect topology -o text; echo "exit=$?"     # the readable tree (the default mode)
 $B check alignment -o text; echo "exit=$?"
 $B report cluster -o json > "$SCRATCH/live-report.json"; echo "exit=$?"
@@ -159,6 +163,14 @@ carry the same groups; a missing PCIe-root warning is emitted only when another
 device in the same pool publishes a valid root. Exit codes are 0 (warn does not
 fail).
 
+The new inspectors return results from the same captured state: `map` links pod
+references to claims, `devices` reports current allocation/taint state, `pools`
+uses only each pool's newest generation, and `nodes` compares plugin pods with
+published devices. `check why CLAIM` and `check why pod/POD` exercise the
+allocator explanation path. A pending claim should return a verdict and
+request funnel; `inspect nodes` collects `nodepluginpods` only when invoked (or
+when requested during snapshot capture).
+
 Output modes: the readable `-o text` is the default and is what a person runs;
 `-o table` (flat rows) and `-o json` are what scripts and the comparisons below
 use. `hack/live-apiserver.sh` and `hack/live-kind.sh` name the mode on every
@@ -170,24 +182,33 @@ lines they grep.
 
 Apply the driver's own demo manifest for one GPU (its `gpu-test1`-style example
 at the pinned tag; record the file), wait for the pod `Running`.
+Set `WHY_TARGET` to the ResourceClaim name created by that manifest before
+running the commands below.
 
 ```bash
+export WHY_TARGET='<claim-name-from-manifest>'
 $B inspect claims -o json | jq '.results[] | {subject, allocated: .details.allocated, usedBy: .details.usedBy}'
 $B check alignment -o json | jq '.results[] | {subject, status}'
+$B check why "$WHY_TARGET" -o json | jq '.results[].details | {verdict, summary}'
 ```
 
 Accept: the claim is `allocated: true` with the pod in `usedBy`; its alignment
-status is `pass` (single device) with exit 0.
+status is `pass` (single device) with exit 0. Confirm `check why` returns an
+allocator verdict. `pod/<pod-name>` should produce one explanation per
+referenced claim.
 
 ### 6. Capture and replay equality
 
 ```bash
-$B snapshot capture --file "$SCRATCH/snap.json"
-for c in "inspect slices" "inspect drivers" "inspect claims" "check alignment" "check counters"; do
+$B snapshot capture --with-events --with-node-plugins --file "$SCRATCH/snap.json"
+for c in "inspect slices" "inspect drivers" "inspect claims" "inspect map" "inspect devices" "inspect pools" "inspect nodes" "check alignment" "check counters"; do
   $B $c -o json | jq -S 'del(.generatedAt, .source)' > "$SCRATCH/live.json"
   $SCRATCH/dra-inspect $c --from "$SCRATCH/snap.json" -o json | jq -S 'del(.generatedAt, .source)' > "$SCRATCH/replay.json"
   diff -q "$SCRATCH/live.json" "$SCRATCH/replay.json" || echo "DIFF in: $c"
 done
+$B check why "$WHY_TARGET" -o json | jq -S 'del(.generatedAt, .source)' > "$SCRATCH/live.json"
+$SCRATCH/dra-inspect check why "$WHY_TARGET" --from "$SCRATCH/snap.json" -o json | jq -S 'del(.generatedAt, .source)' > "$SCRATCH/replay.json"
+diff -q "$SCRATCH/live.json" "$SCRATCH/replay.json" || echo "DIFF in: check why"
 stat -c '%a' "$SCRATCH/snap.json"
 ```
 
@@ -219,7 +240,7 @@ triples equal the workstation `report cluster` from step 4.
 
 ```bash
 SA=system:serviceaccount:dra-inspect:dra-inspect
-for r in resourceslices.resource.k8s.io deviceclasses.resource.k8s.io resourceclaims.resource.k8s.io pods nodes; do
+for r in resourceslices.resource.k8s.io deviceclasses.resource.k8s.io resourceclaims.resource.k8s.io devicetaintrules.resource.k8s.io pods nodes events; do
   for v in get list; do echo "$v $r: $(kubectl auth can-i $v $r --as=$SA)"; done
   for v in create update patch delete deletecollection; do echo "$v $r: $(kubectl auth can-i $v $r --as=$SA)"; done
 done
@@ -247,7 +268,9 @@ kubectl auth can-i list resourceslices.resource.k8s.io --as=system:serviceaccoun
 ```
 
 Accept: the Job completes (exit 0 without `job.strict`); slice, DeviceClass and
-node based results are `unavailable`; no result claims cluster-wide coverage;
+node based results, `inspect devices`, `inspect pools`, and `check why` are
+`unavailable`; `inspect map` remains namespace-local; no result claims
+cluster-wide coverage;
 `can-i list resourceslices` prints `no`. Re-run with `--set job.strict=true`
 (after deleting the finished Job): the Job fails with exit 3.
 

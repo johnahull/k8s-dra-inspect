@@ -40,6 +40,8 @@ func sliceNote(d *decoder, snap model.Snapshot, sel map[model.PoolKey]model.Pool
 			return fmt.Sprintf("slice %s (generation %d) is ignored: newer than current generation %d but incomplete (%d of %d slices observed)", r.Subject, gen, cur, seen, want)
 		}
 		return fmt.Sprintf("slice %s (generation %d) is stale: pool %s is at generation %d", r.Subject, gen, pool, cur)
+	case "invalid":
+		return fmt.Sprintf("slice %s (generation %d): slices in pool %s disagree on resourceSliceCount", r.Subject, gen, pool)
 	case "incomplete":
 		return fmt.Sprintf("slice %s (generation %d): pool %s has %d of %d slices for its newest generation", r.Subject, gen, pool, seen, want)
 	}
@@ -169,7 +171,10 @@ func counts(devs []deviceRow, sc model.UsageScope) string {
 	}
 	s += fmt.Sprintf(", %d in use", in)
 	if sc.Namespace != "" {
-		return s + " (namespace " + sc.Namespace + " only)"
+		if sc.ForeignClaims {
+			return s + " (view filtered to namespace " + sc.Namespace + "; external allocations included)"
+		}
+		return s + " (view filtered to namespace " + sc.Namespace + ")"
 	}
 	return fmt.Sprintf("%s, %d free", s, len(devs)-in)
 }
@@ -185,6 +190,10 @@ func deviceLine(d deviceRow, numaW int, sc model.UsageScope) string {
 	}
 	b.WriteString(d.text)
 	if sc.Available && d.used {
+		if sc.Namespace != "" && slices.Contains(d.users.Claims, "allocated outside namespace") {
+			b.WriteString("  →allocated outside namespace")
+			return b.String()
+		}
 		if sc.PodsAvailable && len(d.users.Pods) > 0 { // without the pod list every arrow is a claim
 			b.WriteString("  →" + strings.Join(d.users.Pods, ", "))
 		} else {

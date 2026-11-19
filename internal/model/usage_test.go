@@ -113,6 +113,7 @@ func TestDeviceUsageClaimsForbidden(t *testing.T) {
 func TestDeviceUsageNamespaceAndPodsNotCollected(t *testing.T) {
 	snap := usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", []string{"rp"}, "gpu-0")}, nil)
 	snap.Namespace = "ns"
+	snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
 	snap.Collection["pods"] = model.CollectionStatus{State: model.StateForbidden}
 	u, sc := model.DeviceUsage(snap)
 	if sc.Namespace != "ns" || sc.PodsAvailable || !sc.Available {
@@ -120,6 +121,19 @@ func TestDeviceUsageNamespaceAndPodsNotCollected(t *testing.T) {
 	}
 	if got := u[key("gpu-0")].Pods; !reflect.DeepEqual(got, []string{"ns/rp"}) {
 		t.Errorf("reservedFor pods lost: %v", got)
+	}
+}
+
+func TestDeviceUsageIncludesMaskedOutsideNamespaceAllocation(t *testing.T) {
+	snap := usnap(nil, nil)
+	snap.Namespace = "team-a"
+	snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
+	snap.GlobalAllocations = []resourcev1.AllocationResult{{Devices: resourcev1.DeviceAllocationResult{
+		Results: []resourcev1.DeviceRequestAllocationResult{{Driver: "drv", Pool: "pool", Device: "gpu-0"}},
+	}}}
+	u, scope := model.DeviceUsage(snap)
+	if !scope.Available || !scope.ForeignClaims || !reflect.DeepEqual(u[key("gpu-0")].Claims, []string{"allocated outside namespace"}) {
+		t.Fatalf("scope=%+v usage=%+v", scope, u)
 	}
 }
 

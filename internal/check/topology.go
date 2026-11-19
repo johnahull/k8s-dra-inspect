@@ -86,6 +86,9 @@ func Topology() Check {
 			if sel[k].Incomplete {
 				warn(model.KindIncomplete, "pool has fewer ResourceSlices than expected for its newest generation (%d of %d)", p.slices, p.expected)
 			}
+			if sel[k].Invalid {
+				warn(model.KindInvalid, "slices in the newest generation disagree on resourceSliceCount")
+			}
 			det := map[string]any{
 				"generation": p.gen, "devices": p.devices, "slicesObserved": p.slices, "slicesExpected": p.expected,
 				"missingNUMA": nonNil(p.missingNUMA), "missingPCIeRoot": nonNil(p.missingPC), "conflicts": nonNil(p.conflicts),

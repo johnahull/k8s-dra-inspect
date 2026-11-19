@@ -132,9 +132,11 @@ func TestCollectTyped(t *testing.T) {
 }
 
 func TestCollectNamespaceScope(t *testing.T) {
-	cs := fake.NewClientset(slice("s1"), claim("a", "c1"), claim("b", "c2"), pod("a", "p1"), pod("b", "p2"),
+	foreign := claim("b", "c2")
+	foreign.Status.Allocation.NodeSelector = &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{MatchFields: []corev1.NodeSelectorRequirement{{Key: "metadata.name", Operator: corev1.NodeSelectorOpIn, Values: []string{"node-b"}}}}}}
+	cs := fake.NewClientset(slice("s1"), claim("a", "c1"), foreign, pod("a", "p1"), pod("b", "p2"),
 		&corev1.Node{ObjectMeta: metav1.ObjectMeta{Name: "node-a"}})
-	snap, err := newLive(cs).Collect(context.Background(), Scope{Namespace: "a"})
+	snap, err := newLive(cs).Collect(context.Background(), Scope{Namespace: "a", NodePlugins: true, Events: true})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,6 +157,16 @@ func TestCollectNamespaceScope(t *testing.T) {
 	}
 	if snap.Collection["nodes"].Reason != "" {
 		t.Error("cluster-scoped reason must stay empty")
+	}
+	if snap.Collection["globalallocations"].State != model.StateOK || len(snap.GlobalAllocations) != 1 ||
+		snap.GlobalAllocations[0].NodeSelector != nil || len(snap.GlobalAllocations[0].Devices.Results) != 1 || snap.GlobalAllocations[0].Devices.Results[0].Request != "" {
+		t.Fatalf("foreign allocation summary = %+v", snap.GlobalAllocations)
+	}
+	if snap.Collection["nodepluginpods"].State != model.StateOK || len(snap.NodePluginPods) != 2 {
+		t.Errorf("node plugin evidence = %d, %v", len(snap.NodePluginPods), snap.Collection["nodepluginpods"])
+	}
+	if snap.Collection["events"].State != model.StateOK {
+		t.Errorf("events collection = %+v", snap.Collection["events"])
 	}
 }
 
