@@ -19,17 +19,24 @@
 | `attributes -a` | `inspect attributes` (add `--include-capacity` for capacities) |
 | `deviceclasses [pairs\|partitions\|aggregates]` | `inspect deviceclasses [--selector LABEL_SELECTOR]` |
 | `claims [-n NS]` | `inspect claims [-n NS]` |
+| (none) | `inspect map` (map pods to ResourceClaims) |
+| (none) | `inspect devices` (show allocation and taint state) |
+| (none) | `inspect pools` (summarize current pool generations) |
+| (none) | `inspect nodes` (compare node plugins with published devices) |
 | `alignment [POD] [-n NS]` | `check alignment [POD\|CLAIM] [-n NS]` |
 | `cpupinning [POD] [-n NS]` | `check cpupinning POD [-n NS] [--host-root PATH] [--node-name NAME]` (run on the node) |
 | `counters` | `check counters` |
 | `vfio` | `check vfio [--host-root PATH] [--node-name NAME]` (run on the node) |
+| (none) | `check why [CLAIM\|pod/POD]` (explain pending allocation) |
 | `all [-n NS]` | `report cluster` (API only) or `report support` (adds host and KubeVirt adapters) |
 | `help`, `-h`, `--help` | `dra-inspect --help`, `dra-inspect <group> --help` |
 | `completions`, `eval "$(dra-verify.sh completions)"` | `dra-inspect completion bash\|zsh\|fish`, for example `source <(dra-inspect completion bash)` |
 
-New commands with no legacy counterpart: `check capacity`, `check topology`,
-`check kubevirt [VMI]`, `snapshot capture`, and the global `--from FILE`
-replay.
+New commands with no legacy counterpart: `inspect map`, `inspect devices`,
+`inspect pools`, `inspect nodes`, `check capacity`, `check topology`,
+`check why [CLAIM|pod/POD]`, `check kubevirt [VMI]`, `snapshot capture`
+(`--with-events` and `--with-node-plugins` add replay evidence), and the
+global `--from FILE` replay.
 
 ### The text layout and the legacy sections
 
