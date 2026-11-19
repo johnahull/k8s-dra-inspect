@@ -324,6 +324,13 @@ Requirements:
 
 - Go 1.26.11 or newer
 
+Publishing a GitHub release triggers the Krew update workflow. It renders
+[`deploy/krew/dra.template.yaml`](deploy/krew/dra.template.yaml) using the
+published archives and opens an update PR in
+[krew-index](https://github.com/kubernetes-sigs/krew-index). The first Krew
+submission must be accepted before automatic updates can run. Krew users
+receive a new version after its index update merges.
+
 Run the checks with:
 
 ```bash
