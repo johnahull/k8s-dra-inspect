@@ -19,7 +19,7 @@ const NameCPUPinning = "check.cpupinning"
 // "ns/name"; namespace (-n) scopes a bare name.
 func CPUPinning(target, namespace string) Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameCPUPinning, "pods", "resourceslices", "resourceclaims"); ok {
+		if r, ok := Need(snap, NameCPUPinning, "pods", "resourceslices", "resourceclaims"); ok {
 			return r
 		}
 		ns, name := namespace, target

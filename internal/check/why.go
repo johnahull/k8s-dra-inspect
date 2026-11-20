@@ -20,7 +20,7 @@ func Why(ctx context.Context, snap model.Snapshot, target string) []model.Result
 		keys = append(keys, "globalallocations")
 	}
 	keys = append(keys, "devicetaintrules")
-	if r, ok := need(snap, name, keys...); ok {
+	if r, ok := Need(snap, name, keys...); ok {
 		return r
 	}
 	data := analyze.FromModel(snap)

@@ -339,7 +339,7 @@ func podClaims(p model.PodRef) []string {
 // status is the worst of its parts (error, fail, unavailable, warn, pass).
 func Alignment(target, namespace string) Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameAlignment, "resourceslices"); ok {
+		if r, ok := Need(snap, NameAlignment, "resourceslices"); ok {
 			return r
 		}
 		if r, ok := needAllocations(snap, NameAlignment); ok {
@@ -370,7 +370,7 @@ func Alignment(target, namespace string) Check {
 				}
 			}
 			podFound := false
-			if r, bad := need(snap, NameAlignment, "pods"); bad {
+			if r, bad := Need(snap, NameAlignment, "pods"); bad {
 				if len(want) == 0 {
 					return r
 				}

@@ -50,7 +50,7 @@ func KubeVirt(target, namespace string) Check {
 		built := false
 		for _, v := range vmis {
 			if len(v.HostDevices) > 0 && !built {
-				if r, bad := need(snap, NameKubeVirt, "resourceslices", "resourceclaims"); bad {
+				if r, bad := Need(snap, NameKubeVirt, "resourceslices", "resourceclaims"); bad {
 					return r
 				}
 				idx, built = model.NewAllocationDeviceIndex(snap), true

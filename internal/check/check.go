@@ -41,9 +41,9 @@ const (
 	NameWhy       = "check.why"
 )
 
-// need returns the single unavailable result for the first required
+// Need returns the single unavailable result for the first required
 // collection that was not collected, so a failed collection never reads as pass.
-func need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bool) {
+func Need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bool) {
 	for _, k := range keys {
 		st := snap.Collection[k]
 		if st.State == model.StateOK {
@@ -63,11 +63,17 @@ func need(snap model.Snapshot, check string, keys ...string) ([]model.Result, bo
 	return nil, false
 }
 
-func needAllocations(snap model.Snapshot, check string) ([]model.Result, bool) {
+// AllocationKeys lists the collections that together hold every allocation:
+// claims, plus the masked outside-namespace allocations when namespaced.
+func AllocationKeys(snap model.Snapshot) []string {
 	if snap.Namespace != "" {
-		return need(snap, check, "resourceclaims", "globalallocations")
+		return []string{"resourceclaims", "globalallocations"}
 	}
-	return need(snap, check, "resourceclaims")
+	return []string{"resourceclaims"}
+}
+
+func needAllocations(snap model.Snapshot, check string) ([]model.Result, bool) {
+	return Need(snap, check, AllocationKeys(snap)...)
 }
 
 func single(check string, st model.Status, subject, reason string) []model.Result {

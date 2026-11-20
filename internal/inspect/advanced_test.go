@@ -125,3 +125,14 @@ func TestClaimsMarksStaleReservation(t *testing.T) {
 		t.Fatalf("usedByState = %v", r.Details["usedByState"])
 	}
 }
+
+// Inspectors report a missing collection like checks do: with a
+// KindUnavailable finding, never as an empty pass.
+func TestInspectUnavailableCarriesFinding(t *testing.T) {
+	for name, in := range map[string]inspect.Inspector{"claims": inspect.Claims(), "pools": inspect.Pools(), "slices": inspect.Slices()} {
+		rs := in.Run(model.Snapshot{Collection: map[string]model.CollectionStatus{}})
+		if len(rs) != 1 || rs[0].Status != model.StatusUnavailable || len(rs[0].Findings) != 1 || rs[0].Findings[0].Kind != model.KindUnavailable {
+			t.Errorf("%s: %+v", name, rs)
+		}
+	}
+}

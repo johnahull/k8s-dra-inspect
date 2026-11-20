@@ -9,6 +9,7 @@ import (
 
 	resourcev1 "k8s.io/api/resource/v1"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/check"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -27,21 +28,14 @@ type Inspector struct {
 
 // unavailable returns the single result for a snapshot whose ResourceSlices
 // were not collected, so a failed collection never looks like an empty pass.
-func unavailable(snap model.Snapshot, check string) ([]model.Result, bool) {
-	return unavailableOf(snap, check, "resourceslices")
+func unavailable(snap model.Snapshot, name string) ([]model.Result, bool) {
+	return unavailableOf(snap, name, "resourceslices")
 }
 
-// unavailableOf is unavailable for any collection key.
-func unavailableOf(snap model.Snapshot, check, key string) ([]model.Result, bool) {
-	st := snap.Collection[key]
-	if st.State == model.StateOK {
-		return nil, false
-	}
-	reason := st.Reason
-	if reason == "" {
-		reason = key + " collection state: " + cmpState(st.State)
-	}
-	return []model.Result{{Check: check, Status: model.StatusUnavailable, Details: map[string]any{"reason": reason}}}, true
+// unavailableOf is check.Need: the unavailable result for the first of keys
+// that was not collected.
+func unavailableOf(snap model.Snapshot, name string, keys ...string) ([]model.Result, bool) {
+	return check.Need(snap, name, keys...)
 }
 
 func cmpState(s string) string {

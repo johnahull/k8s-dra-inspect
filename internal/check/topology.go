@@ -24,7 +24,7 @@ type topoPool struct {
 // Pool.ResourceSliceCount all warn. One result per driver/pool.
 func Topology() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameTopology, "resourceslices"); ok {
+		if r, ok := Need(snap, NameTopology, "resourceslices"); ok {
 			return r
 		}
 		cur, sel := model.CurrentSlices(snap)

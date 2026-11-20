@@ -33,7 +33,7 @@ type counterPool struct {
 // The legacy PCI-sibling correlation heuristic is deliberately not ported.
 func Counters() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameCounters, "resourceslices"); ok {
+		if r, ok := Need(snap, NameCounters, "resourceslices"); ok {
 			return r
 		}
 		if r, ok := needAllocations(snap, NameCounters); ok {
