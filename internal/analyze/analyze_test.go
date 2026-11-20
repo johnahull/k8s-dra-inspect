@@ -592,24 +592,6 @@ func TestNodesPluginMatching(t *testing.T) {
 	})
 }
 
-func TestNaturalLess(t *testing.T) {
-	// Equal values tie-break on the shorter digit run: nic-1 before nic-01.
-	sorted := []string{"gpu-0", "gpu-1", "gpu-2", "gpu-9", "gpu-10", "gpu-11", "gpu-100", "mig-1g.10gb-0", "nic", "nic-0", "nic-1", "nic-01"}
-	shuffled := []string{"gpu-10", "nic-1", "gpu-2", "mig-1g.10gb-0", "gpu-100", "gpu-0", "nic", "gpu-11", "nic-01", "gpu-9", "nic-0", "gpu-1"}
-	slices.SortFunc(shuffled, func(a, b string) int {
-		switch {
-		case NaturalLess(a, b):
-			return -1
-		case NaturalLess(b, a):
-			return 1
-		}
-		return 0
-	})
-	if !slices.Equal(shuffled, sorted) {
-		t.Errorf("got  %v\nwant %v", shuffled, sorted)
-	}
-}
-
 func TestPoolDevicesSorted(t *testing.T) {
 	// A driver that publishes gpu-2..gpu-11 then gpu-0, gpu-1, as the NVIDIA
 	// driver did on a real node.

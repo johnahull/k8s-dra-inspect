@@ -22,36 +22,6 @@ import (
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
-func isDigit(b byte) bool { return b >= '0' && b <= '9' }
-
-// run is the leading part of s made of digits (when digits) or of anything else.
-func run(s string, digits bool) string {
-	i := 0
-	for i < len(s) && isDigit(s[i]) == digits {
-		i++
-	}
-	return s[:i]
-}
-
-// cmpNatural orders strings with digit runs by number: pci0000:20 before
-// pci0000:100, and 2 before 10.
-func cmpNatural(a, b string) int {
-	for a != "" && b != "" {
-		da, db := isDigit(a[0]), isDigit(b[0])
-		ra, rb := run(a, da), run(b, db)
-		if da && db {
-			x, y := strings.TrimLeft(ra, "0"), strings.TrimLeft(rb, "0")
-			if c := cmp.Or(cmp.Compare(len(x), len(y)), cmp.Compare(x, y)); c != 0 {
-				return c
-			}
-		} else if c := cmp.Compare(ra, rb); c != 0 {
-			return c
-		}
-		a, b = a[len(ra):], b[len(rb):]
-	}
-	return cmp.Compare(len(a), len(b))
-}
-
 // cmpNum orders numeric strings numerically (2 before 10) and anything else
 // naturally, so mixed or non-numeric values still sort deterministically.
 func cmpNum(a, b string) int {
@@ -60,7 +30,7 @@ func cmpNum(a, b string) int {
 	if e1 == nil && e2 == nil {
 		return cmp.Compare(x, y)
 	}
-	return cmpNatural(a, b)
+	return model.CompareNatural(a, b)
 }
 
 // cmpList orders value lists element by element; a prefix sorts first.
