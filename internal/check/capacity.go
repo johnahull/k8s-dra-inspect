@@ -28,7 +28,7 @@ type capDevice struct {
 // recorded as consumed).
 func Capacity() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameCapacity, "resourceslices"); ok {
+		if r, ok := Need(snap, NameCapacity, "resourceslices"); ok {
 			return r
 		}
 		if r, ok := needAllocations(snap, NameCapacity); ok {

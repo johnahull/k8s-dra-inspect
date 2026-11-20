@@ -106,7 +106,7 @@ func addCheckCommands(parent *cobra.Command, opts *Options, d Deps) {
 			return check.Why(ctx, snap, target)
 		}
 	})
-	why.Flags().BoolVar(&noRedactEvents, "no-redact", false, "include full Event messages in the explanation")
+	why.Flags().BoolVar(&noRedactEvents, "no-redact", false, "include full Event and PodScheduled messages when the source has them (cannot restore messages removed from a redacted snapshot)")
 	add("kubevirt [VMI]", "Check KubeVirt VMI host devices against their DRA claims (derived from the snapshot's VMIs)", kubevirtHelp, view.KubeVirt, cobra.MaximumNArgs(1),
 		func(args []string) check.Check {
 			target := ""

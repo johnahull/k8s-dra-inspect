@@ -195,7 +195,7 @@ func TestCheckAlignmentArguments(t *testing.T) {
 	other.Namespace, other.Name = "other", "two-gpus"
 	snap.ResourceClaims = append(snap.ResourceClaims, *other)
 	snap.Pods = []model.PodRef{{Name: "app", Namespace: "demo",
-		ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "gpus", ResourceClaimName: ptr.To("two-gpus")}}}}
+		ResourceClaims: []corev1.PodResourceClaim{{Name: "gpus", ResourceClaimName: ptr.To("two-gpus")}}}}
 	subjects := func(args ...string) string {
 		out, _ := cmdRun(t, snap, append([]string{"check", "alignment", "-o", "json"}, args...)...)
 		var s []string

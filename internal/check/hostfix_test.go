@@ -39,7 +39,7 @@ func withHost(s model.Snapshot, ev host.Evidence) model.Snapshot {
 func podOn(ns, name, uid, node string, claims ...string) model.PodRef {
 	p := model.PodRef{Namespace: ns, Name: name, UID: types.UID(uid), NodeName: node}
 	for _, c := range claims {
-		p.ResourceClaimStatuses = append(p.ResourceClaimStatuses, corev1.PodResourceClaimStatus{Name: c, ResourceClaimName: ptr.To(c)})
+		p.ResourceClaims = append(p.ResourceClaims, corev1.PodResourceClaim{Name: c, ResourceClaimName: ptr.To(c)})
 	}
 	return p
 }

@@ -24,7 +24,7 @@ const vfioDriver = "vfio-pci"
 // classes (version 1) treats every peer alike.
 func VFIO() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameVFIO, "resourceslices", "resourceclaims"); ok {
+		if r, ok := Need(snap, NameVFIO, "resourceslices", "resourceclaims"); ok {
 			return r
 		}
 		ev, un, ok := loadHost(snap, NameVFIO)

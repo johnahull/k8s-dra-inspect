@@ -3,14 +3,14 @@ kind: List
 items:
 - apiVersion: v1
   kind: Pod
-  metadata: {name: virt-launcher-vm1-abcde, namespace: demo}
+  metadata: {name: virt-launcher-vm1-abcde, namespace: demo, uid: 00000000-0000-4000-8000-000000000001}
   spec:
     nodeName: node-a.example.com
     resourceClaims:
     - {name: gpu, resourceClaimName: shared-gpu}
 - apiVersion: v1
   kind: Pod
-  metadata: {name: web-0, namespace: demo}
+  metadata: {name: web-0, namespace: demo, uid: 00000000-0000-4000-8000-000000000002}
   spec:
     nodeName: node-a.example.com
     resourceClaims:

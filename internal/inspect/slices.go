@@ -56,14 +56,14 @@ func Slices() Inspector {
 				case "incomplete":
 					det["reason"] = incompleteReason(s.Spec.Pool.Name)
 				case "invalid":
-					det["reason"] = invalidGenerationReason(s.Spec.Pool.Name)
+					det["reason"] = invalidReason(s.Spec.Pool.Name, ps)
 				}
 				res := model.Result{Check: check, Status: status, Subject: s.Name, Details: det}
 				switch state {
 				case "incomplete":
 					res.Findings = incompleteFinding(s.Spec.Pool.Name)
 				case "invalid":
-					res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidGenerationReason(s.Spec.Pool.Name), Items: []string{s.Spec.Pool.Name}}}
+					res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidReason(s.Spec.Pool.Name, ps), Items: []string{s.Spec.Pool.Name}}}
 				}
 				out = append(out, res)
 			}

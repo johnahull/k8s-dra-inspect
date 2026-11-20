@@ -36,6 +36,7 @@ const (
 	KindMissingDevice      Kind = "missing-device"      // an allocated device is in no ResourceSlice
 	KindStaleDevice        Kind = "stale-device"        // only in a stale pool generation
 	KindStaleSlice         Kind = "stale-slice"         // a slice of a stale generation
+	KindStaleReservation   Kind = "stale-reservation"   // reservedFor names a pod that no longer exists
 	KindIncomplete         Kind = "incomplete"          // fewer slices than the pool announces
 	KindNUMASplit          Kind = "numa-split"          // devices share no NUMA node
 	KindNUMAMissing        Kind = "numa-missing"        // devices publish no NUMA node

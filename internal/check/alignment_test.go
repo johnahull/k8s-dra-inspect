@@ -7,6 +7,7 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/utils/ptr"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
@@ -199,7 +200,9 @@ func targetSnap() model.Snapshot {
 		claim("ns1", "idle", nil),
 		claim("ns1", "podclaim", nil, res("r", "a")),
 		claim("ns1", "other", nil, res("r", "a")))
-	s.Pods = []model.PodRef{{Name: "pod-1", Namespace: "ns1",
+	// podclaim was generated from tmpl for pod-1, so the pod owns it.
+	s.ResourceClaims[3].OwnerReferences = []metav1.OwnerReference{{APIVersion: "v1", Kind: "Pod", Name: "pod-1", UID: "uid-pod-1", Controller: ptr.To(true)}}
+	s.Pods = []model.PodRef{{Name: "pod-1", Namespace: "ns1", UID: "uid-pod-1",
 		ResourceClaims:        []corev1.PodResourceClaim{{Name: "x", ResourceClaimName: ptr.To("c1")}, {Name: "t", ResourceClaimTemplateName: ptr.To("tmpl")}},
 		ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "t", ResourceClaimName: ptr.To("podclaim")}}}}
 	return s

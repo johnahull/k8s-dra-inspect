@@ -9,6 +9,7 @@ import (
 	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -133,8 +134,10 @@ func Claims() Inspector {
 			}
 			slicesOK := snap.Collection["resourceslices"].State == model.StateOK
 			vmiSt := snap.Collection["virtualmachineinstances"]
+			users, stale := analyze.ClaimPodNames(snap)
 			out := []model.Result{}
 			for _, c := range snap.ResourceClaims {
+				key := c.Namespace + "/" + c.Name
 				al := c.Status.Allocation
 				results := []map[string]any{}
 				var nodes, missing []string
@@ -168,7 +171,7 @@ func Claims() Inspector {
 				for _, r := range c.Status.ReservedFor {
 					reserved = append(reserved, r.Name)
 				}
-				used := model.PodsUsing(snap, c)
+				used := append([]string{}, users[key]...)
 				det := map[string]any{
 					"deviceRequests": requestsOf(c), "allocated": al != nil, "results": results, "deviceCount": len(results),
 					"nodes": sortedUnique(nodes), "reservedFor": reserved, "usedBy": used,
@@ -196,11 +199,32 @@ func Claims() Inspector {
 				}
 				status := model.StatusPass
 				var findings []model.Finding
+				var reasons []string
+				// Never with pods down: ClaimPodNames counts every reservation as a user then.
+				if staleRefs := stale[key]; len(staleRefs) > 0 {
+					var names []string
+					for _, r := range staleRefs {
+						name := r.Name
+						if r.UID != "" {
+							name += " (uid " + string(r.UID) + ")"
+						}
+						names = append(names, name)
+					}
+					status = model.StatusWarn
+					reason := "stale reservation: reservedFor entries match no collected pod: " + strings.Join(names, ", ")
+					det["staleReservedFor"] = names
+					reasons = append(reasons, reason)
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindStaleReservation, Text: reason, Items: names})
+				}
 				if len(missing) > 0 {
 					status = model.StatusWarn
 					det["missingDevices"] = missing
-					det["reason"] = "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
-					findings = []model.Finding{{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing}}
+					reason := "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
+					reasons = append(reasons, reason)
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindMissingDevice, Text: reason, Items: missing})
+				}
+				if len(reasons) > 0 {
+					det["reason"] = strings.Join(reasons, "; ")
 				}
 				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det, Findings: findings})
 			}

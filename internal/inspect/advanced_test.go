@@ -101,3 +101,40 @@ func TestNodesRequiresClusterwidePluginEvidence(t *testing.T) {
 		t.Fatalf("nodes without plugin evidence = %+v", results)
 	}
 }
+
+func TestClaimsMarksStaleReservation(t *testing.T) {
+	ok := model.CollectionStatus{State: model.StateOK}
+	claim := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "shared"},
+		Status: resourcev1.ResourceClaimStatus{ReservedFor: []resourcev1.ResourceClaimConsumerReference{
+			{Resource: "pods", Name: "app", UID: "uid-old"},
+		}}}
+	snap := model.Snapshot{Collection: map[string]model.CollectionStatus{"resourceclaims": ok, "pods": ok},
+		ResourceClaims: []resourcev1.ResourceClaim{claim},
+		Pods: []model.PodRef{{Namespace: "ns", Name: "app", UID: "uid-new",
+			ResourceClaims: []corev1.PodResourceClaim{{Name: "x", ResourceClaimName: ptr.To("shared")}}}}}
+	r := inspect.Claims().Run(snap)[0]
+	used, _ := r.Details["usedBy"].([]string)
+	reserved, _ := r.Details["reservedFor"].([]string)
+	stale, _ := r.Details["staleReservedFor"].([]string)
+	if r.Status != model.StatusWarn || len(used) != 1 || used[0] != "app" || len(reserved) != 1 || reserved[0] != "app" ||
+		len(stale) != 1 || stale[0] != "app (uid uid-old)" {
+		t.Fatalf("result = %+v", r)
+	}
+	if len(r.Findings) != 1 || r.Findings[0].Kind != model.KindStaleReservation {
+		t.Fatalf("findings = %+v", r.Findings)
+	}
+	if _, set := r.Details["usedByState"]; set {
+		t.Fatalf("usedByState must stay reserved for an unavailable pods collection: %v", r.Details["usedByState"])
+	}
+}
+
+// Inspectors report a missing collection like checks do: with a
+// KindUnavailable finding, never as an empty pass.
+func TestInspectUnavailableCarriesFinding(t *testing.T) {
+	for name, in := range map[string]inspect.Inspector{"claims": inspect.Claims(), "pools": inspect.Pools(), "slices": inspect.Slices()} {
+		rs := in.Run(model.Snapshot{Collection: map[string]model.CollectionStatus{}})
+		if len(rs) != 1 || rs[0].Status != model.StatusUnavailable || len(rs[0].Findings) != 1 || rs[0].Findings[0].Kind != model.KindUnavailable {
+			t.Errorf("%s: %+v", name, rs)
+		}
+	}
+}

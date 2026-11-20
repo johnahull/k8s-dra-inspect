@@ -19,7 +19,7 @@ const NameCPUPinning = "check.cpupinning"
 // "ns/name"; namespace (-n) scopes a bare name.
 func CPUPinning(target, namespace string) Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameCPUPinning, "pods", "resourceslices", "resourceclaims"); ok {
+		if r, ok := Need(snap, NameCPUPinning, "pods", "resourceslices", "resourceclaims"); ok {
 			return r
 		}
 		ns, name := namespace, target
@@ -179,7 +179,7 @@ func joinInts(v []int) string {
 // deviceNuma unions the NUMA nodes of the pod's allocated devices.
 func deviceNuma(snap model.Snapshot, p model.PodRef) ([]int, error) {
 	idx := model.NewAllocationDeviceIndex(snap)
-	names := podClaims(p)
+	names := podClaims(snap, p)
 	out := []int{}
 	for _, c := range allocated(snap) {
 		if c.Namespace != p.Namespace || !slices.Contains(names, c.Name) {

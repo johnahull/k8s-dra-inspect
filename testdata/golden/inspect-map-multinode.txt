@@ -1,0 +1,3 @@
+NAMESPACE   CONSUMER       CLAIM         REQUEST     DRIVER        POOL        DEVICE      NODE        STATUS      RESERVED  DETAIL
+demo        pod/pair-pod   pair-a        gpu         gpu.example…  node-a.ex…  a-gpu-0     node-a.ex…  allocated   true
+demo        pod/pair-pod   pair-a        gpu         gpu.example…  node-a.ex…  a-gpu-1     node-a.ex…  allocated   true

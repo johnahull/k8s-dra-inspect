@@ -1,0 +1,3 @@
+DRIVER        POOL          NODES        GEN   SLICES   DEVICES  ALLOCATED  STATE       DETAIL
+gpu.example…  node-a.exam…  node-a.exa…  1     1/1      2        2          Complete
+gpu.example…  node-b.exam…  node-b.exa…  1     1/1      2        0          Complete

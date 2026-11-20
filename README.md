@@ -186,7 +186,8 @@ These samples are checked against the real output by a test.
 taint state, `inspect pools` summarizes the newest pool generations, and
 `inspect nodes` compares node plugin pods with published devices. `check why`
 explains one claim or a pod's claims; `check why --no-redact` includes full
-Event and PodScheduled messages. These commands use the same pure analysis
+Event and PodScheduled messages when the source has them. It cannot restore
+messages already removed from a redacted snapshot file. These commands use the same pure analysis
 code as kubectl-dra, adapted to dra-inspect snapshots. Namespace-filtered
 device and capacity checks include allocations from other namespaces while
 masking their claim names; clusterwide pod evidence for `inspect nodes` is
@@ -194,6 +195,17 @@ collected only for that command or with `snapshot capture --with-node-plugins`.
 `check why` collects Events only for that command. Event messages are omitted
 unless `--no-redact` is supplied; `snapshot capture --with-events` follows the
 same snapshot redaction rule.
+
+Every command judges a pool's newest generation the same way: it is
+incomplete when fewer slices than declared are visible, and invalid when its
+slices disagree on `resourceSliceCount`, more slices than declared are
+visible, or two slices publish the same device name. `inspect claims`,
+`inspect map`, `inspect slices`, `check why`, `check alignment` and
+`check cpupinning` map pods to claims by the scheduler's rules: a generated
+claim must be owned by the pod, and a `reservedFor` entry must match a
+collected pod's UID.
+`inspect claims` marks an entry that matches no collected pod as a stale
+reservation and warns.
 
 The parent groups `inspect`, `check`, `report` and `snapshot` without a
 subcommand print help and exit 0.

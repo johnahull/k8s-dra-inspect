@@ -144,8 +144,15 @@ func TestClaimsSeveralPodsAndNumaSets(t *testing.T) {
 		}
 	}
 	got := claimsOut(t, snap)
-	if want := "demo/shared-gpu → pods other, virt-launcher-vm1-abcde (VM vm1)"; !hasLine(got, want) {
-		t.Errorf("missing %q in:\n%s", want, got)
+	// "other" is only in reservedFor and matches no collected pod: a stale
+	// reservation, shown as a warning rather than as a user.
+	for _, want := range []string{
+		"demo/shared-gpu → pod virt-launcher-vm1-abcde (VM vm1)",
+		"  ! stale reservation: reservedFor entries match no collected pod: other",
+	} {
+		if !hasLine(got, want) {
+			t.Errorf("missing %q in:\n%s", want, got)
+		}
 	}
 	got = claimsOut(t, fx(t, "multinode"))
 	if want := "    NUMA 0,1,2,3  pcieRoot pci0000:00"; !hasLine(got, want) {

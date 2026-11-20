@@ -29,44 +29,11 @@ func sortedUnique(v []string) []string {
 	return slices.Compact(v)
 }
 
-// podIndex maps "ns/claimName" to the pods whose spec or status resolves to it.
-func podIndex(snap Snapshot) map[string][]string {
-	idx := map[string][]string{}
-	for _, p := range snap.Pods {
-		for _, rc := range p.ResourceClaims {
-			if rc.ResourceClaimName != nil {
-				idx[p.Namespace+"/"+*rc.ResourceClaimName] = append(idx[p.Namespace+"/"+*rc.ResourceClaimName], p.Name)
-			}
-		}
-		for _, st := range p.ResourceClaimStatuses {
-			if st.ResourceClaimName != nil {
-				idx[p.Namespace+"/"+*st.ResourceClaimName] = append(idx[p.Namespace+"/"+*st.ResourceClaimName], p.Name)
-			}
-		}
-	}
-	return idx
-}
-
-func podsOf(idx map[string][]string, c resourcev1.ResourceClaim) []string {
-	names := slices.Clone(idx[c.Namespace+"/"+c.Name])
-	for _, r := range c.Status.ReservedFor {
-		if r.Resource == "pods" {
-			names = append(names, r.Name)
-		}
-	}
-	return sortedUnique(names)
-}
-
-// PodsUsing finds pods whose spec or status resolves to claim c, plus pods in
-// reservedFor. Names are bare (the claim's namespace).
-func PodsUsing(snap Snapshot, c resourcev1.ResourceClaim) []string {
-	return append([]string{}, podsOf(podIndex(snap), c)...)
-}
-
 // DeviceUsage inverts every allocated claim's results: an allocated device is
 // in use even when nothing reserves it. A shareable device may list several
-// claims.
-func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
+// claims. users maps a claim ("ns/name") to the bare names of the pods using
+// it, as analyze.ClaimPodNames computes them.
+func DeviceUsage(snap Snapshot, users map[string][]string) (map[DeviceKey]Usage, UsageScope) {
 	sc := UsageScope{Namespace: snap.Namespace, PodsAvailable: snap.Collection["pods"].State == StateOK}
 	collection := "resourceclaims"
 	st := snap.Collection["resourceclaims"]
@@ -89,7 +56,6 @@ func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
 		return map[DeviceKey]Usage{}, sc
 	}
 	sc.Available = true
-	idx := podIndex(snap)
 	out := map[DeviceKey]Usage{}
 	for _, c := range snap.ResourceClaims {
 		if c.Status.Allocation == nil {
@@ -97,7 +63,7 @@ func DeviceUsage(snap Snapshot) (map[DeviceKey]Usage, UsageScope) {
 		}
 		name := c.Namespace + "/" + c.Name
 		var pods []string
-		for _, p := range podsOf(idx, c) {
+		for _, p := range users[name] {
 			pods = append(pods, c.Namespace+"/"+p)
 		}
 		for _, r := range c.Status.Allocation.Devices.Results {

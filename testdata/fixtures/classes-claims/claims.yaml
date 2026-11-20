@@ -27,7 +27,11 @@ items:
     - {resource: pods, name: virt-launcher-vm1-abcde, uid: 00000000-0000-4000-8000-000000000001}
 - apiVersion: resource.k8s.io/v1
   kind: ResourceClaim
-  metadata: {name: web-0-gpu-xyz12, namespace: demo}
+  metadata:
+    name: web-0-gpu-xyz12
+    namespace: demo
+    ownerReferences:
+    - {apiVersion: v1, kind: Pod, name: web-0, uid: 00000000-0000-4000-8000-000000000002, controller: true, blockOwnerDeletion: true}
   spec:
     devices:
       requests:

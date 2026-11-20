@@ -1,0 +1,47 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.pools",
+      "status": "pass",
+      "subject": "gpu.example.com/node-a.example.com",
+      "details": {
+        "allocated": 2,
+        "detail": "",
+        "devices": 2,
+        "driver": "gpu.example.com",
+        "generation": 1,
+        "nodeScope": "node-a.example.com",
+        "outdatedSlices": 0,
+        "pool": "node-a.example.com",
+        "problems": [],
+        "resourceSliceCount": 1,
+        "slices": "1/1",
+        "slicesSeen": 1,
+        "state": "Complete"
+      }
+    },
+    {
+      "check": "inspect.pools",
+      "status": "pass",
+      "subject": "gpu.example.com/node-b.example.com",
+      "details": {
+        "allocated": 0,
+        "detail": "",
+        "devices": 2,
+        "driver": "gpu.example.com",
+        "generation": 1,
+        "nodeScope": "node-b.example.com",
+        "outdatedSlices": 0,
+        "pool": "node-b.example.com",
+        "problems": [],
+        "resourceSliceCount": 1,
+        "slices": "1/1",
+        "slicesSeen": 1,
+        "state": "Complete"
+      }
+    }
+  ]
+}

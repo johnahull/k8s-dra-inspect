@@ -10,27 +10,15 @@ import (
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
+	"github.com/johnahull/k8s-dra-inspect/internal/check"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
 
 func analysisData(s model.Snapshot) *analyze.Snapshot { return analyze.FromModel(s) }
 
-func needAnalysis(s model.Snapshot, check string, keys ...string) ([]model.Result, bool) {
-	for _, key := range keys {
-		if r, ok := unavailableOf(s, check, key); ok {
-			return r, true
-		}
-	}
-	return nil, false
-}
-
-func allocationKeys(s model.Snapshot) []string {
-	if s.Namespace != "" {
-		return []string{"resourceclaims", "globalallocations"}
-	}
-	return []string{"resourceclaims"}
-}
+// allocationKeys is check.AllocationKeys.
+func allocationKeys(s model.Snapshot) []string { return check.AllocationKeys(s) }
 
 // Map links ResourceClaims to the pods that use them and surfaces unresolved pod references.
 func Map() Inspector {
@@ -41,7 +29,7 @@ func Map() Inspector {
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
 		const check = NameMap
-		if r, ok := needAnalysis(s, check, "resourceclaims", "pods"); ok {
+		if r, ok := unavailableOf(s, check, "resourceclaims", "pods"); ok {
 			return r
 		}
 		data := analysisData(s)
@@ -149,7 +137,7 @@ func Pools() Inspector {
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
 		const check = NamePools
-		if r, ok := needAnalysis(s, check, append([]string{"resourceslices"}, allocationKeys(s)...)...); ok {
+		if r, ok := unavailableOf(s, check, append([]string{"resourceslices"}, allocationKeys(s)...)...); ok {
 			return r
 		}
 		data := analysisData(s)
@@ -199,7 +187,7 @@ func Devices() Inspector {
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
 		const check = NameDevices
-		if r, ok := needAnalysis(s, check, append([]string{"resourceslices"}, append(allocationKeys(s), "devicetaintrules")...)...); ok {
+		if r, ok := unavailableOf(s, check, append([]string{"resourceslices"}, append(allocationKeys(s), "devicetaintrules")...)...); ok {
 			return r
 		}
 		data := analysisData(s)
@@ -278,7 +266,7 @@ func Nodes() Inspector {
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
 		const check = NameNodes
-		if r, ok := needAnalysis(s, check, append([]string{"resourceslices", "nodes"}, append(allocationKeys(s), "devicetaintrules", "nodepluginpods")...)...); ok {
+		if r, ok := unavailableOf(s, check, append([]string{"resourceslices", "nodes"}, append(allocationKeys(s), "devicetaintrules", "nodepluginpods")...)...); ok {
 			return r
 		}
 		data := analysisData(s)

@@ -24,7 +24,7 @@ type topoPool struct {
 // Pool.ResourceSliceCount all warn. One result per driver/pool.
 func Topology() Check {
 	return func(_ context.Context, snap model.Snapshot) []model.Result {
-		if r, ok := need(snap, NameTopology, "resourceslices"); ok {
+		if r, ok := Need(snap, NameTopology, "resourceslices"); ok {
 			return r
 		}
 		cur, sel := model.CurrentSlices(snap)
@@ -86,8 +86,8 @@ func Topology() Check {
 			if sel[k].Incomplete {
 				warn(model.KindIncomplete, "pool has fewer ResourceSlices than expected for its newest generation (%d of %d)", p.slices, p.expected)
 			}
-			if sel[k].Invalid {
-				warn(model.KindInvalid, "slices in the newest generation disagree on resourceSliceCount")
+			for _, problem := range sel[k].Problems {
+				warn(model.KindInvalid, "%s", problem)
 			}
 			det := map[string]any{
 				"generation": p.gen, "devices": p.devices, "slicesObserved": p.slices, "slicesExpected": p.expected,

@@ -683,3 +683,52 @@ func TestNamespaceClaimsExcludesOutsideAllocations(t *testing.T) {
 		t.Fatalf("literal Snapshot NamespaceClaims = %d, want all 2", len(got))
 	}
 }
+
+func TestClaimPodNames(t *testing.T) {
+	ok := model.CollectionStatus{State: model.StateOK}
+	owned := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "web-0-gpu",
+		OwnerReferences: []metav1.OwnerReference{{APIVersion: "v1", Kind: "Pod", Name: "web-0", UID: "uid-web", Controller: ptr.To(true)}}}}
+	unowned := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "web-1-gpu"}}
+	shared := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "shared"},
+		Status: resourcev1.ResourceClaimStatus{ReservedFor: []resourcev1.ResourceClaimConsumerReference{
+			{Resource: "pods", Name: "app", UID: "uid-app-old"}, // deleted pod; a new "app" has another UID
+			{Resource: "pods", Name: "gone", UID: "uid-gone"},
+		}}}
+	tmpl := func(name, claim string, uid types.UID) model.PodRef {
+		return model.PodRef{Namespace: "ns", Name: name, UID: uid,
+			ResourceClaims:        []corev1.PodResourceClaim{{Name: "gpu", ResourceClaimTemplateName: ptr.To("t")}},
+			ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "gpu", ResourceClaimName: ptr.To(claim)}}}
+	}
+	snap := model.Snapshot{Collection: map[string]model.CollectionStatus{"resourceclaims": ok, "pods": ok},
+		ResourceClaims: []resourcev1.ResourceClaim{owned, unowned, shared},
+		Pods: []model.PodRef{
+			tmpl("web-0", "web-0-gpu", "uid-web"),
+			tmpl("web-1", "web-1-gpu", "uid-web-1"), // claim not owned by this pod
+			{Namespace: "ns", Name: "app", UID: "uid-app-new", ResourceClaims: []corev1.PodResourceClaim{{Name: "x", ResourceClaimName: ptr.To("shared")}}},
+		}}
+	users, stale := ClaimPodNames(snap)
+	want := map[string][]string{"ns/web-0-gpu": {"web-0"}, "ns/shared": {"app"}}
+	for k, w := range want {
+		if !slices.Equal(users[k], w) {
+			t.Errorf("users[%s] = %v, want %v", k, users[k], w)
+		}
+	}
+	if len(users["ns/web-1-gpu"]) != 0 {
+		t.Errorf("unowned template claim credited to %v", users["ns/web-1-gpu"])
+	}
+	// app was recreated: the new pod is a user, the old UID's entry is stale.
+	if got := stale["ns/shared"]; len(got) != 2 || got[0].Name != "app" || got[0].UID != "uid-app-old" || got[1].Name != "gone" {
+		t.Errorf("stale = %+v, want app (uid-app-old) and gone", got)
+	}
+	if got := PodClaimNames(users)["ns/app"]; !slices.Equal(got, []string{"shared"}) {
+		t.Errorf("PodClaimNames[ns/app] = %v", got)
+	}
+
+	// Without pods, nothing can be judged stale: every reservation is a user.
+	snap.Collection["pods"] = model.CollectionStatus{State: model.StateForbidden}
+	snap.Pods = nil
+	users, stale = ClaimPodNames(snap)
+	if got := users["ns/shared"]; !slices.Equal(got, []string{"app", "gone"}) || len(stale["ns/shared"]) != 0 {
+		t.Errorf("pods down: users = %v stale = %v", got, stale["ns/shared"])
+	}
+}

@@ -2972,7 +2972,20 @@
       }
     }
   ],
-  "pods": null,
+  "pods": [
+    {
+      "name": "pod-1",
+      "namespace": "default",
+      "uid": "00000000-0000-4000-8000-000000000007",
+      "nodeName": "node-a.example.com",
+      "resourceClaims": [
+        {
+          "name": "devices",
+          "resourceClaimName": "vm-final-all"
+        }
+      ]
+    }
+  ],
   "nodes": null,
   "virtualMachineInstances": null,
   "evidence": null

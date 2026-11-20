@@ -1,0 +1,13 @@
+NAMESPACE   CONSUMER       CLAIM         REQUEST     DRIVER        POOL        DEVICE      NODE        STATUS      RESERVED  DETAIL
+default     pod/pod-1      vm-final-all  n0-sriovn…  sriovnetwor…  node-a.ex…  0001-07-0…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n0-gpu-am…  gpu.amd.com   node-a.ex…  gpu-vfio-7  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n0-dra-cpu  dra.cpu       node-a.ex…  cpudevnum…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n0-dra-me…  dra.memory    node-a.ex…  memory-bj…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n1-sriovn…  sriovnetwor…  node-a.ex…  0001-07-0…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n1-gpu-am…  gpu.amd.com   node-a.ex…  gpu-vfio-0  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n1-dra-cpu  dra.cpu       node-a.ex…  cpudevnum…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n1-dra-me…  dra.memory    node-a.ex…  memory-t5…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n2-sriovn…  sriovnetwor…  node-a.ex…  0001-07-0…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n2-gpu-am…  gpu.amd.com   node-a.ex…  gpu-vfio-1  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n2-dra-cpu  dra.cpu       node-a.ex…  cpudevnum…  node-a.ex…  allocated   true
+default     pod/pod-1      vm-final-all  n2-dra-me…  dra.memory    node-a.ex…  memory-4q…  node-a.ex…  allocated   true
