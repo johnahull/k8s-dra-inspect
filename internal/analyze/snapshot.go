@@ -19,11 +19,17 @@ type Snapshot struct {
 	ResourceClaims   []*resourcev1.ResourceClaim
 	DeviceTaintRules []*resourcev1.DeviceTaintRule
 
-	outsideClaims int // synthetic claims at the end of ResourceClaims
+	// namespaceClaims is the collected-claims view FromModel recorded; nil
+	// for a Snapshot built any other way.
+	namespaceClaims []*resourcev1.ResourceClaim
 }
 
 // NamespaceClaims returns only the collected claims, without the synthetic
-// outside-namespace allocations.
+// outside-namespace allocations. A Snapshot not built by FromModel has no
+// synthetic claims, so all of ResourceClaims is returned.
 func (s *Snapshot) NamespaceClaims() []*resourcev1.ResourceClaim {
-	return s.ResourceClaims[:len(s.ResourceClaims)-s.outsideClaims]
+	if s.namespaceClaims != nil {
+		return s.namespaceClaims
+	}
+	return s.ResourceClaims
 }

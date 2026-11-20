@@ -6,34 +6,36 @@ import (
 )
 
 // CompareNatural orders strings with embedded numbers by value, so gpu-2
-// comes before gpu-10 and pci0000:20 before pci0000:100. Digit runs compare as
-// numbers; equal values tie-break on the shorter run (nic-1 before nic-01) so
-// the order is total. Everything else compares byte by byte.
+// comes before gpu-10 and pci0000:20 before pci0000:100. The strings are split
+// into alternating digit and non-digit runs: digit runs compare as numbers,
+// with equal values tie-broken on the shorter run (nic-1 before nic-01) so
+// the order is total; other runs compare as whole strings (numa1 before
+// numa-1).
 func CompareNatural(a, b string) int {
 	for a != "" && b != "" {
-		if isDigit(a[0]) && isDigit(b[0]) {
-			na, nb := digitRun(a), digitRun(b)
-			va, vb := strings.TrimLeft(a[:na], "0"), strings.TrimLeft(b[:nb], "0")
-			if c := cmp.Or(cmp.Compare(len(va), len(vb)), cmp.Compare(va, vb), cmp.Compare(na, nb)); c != 0 {
+		da, db := isDigit(a[0]), isDigit(b[0])
+		ra, rb := leadingRun(a, da), leadingRun(b, db)
+		if da && db {
+			x, y := strings.TrimLeft(ra, "0"), strings.TrimLeft(rb, "0")
+			if c := cmp.Or(cmp.Compare(len(x), len(y)), cmp.Compare(x, y), cmp.Compare(len(ra), len(rb))); c != 0 {
 				return c
 			}
-			a, b = a[na:], b[nb:]
-			continue
-		}
-		if c := cmp.Compare(a[0], b[0]); c != 0 {
+		} else if c := cmp.Compare(ra, rb); c != 0 {
 			return c
 		}
-		a, b = a[1:], b[1:]
+		a, b = a[len(ra):], b[len(rb):]
 	}
 	return cmp.Compare(len(a), len(b))
 }
 
 func isDigit(c byte) bool { return c >= '0' && c <= '9' }
 
-func digitRun(s string) int {
-	n := 0
-	for n < len(s) && isDigit(s[n]) {
-		n++
+// leadingRun is the leading part of s made of digits (when digits) or of
+// anything else.
+func leadingRun(s string, digits bool) string {
+	i := 0
+	for i < len(s) && isDigit(s[i]) == digits {
+		i++
 	}
-	return n
+	return s[:i]
 }

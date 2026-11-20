@@ -16,4 +16,8 @@ func TestCompareNatural(t *testing.T) {
 	if CompareNatural("a", "a") != 0 || CompareNatural("01", "1") <= 0 {
 		t.Error("equal strings must compare 0 and 01 must sort after 1")
 	}
+	// Non-digit runs compare whole, as the text views always did.
+	if CompareNatural("numa1", "numa-1") >= 0 {
+		t.Error("numa1 must sort before numa-1")
+	}
 }

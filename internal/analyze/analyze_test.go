@@ -676,6 +676,9 @@ func TestNamespaceClaimsExcludesOutsideAllocations(t *testing.T) {
 	if got := s.NamespaceClaims(); len(got) != 1 || got[0].Name != "a" {
 		t.Fatalf("NamespaceClaims = %v, want only claim a", got)
 	}
+	if got := FromModel(model.Snapshot{GlobalAllocations: []resourcev1.AllocationResult{{}}}).NamespaceClaims(); len(got) != 0 {
+		t.Fatalf("NamespaceClaims with no collected claims = %d, want 0", len(got))
+	}
 	if got := (&Snapshot{ResourceClaims: s.ResourceClaims}).NamespaceClaims(); len(got) != 2 {
 		t.Fatalf("literal Snapshot NamespaceClaims = %d, want all 2", len(got))
 	}

@@ -50,7 +50,7 @@ func Why(ctx context.Context, snap model.Snapshot, target string) []model.Result
 		if pod == nil {
 			return whyError(target, fmt.Sprintf("pod %q not found", target))
 		}
-		mapped := analyze.MapClaims([]*corev1.Pod{pod}, claimsInNamespace(data.ResourceClaims, pod.Namespace))
+		mapped := analyze.MapClaims([]*corev1.Pod{pod}, claimsInNamespace(data.NamespaceClaims(), pod.Namespace))
 		var out []model.Result
 		for _, use := range mapped.Claims {
 			for _, consumer := range use.Consumers {

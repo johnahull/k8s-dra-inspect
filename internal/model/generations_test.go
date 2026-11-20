@@ -76,13 +76,12 @@ func TestAllocationDeviceIndexResolve(t *testing.T) {
 		if got.State != tt.state {
 			t.Errorf("%s: state %v, want %v", tt.dev, got.State, tt.state)
 		}
-		if name := ""; got.Slice != nil {
+		name := ""
+		if got.Slice != nil {
 			name = got.Slice.Name
-			if name != tt.slice {
-				t.Errorf("%s: slice %q, want %q", tt.dev, name, tt.slice)
-			}
-		} else if tt.slice != "" {
-			t.Errorf("%s: no slice, want %q", tt.dev, tt.slice)
+		}
+		if name != tt.slice {
+			t.Errorf("%s: slice %q, want %q", tt.dev, name, tt.slice)
 		}
 	}
 }
