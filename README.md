@@ -199,9 +199,11 @@ same snapshot redaction rule.
 Every command judges a pool's newest generation the same way: it is
 incomplete when fewer slices than declared are visible, and invalid when its
 slices disagree on `resourceSliceCount`, more slices than declared are
-visible, or two slices publish the same device name. Every command also maps
-pods to claims by the scheduler's rules: a generated claim must be owned by
-the pod, and a `reservedFor` entry must match a collected pod's UID.
+visible, or two slices publish the same device name. `inspect claims`,
+`inspect map`, `inspect slices`, `check why`, `check alignment` and
+`check cpupinning` map pods to claims by the scheduler's rules: a generated
+claim must be owned by the pod, and a `reservedFor` entry must match a
+collected pod's UID.
 `inspect claims` marks an entry that matches no collected pod as a stale
 reservation and warns.
 

@@ -115,14 +115,16 @@ func TestClaimsMarksStaleReservation(t *testing.T) {
 	r := inspect.Claims().Run(snap)[0]
 	used, _ := r.Details["usedBy"].([]string)
 	reserved, _ := r.Details["reservedFor"].([]string)
-	if r.Status != model.StatusWarn || len(used) != 1 || used[0] != "app" || len(reserved) != 1 || reserved[0] != "app (stale)" {
+	stale, _ := r.Details["staleReservedFor"].([]string)
+	if r.Status != model.StatusWarn || len(used) != 1 || used[0] != "app" || len(reserved) != 1 || reserved[0] != "app" ||
+		len(stale) != 1 || stale[0] != "app (uid uid-old)" {
 		t.Fatalf("result = %+v", r)
 	}
 	if len(r.Findings) != 1 || r.Findings[0].Kind != model.KindStaleReservation {
 		t.Fatalf("findings = %+v", r.Findings)
 	}
-	if !strings.HasPrefix(r.Details["usedByState"].(string), "stale: ") {
-		t.Fatalf("usedByState = %v", r.Details["usedByState"])
+	if _, set := r.Details["usedByState"]; set {
+		t.Fatalf("usedByState must stay reserved for an unavailable pods collection: %v", r.Details["usedByState"])
 	}
 }
 

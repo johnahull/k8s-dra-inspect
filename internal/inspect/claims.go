@@ -118,7 +118,7 @@ func Claims() Inspector {
 				nodes, _ := r.Details["nodes"].([]string)
 				used, _ := r.Details["usedBy"].([]string)
 				usedBy := strings.Join(used, ",")
-				if strings.HasPrefix(str(r, "usedByState"), "unavailable") {
+				if str(r, "usedByState") != "" {
 					usedBy = "unavailable"
 				}
 				if v := str(r, "vmi"); v != "" && !strings.HasPrefix(v, "unavailable") {
@@ -169,10 +169,6 @@ func Claims() Inspector {
 				}
 				reserved := []string{}
 				for _, r := range c.Status.ReservedFor {
-					if r.Resource == "pods" && slices.Contains(stale[key], r.Name) {
-						reserved = append(reserved, r.Name+" (stale)")
-						continue
-					}
 					reserved = append(reserved, r.Name)
 				}
 				used := append([]string{}, users[key]...)
@@ -203,19 +199,32 @@ func Claims() Inspector {
 				}
 				status := model.StatusPass
 				var findings []model.Finding
-				if len(stale[key]) > 0 { // never with pods down: ClaimPodNames counts every reservation as a user then
+				var reasons []string
+				// Never with pods down: ClaimPodNames counts every reservation as a user then.
+				if staleRefs := stale[key]; len(staleRefs) > 0 {
+					var names []string
+					for _, r := range staleRefs {
+						name := r.Name
+						if r.UID != "" {
+							name += " (uid " + string(r.UID) + ")"
+						}
+						names = append(names, name)
+					}
 					status = model.StatusWarn
-					reason := "reservedFor names pods that no longer exist: " + strings.Join(stale[key], ", ")
-					det["staleReservedFor"] = stale[key]
-					det["reason"] = reason
-					det["usedByState"] = "stale: " + reason
-					findings = append(findings, model.Finding{Status: status, Kind: model.KindStaleReservation, Text: reason, Items: stale[key]})
+					reason := "stale reservation: reservedFor entries match no collected pod: " + strings.Join(names, ", ")
+					det["staleReservedFor"] = names
+					reasons = append(reasons, reason)
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindStaleReservation, Text: reason, Items: names})
 				}
 				if len(missing) > 0 {
 					status = model.StatusWarn
 					det["missingDevices"] = missing
-					det["reason"] = "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
-					findings = append(findings, model.Finding{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing})
+					reason := "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
+					reasons = append(reasons, reason)
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindMissingDevice, Text: reason, Items: missing})
+				}
+				if len(reasons) > 0 {
+					det["reason"] = strings.Join(reasons, "; ")
 				}
 				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det, Findings: findings})
 			}

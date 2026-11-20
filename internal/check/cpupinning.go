@@ -179,7 +179,7 @@ func joinInts(v []int) string {
 // deviceNuma unions the NUMA nodes of the pod's allocated devices.
 func deviceNuma(snap model.Snapshot, p model.PodRef) ([]int, error) {
 	idx := model.NewAllocationDeviceIndex(snap)
-	names := podClaims(p)
+	names := podClaims(snap, p)
 	out := []int{}
 	for _, c := range allocated(snap) {
 		if c.Namespace != p.Namespace || !slices.Contains(names, c.Name) {

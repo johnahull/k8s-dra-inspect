@@ -15,9 +15,10 @@ type PoolKey [2]string
 // PoolSel is the generation consumers should use for a pool.
 type PoolSel struct {
 	Gen        int64
-	Observed   int  // slices seen at Gen
-	Incomplete bool // observed slice count differs from the declared count
-	Invalid    bool // the scheduler refuses the pool; Problems says why
+	Observed   int   // slices seen at Gen
+	Declared   int64 // resourceSliceCount at Gen; 0 when the slices disagree
+	Incomplete bool  // observed slice count differs from the declared count
+	Invalid    bool  // the scheduler refuses the pool; Problems says why
 	// Problems explains Invalid: slices disagree on resourceSliceCount, more
 	// slices than declared are observed, or a device name is published twice.
 	Problems []string
@@ -71,6 +72,9 @@ func selectPool(gen []*resourcev1.ResourceSlice) PoolSel {
 	}
 	slices.Sort(counts)
 	want := counts[len(counts)-1]
+	if len(counts) == 1 {
+		p.Declared = want
+	}
 	p.Incomplete = int64(p.Observed) != want
 	// The scheduler takes the count from whichever slice it sees first, so
 	// disagreement makes its view of the pool depend on ordering.

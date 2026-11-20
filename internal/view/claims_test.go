@@ -148,7 +148,7 @@ func TestClaimsSeveralPodsAndNumaSets(t *testing.T) {
 	// reservation, shown as a warning rather than as a user.
 	for _, want := range []string{
 		"demo/shared-gpu → pod virt-launcher-vm1-abcde (VM vm1)",
-		"  ! stale reservation: reservedFor names pods that no longer exist: other",
+		"  ! stale reservation: reservedFor entries match no collected pod: other",
 	} {
 		if !hasLine(got, want) {
 			t.Errorf("missing %q in:\n%s", want, got)

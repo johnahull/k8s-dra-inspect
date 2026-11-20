@@ -10,6 +10,7 @@ import (
 	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/util/validation"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
@@ -317,19 +318,12 @@ func alignClaim(c resourcev1.ResourceClaim, idx model.AllocationDeviceIndex) mod
 }
 
 // podClaims lists the claim names a pod resolves to.
-func podClaims(p model.PodRef) []string {
-	var out []string
-	for _, rc := range p.ResourceClaims {
-		if rc.ResourceClaimName != nil {
-			out = append(out, *rc.ResourceClaimName)
-		}
-	}
-	for _, st := range p.ResourceClaimStatuses {
-		if st.ResourceClaimName != nil {
-			out = append(out, *st.ResourceClaimName)
-		}
-	}
-	return out
+// podClaims names the claims pod p uses by the scheduler's rules
+// (owner-checked template claims, UID-matched reservations), the same mapping
+// inspect claims and inspect map use.
+func podClaims(snap model.Snapshot, p model.PodRef) []string {
+	users, _ := analyze.ClaimPodNames(snap)
+	return analyze.PodClaimNames(users)[p.Namespace+"/"+p.Name]
 }
 
 // Alignment checks the allocated devices of each claim against its
@@ -380,7 +374,7 @@ func Alignment(target, namespace string) Check {
 						continue
 					}
 					podFound = true
-					for _, cn := range podClaims(p) {
+					for _, cn := range podClaims(snap, p) {
 						want[[2]string{p.Namespace, cn}] = true
 					}
 				}

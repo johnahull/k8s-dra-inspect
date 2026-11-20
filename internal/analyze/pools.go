@@ -159,21 +159,14 @@ func Pools(resourceSlices []*resourcev1.ResourceSlice) []*Pool {
 // newPool groups one pool's slices; validity comes from the shared model
 // selection so every command judges pools the same way.
 func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice, sel model.PoolSel) *Pool {
-	p := &Pool{ID: id, Generation: sel.Gen, Problems: sel.Problems}
-	var counts []int64
+	p := &Pool{ID: id, Generation: sel.Gen, ResourceSliceCount: sel.Declared, Problems: sel.Problems}
 	for _, s := range poolSlices {
 		if s.Spec.Pool.Generation < p.Generation {
 			p.OutdatedSlices++
 			continue
 		}
 		p.Slices = append(p.Slices, s)
-		if !slices.Contains(counts, s.Spec.Pool.ResourceSliceCount) {
-			counts = append(counts, s.Spec.Pool.ResourceSliceCount)
-		}
 	}
 	sort.Slice(p.Slices, func(i, j int) bool { return p.Slices[i].Name < p.Slices[j].Name })
-	if len(counts) == 1 {
-		p.ResourceSliceCount = counts[0]
-	}
 	return p
 }

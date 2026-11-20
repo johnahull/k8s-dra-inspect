@@ -69,7 +69,7 @@ func Attributes(all, capacity bool) Inspector {
 					status := model.StatusPass
 					if incomplete {
 						status = model.StatusWarn
-						det["incomplete"] = true
+						det["incomplete"] = pool.Incomplete
 						det["reason"] = incompleteReason(s.Spec.Pool.Name)
 						if pool.Invalid {
 							det["reason"] = invalidReason(s.Spec.Pool.Name, pool)

@@ -91,8 +91,9 @@ func invalidReason(pool string, sel model.PoolSel) string {
 	return "pool " + pool + " is invalid: " + strings.Join(sel.Problems, "; ")
 }
 
-// invalidPoolsReason names several invalid pools; inspect pools has the details.
-func invalidPoolsReason(pools []string) string {
+// InvalidPoolsReason names several invalid pools; inspect pools has the
+// details. view.Drivers reuses it so text and JSON say the same thing.
+func InvalidPoolsReason(pools []string) string {
 	return "newest generation is invalid in pools: " + strings.Join(pools, ", ")
 }
 

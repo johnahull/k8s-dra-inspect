@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -152,7 +153,7 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 
 func invalidPoolNote(f model.Finding, pools []string) model.Finding {
 	f.Items = pools
-	f.Text = "newest generation is invalid in pools: " + strings.Join(pools, ", ")
+	f.Text = inspect.InvalidPoolsReason(pools)
 	return f
 }
 

@@ -716,8 +716,12 @@ func TestClaimPodNames(t *testing.T) {
 	if len(users["ns/web-1-gpu"]) != 0 {
 		t.Errorf("unowned template claim credited to %v", users["ns/web-1-gpu"])
 	}
-	if got := stale["ns/shared"]; !slices.Equal(got, []string{"app", "gone"}) {
-		t.Errorf("stale = %v, want [app gone]", got)
+	// app was recreated: the new pod is a user, the old UID's entry is stale.
+	if got := stale["ns/shared"]; len(got) != 2 || got[0].Name != "app" || got[0].UID != "uid-app-old" || got[1].Name != "gone" {
+		t.Errorf("stale = %+v, want app (uid-app-old) and gone", got)
+	}
+	if got := PodClaimNames(users)["ns/app"]; !slices.Equal(got, []string{"shared"}) {
+		t.Errorf("PodClaimNames[ns/app] = %v", got)
 	}
 
 	// Without pods, nothing can be judged stale: every reservation is a user.
