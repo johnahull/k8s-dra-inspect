@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/analyze/celx"
@@ -47,7 +47,7 @@ type Explanation struct {
 	Summary string  `json:"summary"`
 
 	// Allocation is set for allocated claims.
-	Allocation []resourceapi.DeviceRequestAllocationResult `json:"allocation,omitempty"`
+	Allocation []resourcev1.DeviceRequestAllocationResult `json:"allocation,omitempty"`
 	// PodScheduled and Events explain a pending pod whose claim is
 	// allocated: the scheduler's PodScheduled message and recent warnings.
 	PodScheduled string   `json:"podScheduled,omitempty"`
@@ -128,7 +128,7 @@ type whyEnv struct {
 // Explain explains one claim. pod, when set, is the pod waiting for it; its
 // node constraints limit the candidate nodes. Without a pod every node is a
 // candidate.
-func Explain(ctx context.Context, s *Snapshot, claim *resourceapi.ResourceClaim, pod *corev1.Pod) *Explanation {
+func Explain(ctx context.Context, s *Snapshot, claim *resourcev1.ResourceClaim, pod *corev1.Pod) *Explanation {
 	e := &Explanation{Claim: claim.Namespace + "/" + claim.Name}
 	if pod != nil {
 		e.Pod = pod.Namespace + "/" + pod.Name
@@ -204,21 +204,21 @@ func Explain(ctx context.Context, s *Snapshot, claim *resourceapi.ResourceClaim,
 }
 
 // funnel runs one request or subrequest through the stages.
-func (env *whyEnv) funnel(name, className string, selectors []resourceapi.DeviceSelector, mode resourceapi.DeviceAllocationMode,
-	count int64, adminAccess bool, tolerations []resourceapi.DeviceToleration,
+func (env *whyEnv) funnel(name, className string, selectors []resourcev1.DeviceSelector, mode resourcev1.DeviceAllocationMode,
+	count int64, adminAccess bool, tolerations []resourcev1.DeviceToleration,
 ) Funnel {
 	if mode == "" {
-		mode = resourceapi.DeviceAllocationModeExactCount
+		mode = resourcev1.DeviceAllocationModeExactCount
 	}
-	if mode == resourceapi.DeviceAllocationModeExactCount && count == 0 {
+	if mode == resourcev1.DeviceAllocationModeExactCount && count == 0 {
 		count = 1
 	}
 	f := Funnel{Request: name, Class: className, AllocationMode: string(mode), AdminAccess: adminAccess, Nodes: []string{}}
-	if mode == resourceapi.DeviceAllocationModeExactCount {
+	if mode == resourcev1.DeviceAllocationModeExactCount {
 		f.Count = count
 	}
 
-	var class *resourceapi.DeviceClass
+	var class *resourcev1.DeviceClass
 	for _, c := range env.snap.DeviceClasses {
 		if c.Name == className {
 			class = c
@@ -280,7 +280,7 @@ func (env *whyEnv) funnel(name, className string, selectors []resourceapi.Device
 		return f
 	}
 
-	selectorStage := func(stage, label string, sels []resourceapi.DeviceSelector, owner string) error {
+	selectorStage := func(stage, label string, sels []resourcev1.DeviceSelector, owner string) error {
 		return filter(stage, func(d *DeviceInfo) (string, string, error) {
 			m, err := env.cel.Match(env.ctx, d.Slice.Spec.Driver, d.Device, sels)
 			if err != nil {
@@ -380,7 +380,7 @@ func (env *whyEnv) funnel(name, className string, selectors []resourceapi.Device
 		return f
 	}
 
-	if mode == resourceapi.DeviceAllocationModeAll {
+	if mode == resourcev1.DeviceAllocationModeAll {
 		env.countAll(&f, matching, have)
 	} else {
 		f.Need = int(count)
@@ -560,7 +560,7 @@ func firstProblem(r *RequestExplanation) string {
 }
 
 // explainAllocated covers claims that already have devices.
-func explainAllocated(e *Explanation, s *Snapshot, claim *resourceapi.ResourceClaim, pod *corev1.Pod) {
+func explainAllocated(e *Explanation, s *Snapshot, claim *resourcev1.ResourceClaim, pod *corev1.Pod) {
 	e.Allocation = claim.Status.Allocation.Devices.Results
 	e.Verdict = VerdictAllocated
 	e.Summary = fmt.Sprintf("%d device(s) allocated", len(e.Allocation))
@@ -668,7 +668,7 @@ func poolWarnings(env *whyEnv, requests []RequestExplanation) []string {
 	return out
 }
 
-func tolerated(t DeviceTaint, tolerations []resourceapi.DeviceToleration) bool {
+func tolerated(t DeviceTaint, tolerations []resourcev1.DeviceToleration) bool {
 	for _, tol := range tolerations {
 		if resourceclaim.ToleratesTaint(tol, t.DeviceTaint) {
 			return true

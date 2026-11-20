@@ -40,12 +40,12 @@ func Map() Inspector {
 			return []string{str(r, "namespace"), dash(str(r, "consumer")), dash(str(r, "claim")), dash(str(r, "request")), dash(str(r, "driver")), dash(str(r, "pool")), dash(str(r, "device")), dash(str(r, "node")), str(r, "state"), fmt.Sprint(r.Details["reserved"]), str(r, "reason")}
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
-		const check = "inspect.map"
+		const check = NameMap
 		if r, ok := needAnalysis(s, check, "resourceclaims", "pods"); ok {
 			return r
 		}
 		data := analysisData(s)
-		mapped := analyze.MapClaims(data.Pods, data.ResourceClaims[:len(s.ResourceClaims)])
+		mapped := analyze.MapClaims(data.Pods, data.NamespaceClaims())
 		out := make([]model.Result, 0, len(mapped.Claims)+len(mapped.Missing))
 		for _, use := range mapped.Claims {
 			consumers := use.Consumers
@@ -148,7 +148,7 @@ func Pools() Inspector {
 			return []string{str(r, "driver"), str(r, "pool"), dash(str(r, "nodeScope")), str(r, "generation"), str(r, "slices"), str(r, "devices"), str(r, "allocated"), str(r, "state"), str(r, "detail")}
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
-		const check = "inspect.pools"
+		const check = NamePools
 		if r, ok := needAnalysis(s, check, append([]string{"resourceslices"}, allocationKeys(s)...)...); ok {
 			return r
 		}
@@ -198,7 +198,7 @@ func Devices() Inspector {
 			return []string{str(r, "driver"), str(r, "pool"), str(r, "device"), dash(str(r, "scope")), str(r, "state"), dash(str(r, "claims")), dash(str(r, "taints")), kv(attributes)}
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
-		const check = "inspect.devices"
+		const check = NameDevices
 		if r, ok := needAnalysis(s, check, append([]string{"resourceslices"}, append(allocationKeys(s), "devicetaintrules")...)...); ok {
 			return r
 		}
@@ -277,7 +277,7 @@ func Nodes() Inspector {
 			return []string{r.Subject, dash(joinStrings(r.Details["drivers"])), str(r, "devices"), str(r, "allocated"), str(r, "free"), str(r, "tainted"), str(r, "unavailable"), str(r, "reachable"), dash(joinStrings(r.Details["issues"]))}
 		},
 	}, Run: func(s model.Snapshot) []model.Result {
-		const check = "inspect.nodes"
+		const check = NameNodes
 		if r, ok := needAnalysis(s, check, append([]string{"resourceslices", "nodes"}, append(allocationKeys(s), "devicetaintrules", "nodepluginpods")...)...); ok {
 			return r
 		}

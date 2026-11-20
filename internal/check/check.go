@@ -38,6 +38,7 @@ const (
 	NameCounters  = "check.counters"
 	NameCapacity  = "check.capacity"
 	NameTopology  = "check.topology"
+	NameWhy       = "check.why"
 )
 
 // need returns the single unavailable result for the first required

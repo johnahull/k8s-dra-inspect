@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 )
 
 // fieldRef matches device.attributes["domain"].name and
@@ -48,7 +48,7 @@ func ReferencedFields(expr string) []Field {
 // such as `gpu.example.com/model="A100", gpu.example.com/memory=<missing>`.
 // Names without a domain in the ResourceSlice belong to the driver's domain,
 // as in CEL evaluation.
-func Values(expr, driver string, device *resourceapi.Device) string {
+func Values(expr, driver string, device *resourcev1.Device) string {
 	var parts []string
 	for _, f := range ReferencedFields(expr) {
 		parts = append(parts, f.String()+"="+lookup(f, driver, device))
@@ -56,10 +56,10 @@ func Values(expr, driver string, device *resourceapi.Device) string {
 	return strings.Join(parts, ", ")
 }
 
-func lookup(f Field, driver string, device *resourceapi.Device) string {
-	names := []resourceapi.QualifiedName{resourceapi.QualifiedName(f.Domain + "/" + f.Name)}
+func lookup(f Field, driver string, device *resourcev1.Device) string {
+	names := []resourcev1.QualifiedName{resourcev1.QualifiedName(f.Domain + "/" + f.Name)}
 	if f.Domain == driver {
-		names = append(names, resourceapi.QualifiedName(f.Name))
+		names = append(names, resourcev1.QualifiedName(f.Name))
 	}
 	for _, n := range names {
 		if f.Capacity {
@@ -75,7 +75,7 @@ func lookup(f Field, driver string, device *resourceapi.Device) string {
 	return "<missing>"
 }
 
-func formatAttribute(a resourceapi.DeviceAttribute) string {
+func formatAttribute(a resourcev1.DeviceAttribute) string {
 	switch {
 	case a.IntValue != nil:
 		return fmt.Sprint(*a.IntValue)

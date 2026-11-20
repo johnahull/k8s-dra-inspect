@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/dynamic-resource-allocation/structured"
 )
 
@@ -35,7 +35,7 @@ type Pool struct {
 	Generation int64
 
 	// Slices holds the slices at Generation, sorted by name.
-	Slices []*resourceapi.ResourceSlice
+	Slices []*resourcev1.ResourceSlice
 
 	// OutdatedSlices counts slices from older generations. A non-zero
 	// count is normal for a moment while a driver republishes the pool.
@@ -64,8 +64,8 @@ func (p *Pool) Usable() bool {
 // DeviceRef points at one device of a pool and the slice publishing it.
 type DeviceRef struct {
 	ID     structured.DeviceID
-	Slice  *resourceapi.ResourceSlice
-	Device *resourceapi.Device
+	Slice  *resourcev1.ResourceSlice
+	Device *resourcev1.Device
 }
 
 // Devices returns the devices of the current generation, in slice order.
@@ -168,15 +168,15 @@ func (p *Pool) scopes() []NodeScope {
 	}
 	if len(scopes) == 0 {
 		for _, s := range p.Slices {
-			scopes = append(scopes, ScopeOf(s, &resourceapi.Device{}))
+			scopes = append(scopes, ScopeOf(s, &resourcev1.Device{}))
 		}
 	}
 	return scopes
 }
 
 // Pools groups slices into pools, sorted by driver and pool name.
-func Pools(resourceSlices []*resourceapi.ResourceSlice) []*Pool {
-	byID := make(map[PoolID][]*resourceapi.ResourceSlice)
+func Pools(resourceSlices []*resourcev1.ResourceSlice) []*Pool {
+	byID := make(map[PoolID][]*resourcev1.ResourceSlice)
 	for _, s := range resourceSlices {
 		id := PoolID{Driver: s.Spec.Driver, Pool: s.Spec.Pool.Name}
 		byID[id] = append(byID[id], s)
@@ -195,7 +195,7 @@ func Pools(resourceSlices []*resourceapi.ResourceSlice) []*Pool {
 	return pools
 }
 
-func newPool(id PoolID, poolSlices []*resourceapi.ResourceSlice) *Pool {
+func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice) *Pool {
 	p := &Pool{ID: id, Generation: poolSlices[0].Spec.Pool.Generation}
 	for _, s := range poolSlices {
 		p.Generation = max(p.Generation, s.Spec.Pool.Generation)

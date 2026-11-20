@@ -14,7 +14,7 @@ import (
 
 // Why explains why a claim is pending or a pod cannot proceed with its claims.
 func Why(ctx context.Context, snap model.Snapshot, target string) []model.Result {
-	const name = "check.why"
+	const name = NameWhy
 	keys := []string{"resourceslices", "deviceclasses", "nodes", "pods", "resourceclaims"}
 	if snap.Namespace != "" {
 		keys = append(keys, "globalallocations")
@@ -74,8 +74,7 @@ func Why(ctx context.Context, snap model.Snapshot, target string) []model.Result
 		return out
 	}
 	var matches []*resourcev1.ResourceClaim
-	for i := range data.ResourceClaims {
-		c := data.ResourceClaims[i]
+	for _, c := range data.NamespaceClaims() {
 		if c.Name == objectName && (namespace == "" || c.Namespace == namespace) {
 			matches = append(matches, c)
 		}
@@ -102,7 +101,7 @@ func Why(ctx context.Context, snap model.Snapshot, target string) []model.Result
 func isPodKind(kind string) bool { return kind == "pod" || kind == "pods" || kind == "po" }
 
 func whyError(target, reason string) []model.Result {
-	return []model.Result{{Check: "check.why", Status: model.StatusError, Subject: target, Details: map[string]any{"reason": reason}}}
+	return []model.Result{{Check: NameWhy, Status: model.StatusError, Subject: target, Details: map[string]any{"reason": reason}}}
 }
 
 func whyResult(check string, explanation *analyze.Explanation) model.Result {

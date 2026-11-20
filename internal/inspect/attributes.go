@@ -49,7 +49,7 @@ func Attributes(all, capacity bool) Inspector {
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {
-			const check = "inspect.attributes"
+			const check = NameAttributes
 			if res, ok := unavailable(snap, check); ok {
 				return res
 			}

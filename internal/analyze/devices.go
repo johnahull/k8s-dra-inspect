@@ -4,12 +4,12 @@ package analyze
 import (
 	"fmt"
 
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 )
 
 // DeviceTaint is a taint on a device and where it came from.
 type DeviceTaint struct {
-	resourceapi.DeviceTaint `json:",inline"`
+	resourcev1.DeviceTaint `json:",inline"`
 
 	// Rule names the DeviceTaintRule that added the taint. It is empty when
 	// the driver published the taint in the ResourceSlice.
@@ -20,7 +20,7 @@ type DeviceTaint struct {
 // device for requests that do not tolerate it. Only NoSchedule and NoExecute
 // do; None and effects unknown to this version are ignored, as upstream.
 func (t DeviceTaint) Blocks() bool {
-	return t.Effect == resourceapi.DeviceTaintEffectNoSchedule || t.Effect == resourceapi.DeviceTaintEffectNoExecute
+	return t.Effect == resourcev1.DeviceTaintEffectNoSchedule || t.Effect == resourcev1.DeviceTaintEffectNoExecute
 }
 
 func (t DeviceTaint) String() string {
@@ -39,7 +39,7 @@ func (t DeviceTaint) String() string {
 // matching DeviceTaintRules, the way the scheduler's slice tracker applies
 // them: a rule without a selector matches nothing, and each set selector
 // field must equal the device's driver, pool or name.
-func TaintsOf(ref DeviceRef, rules []*resourceapi.DeviceTaintRule) []DeviceTaint {
+func TaintsOf(ref DeviceRef, rules []*resourcev1.DeviceTaintRule) []DeviceTaint {
 	var taints []DeviceTaint
 	for _, t := range ref.Device.Taints {
 		taints = append(taints, DeviceTaint{DeviceTaint: t})
@@ -52,7 +52,7 @@ func TaintsOf(ref DeviceRef, rules []*resourceapi.DeviceTaintRule) []DeviceTaint
 	return taints
 }
 
-func ruleMatches(r *resourceapi.DeviceTaintRule, slice *resourceapi.ResourceSlice, device *resourceapi.Device) bool {
+func ruleMatches(r *resourcev1.DeviceTaintRule, slice *resourcev1.ResourceSlice, device *resourcev1.Device) bool {
 	sel := r.Spec.DeviceSelector
 	return sel != nil &&
 		(sel.Driver == nil || *sel.Driver == slice.Spec.Driver) &&
@@ -97,7 +97,7 @@ type DeviceInfo struct {
 // will not use (Unavailable), without node selection the scheduler
 // understands (Unavailable), carrying a blocking taint (Tainted), else Free.
 // Admin access holders are listed but do not change the status.
-func Devices(pools []*Pool, allocations *Allocations, rules []*resourceapi.DeviceTaintRule) []*DeviceInfo {
+func Devices(pools []*Pool, allocations *Allocations, rules []*resourcev1.DeviceTaintRule) []*DeviceInfo {
 	var infos []*DeviceInfo
 	for _, p := range pools {
 		for _, ref := range p.Devices() {

@@ -8,7 +8,7 @@ import (
 	"slices"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/dynamic-resource-allocation/cel"
@@ -20,7 +20,7 @@ import (
 // it handles. The scheduler's real settings come from feature gates we
 // cannot read, so a cluster with a feature off may decide differently;
 // callers report the features they used.
-func InferFeatures(claims []*resourceapi.ResourceClaim, resourceSlices []*resourceapi.ResourceSlice, rules []*resourceapi.DeviceTaintRule) structured.Features {
+func InferFeatures(claims []*resourcev1.ResourceClaim, resourceSlices []*resourcev1.ResourceSlice, rules []*resourcev1.DeviceTaintRule) structured.Features {
 	var f structured.Features
 	f.DeviceTaints = len(rules) > 0
 
@@ -94,13 +94,13 @@ type AllocatorCheck struct {
 // CheckWithAllocator runs structured.Allocator for the claim on every
 // candidate node, with allocated state from all other claims, slices with
 // DeviceTaintRules applied, and features inferred from the data.
-func CheckWithAllocator(ctx context.Context, claim *resourceapi.ResourceClaim, allClaims []*resourceapi.ResourceClaim,
-	classes []*resourceapi.DeviceClass, resourceSlices []*resourceapi.ResourceSlice, rules []*resourceapi.DeviceTaintRule, nodes []*corev1.Node,
+func CheckWithAllocator(ctx context.Context, claim *resourcev1.ResourceClaim, allClaims []*resourcev1.ResourceClaim,
+	classes []*resourcev1.DeviceClass, resourceSlices []*resourcev1.ResourceSlice, rules []*resourcev1.DeviceTaintRule, nodes []*corev1.Node,
 ) *AllocatorCheck {
 	features := InferFeatures(append(slices.Clone(allClaims), claim), resourceSlices, rules)
 	check := &AllocatorCheck{Features: FeatureNames(features), Nodes: []string{}}
 
-	var others []*resourceapi.ResourceClaim
+	var others []*resourcev1.ResourceClaim
 	for _, c := range allClaims {
 		if c.UID != claim.UID || c.Namespace != claim.Namespace || c.Name != claim.Name {
 			others = append(others, c)
@@ -121,7 +121,7 @@ func CheckWithAllocator(ctx context.Context, claim *resourceapi.ResourceClaim, a
 	firstFatal := ""
 	for _, node := range nodes {
 		check.NodesTried++
-		results, err := allocator.Allocate(ctx, node, []*resourceapi.ResourceClaim{claim.DeepCopy()})
+		results, err := allocator.Allocate(ctx, node, []*resourcev1.ResourceClaim{claim.DeepCopy()})
 		switch {
 		case errors.Is(err, structured.ErrFailedAllocationOnNode):
 			check.NodeErrors = append(check.NodeErrors, fmt.Sprintf("%s: %v", node.Name, err))
@@ -151,27 +151,27 @@ func CheckWithAllocator(ctx context.Context, claim *resourceapi.ResourceClaim, a
 const maxCELCacheEntries = 256
 
 // classLister serves DeviceClasses from the snapshot.
-type classLister []*resourceapi.DeviceClass
+type classLister []*resourcev1.DeviceClass
 
-func (l classLister) List() ([]*resourceapi.DeviceClass, error) { return l, nil }
+func (l classLister) List() ([]*resourcev1.DeviceClass, error) { return l, nil }
 
-func (l classLister) Get(name string) (*resourceapi.DeviceClass, error) {
+func (l classLister) Get(name string) (*resourcev1.DeviceClass, error) {
 	for _, c := range l {
 		if c.Name == name {
 			return c, nil
 		}
 	}
-	return nil, apierrors.NewNotFound(resourceapi.Resource("deviceclasses"), name)
+	return nil, apierrors.NewNotFound(resourcev1.Resource("deviceclasses"), name)
 }
 
 // withTaintRules returns the slices with DeviceTaintRule taints added to
 // matching devices, which is what the scheduler's slice tracker feeds the
 // allocator. Slices without matching devices are returned as is.
-func withTaintRules(resourceSlices []*resourceapi.ResourceSlice, rules []*resourceapi.DeviceTaintRule) []*resourceapi.ResourceSlice {
+func withTaintRules(resourceSlices []*resourcev1.ResourceSlice, rules []*resourcev1.DeviceTaintRule) []*resourcev1.ResourceSlice {
 	if len(rules) == 0 {
 		return resourceSlices
 	}
-	out := make([]*resourceapi.ResourceSlice, len(resourceSlices))
+	out := make([]*resourcev1.ResourceSlice, len(resourceSlices))
 	for i, s := range resourceSlices {
 		patched := s
 		for d := range s.Spec.Devices {

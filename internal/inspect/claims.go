@@ -127,7 +127,7 @@ func Claims() Inspector {
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {
-			const check = "inspect.claims"
+			const check = NameClaims
 			if res, ok := unavailableOf(snap, check, "resourceclaims"); ok {
 				return res
 			}

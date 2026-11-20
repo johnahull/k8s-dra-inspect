@@ -33,7 +33,7 @@ func DeviceClasses(sel labels.Selector) Inspector {
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {
-			const check = "inspect.deviceclasses"
+			const check = NameDeviceClasses
 			if res, ok := unavailableOf(snap, check, "deviceclasses"); ok {
 				return res
 			}

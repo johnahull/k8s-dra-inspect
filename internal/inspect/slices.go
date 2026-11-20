@@ -20,7 +20,7 @@ func Slices() Inspector {
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {
-			const check = "inspect.slices"
+			const check = NameSlices
 			if res, ok := unavailable(snap, check); ok {
 				return res
 			}

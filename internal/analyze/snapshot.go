@@ -6,6 +6,9 @@ import (
 )
 
 // Snapshot is the minimal typed view consumed by the ported pure analyzers.
+// ResourceClaims holds the collected claims first, then one synthetic claim
+// per allocation made outside the collected namespace (see FromModel), so
+// allocation-based analysis sees every allocated device.
 type Snapshot struct {
 	Nodes            []*corev1.Node
 	Pods             []*corev1.Pod
@@ -15,4 +18,12 @@ type Snapshot struct {
 	ResourceSlices   []*resourcev1.ResourceSlice
 	ResourceClaims   []*resourcev1.ResourceClaim
 	DeviceTaintRules []*resourcev1.DeviceTaintRule
+
+	outsideClaims int // synthetic claims at the end of ResourceClaims
+}
+
+// NamespaceClaims returns only the collected claims, without the synthetic
+// outside-namespace allocations.
+func (s *Snapshot) NamespaceClaims() []*resourcev1.ResourceClaim {
+	return s.ResourceClaims[:len(s.ResourceClaims)-s.outsideClaims]
 }

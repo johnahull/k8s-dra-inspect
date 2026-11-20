@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/dynamic-resource-allocation/structured"
 	"k8s.io/utils/ptr"
 )
@@ -20,7 +20,7 @@ type NodeScope struct {
 
 // ScopeOf returns where a device is usable. Normally that is set on the
 // slice; with perDeviceNodeSelection each device carries its own.
-func ScopeOf(slice *resourceapi.ResourceSlice, device *resourceapi.Device) NodeScope {
+func ScopeOf(slice *resourcev1.ResourceSlice, device *resourcev1.Device) NodeScope {
 	if ptr.Deref(slice.Spec.PerDeviceNodeSelection, false) {
 		return NodeScope{
 			NodeName:     ptr.Deref(device.NodeName, ""),

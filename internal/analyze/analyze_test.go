@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/dynamic-resource-allocation/structured"
@@ -27,7 +27,7 @@ func load(t *testing.T, name string) *Snapshot {
 
 func TestExplainPendingClaimNamesMissingDeviceClass(t *testing.T) {
 	s := load(t, "why.yaml")
-	var claim *resourceapi.ResourceClaim
+	var claim *resourcev1.ResourceClaim
 	for i := range s.ResourceClaims {
 		if s.ResourceClaims[i].Name == "unknown-class" {
 			claim = s.ResourceClaims[i]
@@ -48,15 +48,15 @@ func TestExplainPendingClaimNamesMissingDeviceClass(t *testing.T) {
 }
 
 func TestExplainReportsInvalidDeviceNodeSelector(t *testing.T) {
-	claim := &resourceapi.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "claim"}, Spec: resourceapi.ResourceClaimSpec{
-		Devices: resourceapi.DeviceClaim{Requests: []resourceapi.DeviceRequest{{Name: "gpu", Exactly: &resourceapi.ExactDeviceRequest{DeviceClassName: "gpu"}}}},
+	claim := &resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "team-a", Name: "claim"}, Spec: resourcev1.ResourceClaimSpec{
+		Devices: resourcev1.DeviceClaim{Requests: []resourcev1.DeviceRequest{{Name: "gpu", Exactly: &resourcev1.ExactDeviceRequest{DeviceClassName: "gpu"}}}},
 	}}
-	class := resourceapi.DeviceClass{ObjectMeta: metav1.ObjectMeta{Name: "gpu"}}
-	slice := resourceapi.ResourceSlice{ObjectMeta: metav1.ObjectMeta{Name: "slice"}, Spec: resourceapi.ResourceSliceSpec{
+	class := resourcev1.DeviceClass{ObjectMeta: metav1.ObjectMeta{Name: "gpu"}}
+	slice := resourcev1.ResourceSlice{ObjectMeta: metav1.ObjectMeta{Name: "slice"}, Spec: resourcev1.ResourceSliceSpec{
 		Driver: "gpu.example.com", NodeSelector: &corev1.NodeSelector{NodeSelectorTerms: []corev1.NodeSelectorTerm{{MatchExpressions: []corev1.NodeSelectorRequirement{{Key: "zone", Operator: corev1.NodeSelectorOperator("invalid")}}}}},
-		Pool: resourceapi.ResourcePool{Name: "pool", Generation: 1, ResourceSliceCount: 1}, Devices: []resourceapi.Device{{Name: "gpu-0"}},
+		Pool: resourcev1.ResourcePool{Name: "pool", Generation: 1, ResourceSliceCount: 1}, Devices: []resourcev1.Device{{Name: "gpu-0"}},
 	}}
-	s := &Snapshot{DeviceClasses: []*resourceapi.DeviceClass{&class}, ResourceSlices: []*resourceapi.ResourceSlice{&slice}, Nodes: []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "node"}}}}
+	s := &Snapshot{DeviceClasses: []*resourcev1.DeviceClass{&class}, ResourceSlices: []*resourcev1.ResourceSlice{&slice}, Nodes: []*corev1.Node{{ObjectMeta: metav1.ObjectMeta{Name: "node"}}}}
 
 	e := Explain(context.Background(), s, claim, nil)
 	if e.Verdict != VerdictError || e.Requests[0].Alternatives[0].Error == "" {
@@ -66,7 +66,7 @@ func TestExplainReportsInvalidDeviceNodeSelector(t *testing.T) {
 
 func TestExplainHintsUseDraInspectCommands(t *testing.T) {
 	s := load(t, "why.yaml")
-	var claim *resourceapi.ResourceClaim
+	var claim *resourcev1.ResourceClaim
 	for i := range s.ResourceClaims {
 		if s.ResourceClaims[i].Name == "all-busy" {
 			claim = s.ResourceClaims[i]
@@ -84,7 +84,7 @@ func TestExplainHintsUseDraInspectCommands(t *testing.T) {
 
 func TestExplainAllocatedPendingPodIncludesSchedulingEvidence(t *testing.T) {
 	s := load(t, "why.yaml")
-	var claim *resourceapi.ResourceClaim
+	var claim *resourcev1.ResourceClaim
 	var pod *corev1.Pod
 	for i := range s.ResourceClaims {
 		if s.ResourceClaims[i].Name == "bound" {
@@ -614,15 +614,15 @@ func TestPoolDevicesSorted(t *testing.T) {
 	// A driver that publishes gpu-2..gpu-11 then gpu-0, gpu-1, as the NVIDIA
 	// driver did on a real node.
 	order := []string{"gpu-2", "gpu-10", "gpu-11", "gpu-3", "gpu-0", "gpu-1"}
-	slice := &resourceapi.ResourceSlice{}
+	slice := &resourcev1.ResourceSlice{}
 	slice.Name = "s"
 	slice.Spec.Driver = "gpu.example.com"
-	slice.Spec.Pool = resourceapi.ResourcePool{Name: "p", Generation: 1, ResourceSliceCount: 1}
+	slice.Spec.Pool = resourcev1.ResourcePool{Name: "p", Generation: 1, ResourceSliceCount: 1}
 	for _, n := range order {
-		slice.Spec.Devices = append(slice.Spec.Devices, resourceapi.Device{Name: n})
+		slice.Spec.Devices = append(slice.Spec.Devices, resourcev1.Device{Name: n})
 	}
 	var got []string
-	for _, d := range Pools([]*resourceapi.ResourceSlice{slice})[0].Devices() {
+	for _, d := range Pools([]*resourcev1.ResourceSlice{slice})[0].Devices() {
 		got = append(got, d.Device.Name)
 	}
 	want := []string{"gpu-0", "gpu-1", "gpu-2", "gpu-3", "gpu-10", "gpu-11"}
@@ -679,5 +679,22 @@ func TestNodeScope(t *testing.T) {
 
 	if (NodeScope{}).Known() || (NodeScope{}).String() != "unknown" {
 		t.Error("an empty scope should be unknown")
+	}
+}
+
+func TestNamespaceClaimsExcludesOutsideAllocations(t *testing.T) {
+	s := FromModel(model.Snapshot{
+		Namespace:         "ns",
+		ResourceClaims:    []resourcev1.ResourceClaim{{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "a"}}},
+		GlobalAllocations: []resourcev1.AllocationResult{{}},
+	})
+	if len(s.ResourceClaims) != 2 {
+		t.Fatalf("ResourceClaims = %d, want 2 (collected + outside)", len(s.ResourceClaims))
+	}
+	if got := s.NamespaceClaims(); len(got) != 1 || got[0].Name != "a" {
+		t.Fatalf("NamespaceClaims = %v, want only claim a", got)
+	}
+	if got := (&Snapshot{ResourceClaims: s.ResourceClaims}).NamespaceClaims(); len(got) != 2 {
+		t.Fatalf("literal Snapshot NamespaceClaims = %d, want all 2", len(got))
 	}
 }

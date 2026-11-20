@@ -59,6 +59,7 @@ func FromModel(s model.Snapshot) *Snapshot {
 			ObjectMeta: metav1.ObjectMeta{Name: "allocated outside namespace"},
 			Status:     resourcev1.ResourceClaimStatus{Allocation: s.GlobalAllocations[i].DeepCopy()},
 		})
+		out.outsideClaims++
 	}
 	for i := range s.DeviceTaintRules {
 		out.DeviceTaintRules = append(out.DeviceTaintRules, s.DeviceTaintRules[i].DeepCopy())
