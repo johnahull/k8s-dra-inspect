@@ -12,6 +12,8 @@ import (
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/analyze/celx"
+
+	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
 // Verdict is the one-word answer of an Explanation.
@@ -579,7 +581,7 @@ func explainAllocated(e *Explanation, s *Snapshot, claim *resourcev1.ResourceCla
 	e.Events = podWarnings(s.Events, pod)
 
 	// The pod must run where the allocated devices are.
-	scope := NodeScope{NodeSelector: claim.Status.Allocation.NodeSelector, AllNodes: claim.Status.Allocation.NodeSelector == nil}
+	scope := model.NodeScope{NodeSelector: claim.Status.Allocation.NodeSelector, AllNodes: claim.Status.Allocation.NodeSelector == nil}
 	excluded := map[string]*Drop{}
 	for _, fit := range PodNodes(pod, s.Nodes) {
 		ok, err := scope.Matches(fit.Node)

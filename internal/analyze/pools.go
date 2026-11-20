@@ -122,14 +122,14 @@ func (p *Pool) ReachableFrom(node *corev1.Node) (bool, error) {
 // scopes returns the node scope of every device. A pool without devices
 // (for example one that only publishes shared counters) falls back to the
 // slice-level scope.
-func (p *Pool) scopes() []NodeScope {
-	var scopes []NodeScope
+func (p *Pool) scopes() []model.NodeScope {
+	var scopes []model.NodeScope
 	for _, d := range p.Devices() {
-		scopes = append(scopes, ScopeOf(d.Slice, d.Device))
+		scopes = append(scopes, model.ScopeOf(d.Slice, d.Device))
 	}
 	if len(scopes) == 0 {
 		for _, s := range p.Slices {
-			scopes = append(scopes, ScopeOf(s, &resourcev1.Device{}))
+			scopes = append(scopes, model.ScopeOf(s, &resourcev1.Device{}))
 		}
 	}
 	return scopes

@@ -117,7 +117,7 @@ func allocationNode(c analyze.Consumer, allocation *resourcev1.AllocationResult,
 	if c.Pod != nil && c.Pod.Spec.NodeName != "" {
 		return c.Pod.Spec.NodeName, nil
 	}
-	scope := analyze.NodeScope{NodeSelector: allocation.NodeSelector, AllNodes: allocation.NodeSelector == nil}
+	scope := model.NodeScope{NodeSelector: allocation.NodeSelector, AllNodes: allocation.NodeSelector == nil}
 	if _, err := scope.Nodes(nodes); err != nil {
 		return "", err
 	}

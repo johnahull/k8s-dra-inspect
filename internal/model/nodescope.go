@@ -1,5 +1,5 @@
 // Adapted from github.com/kphatak/kubectl-dra (Apache-2.0); modified for dra-inspect.
-package analyze
+package model
 
 import (
 	"fmt"

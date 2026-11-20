@@ -642,7 +642,7 @@ func TestNodeScope(t *testing.T) {
 			if !ok {
 				t.Fatalf("device %s not found", tt.device)
 			}
-			scope := ScopeOf(ref.Slice, ref.Device)
+			scope := model.ScopeOf(ref.Slice, ref.Device)
 			if !scope.Known() {
 				t.Error("scope should be known")
 			}
@@ -659,7 +659,7 @@ func TestNodeScope(t *testing.T) {
 		})
 	}
 
-	if (NodeScope{}).Known() || (NodeScope{}).String() != "unknown" {
+	if (model.NodeScope{}).Known() || (model.NodeScope{}).String() != "unknown" {
 		t.Error("an empty scope should be unknown")
 	}
 }

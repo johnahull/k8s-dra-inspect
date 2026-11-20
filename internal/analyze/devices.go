@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	resourcev1 "k8s.io/api/resource/v1"
+
+	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
 // DeviceTaint is a taint on a device and where it came from.
@@ -82,7 +84,7 @@ const (
 type DeviceInfo struct {
 	DeviceRef
 	Pool    *Pool
-	Scope   NodeScope
+	Scope   model.NodeScope
 	Holders []Holder
 	Taints  []DeviceTaint
 	Status  DeviceStatus
@@ -104,7 +106,7 @@ func Devices(pools []*Pool, allocations *Allocations, rules []*resourcev1.Device
 			info := &DeviceInfo{
 				DeviceRef: ref,
 				Pool:      p,
-				Scope:     ScopeOf(ref.Slice, ref.Device),
+				Scope:     model.ScopeOf(ref.Slice, ref.Device),
 				Holders:   allocations.Holders(ref.ID),
 				Taints:    TaintsOf(ref, rules),
 			}
