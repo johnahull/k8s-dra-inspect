@@ -8,7 +8,7 @@ import (
 	"context"
 	"fmt"
 
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/dynamic-resource-allocation/cel"
 )
 
@@ -61,7 +61,7 @@ func (e *SelectorError) Unwrap() error { return e.Err }
 // Match evaluates selectors in order against a device published by driver,
 // stopping at the first one that does not match, as the allocator does. It
 // returns nil, nil when all of them match.
-func (e *Evaluator) Match(ctx context.Context, driver string, device *resourceapi.Device, selectors []resourceapi.DeviceSelector) (*Mismatch, error) {
+func (e *Evaluator) Match(ctx context.Context, driver string, device *resourcev1.Device, selectors []resourcev1.DeviceSelector) (*Mismatch, error) {
 	// Same inputs as the stable allocator's selectorsMatch.
 	input := cel.Device{Driver: driver, Attributes: device.Attributes, Capacity: device.Capacity}
 	for i, selector := range selectors {

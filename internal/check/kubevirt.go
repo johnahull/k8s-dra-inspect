@@ -46,14 +46,14 @@ func KubeVirt(target, namespace string) Check {
 			return []model.Result{{Check: NameKubeVirt, Status: model.StatusPass, Details: map[string]any{"summary": "no VirtualMachineInstances"}}}
 		}
 		out := make([]model.Result, 0, len(vmis))
-		var idx deviceIndex
+		var idx model.AllocationDeviceIndex
 		built := false
 		for _, v := range vmis {
 			if len(v.HostDevices) > 0 && !built {
 				if r, bad := need(snap, NameKubeVirt, "resourceslices", "resourceclaims"); bad {
 					return r
 				}
-				idx, built = newDeviceIndex(snap), true
+				idx, built = model.NewAllocationDeviceIndex(snap), true
 			}
 			r := kubevirtVMI(snap, idx, v)
 			if len(ev.Warnings) > 0 {
@@ -90,7 +90,7 @@ func loadKubeVirt(ctx context.Context, snap model.Snapshot, name string) (kubevi
 	return ev, nil, true
 }
 
-func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Result {
+func kubevirtVMI(snap model.Snapshot, idx model.AllocationDeviceIndex, v kubevirt.VMI) model.Result {
 	var (
 		fs                      []finding
 		devices                 = []map[string]any{}
@@ -130,13 +130,13 @@ func kubevirtVMI(snap model.Snapshot, idx deviceIndex, v kubevirt.VMI) model.Res
 			for _, r := range results {
 				d := map[string]any{"hostDevice": hd.Name, "request": r.Request, "driver": r.Driver, "pool": r.Pool, "device": r.Device}
 				devices = append(devices, d)
-				ref := idx.find(r.Driver, r.Pool, r.Device)
+				ref := idx.Resolve(r.Driver, r.Pool, r.Device)
 				node, tied := deviceNode(snap, r)
-				if ref.state != deviceMissing {
-					if bdf, _ := model.AttrString(ref.dev, r.Driver, "pciBusID"); bdf != "" {
+				if ref.State != model.DeviceMissing {
+					if bdf, _ := model.AttrString(ref.Device, r.Driver, "pciBusID"); bdf != "" {
 						d["pciBusID"] = strings.ToLower(bdf)
 					}
-					top, err := model.TopologyOf(ref.dev, r.Driver)
+					top, err := model.TopologyOf(ref.Device, r.Driver)
 					if err != nil {
 						fs = append(fs, finding{status: model.StatusUnavailable, kind: model.KindInvalid, reason: "device " + devName(r) + " has invalid topology attributes"})
 					}

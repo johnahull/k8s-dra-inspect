@@ -77,7 +77,7 @@ func clusterResults(opts *Options) func(context.Context, model.Snapshot) (model.
 	}
 }
 
-var reportMembers = []string{"inspect.slices", "inspect.drivers", "inspect.topology", "inspect.deviceclasses", "inspect.claims",
+var reportMembers = []string{inspect.NameSlices, inspect.NameDrivers, inspect.NameTopology, inspect.NameDeviceClasses, inspect.NameClaims,
 	check.NameAlignment, check.NameCounters, check.NameCapacity, check.NameTopology}
 
 var supportMembers = append(slices.Clone(reportMembers), check.NameVFIO, check.NameKubeVirt, check.NameAdapterHost, check.NameAdapterKubeVirt)

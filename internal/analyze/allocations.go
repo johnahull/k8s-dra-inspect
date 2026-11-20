@@ -4,7 +4,7 @@ package analyze
 import (
 	"strings"
 
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/sets"
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
@@ -14,7 +14,7 @@ import (
 
 // Holder is one claim's use of a device.
 type Holder struct {
-	Claim *resourceapi.ResourceClaim
+	Claim *resourcev1.ResourceClaim
 
 	// Request is the request name from the claim spec. For a firstAvailable
 	// request, SubRequest names the alternative that was chosen.
@@ -47,7 +47,7 @@ type Allocations struct {
 // The scheduler also counts allocations it has decided on but not yet written
 // to the API server. Those are invisible from outside, so a device can briefly
 // look free here while it is being allocated.
-func BuildAllocations(claims []*resourceapi.ResourceClaim, consumableCapacity bool) *Allocations {
+func BuildAllocations(claims []*resourcev1.ResourceClaim, consumableCapacity bool) *Allocations {
 	a := &Allocations{
 		State: structured.AllocatedState{
 			AllocatedDevices:         sets.New[structured.DeviceID](),

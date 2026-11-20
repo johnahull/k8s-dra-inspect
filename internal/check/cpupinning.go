@@ -178,7 +178,7 @@ func joinInts(v []int) string {
 
 // deviceNuma unions the NUMA nodes of the pod's allocated devices.
 func deviceNuma(snap model.Snapshot, p model.PodRef) ([]int, error) {
-	idx := newDeviceIndex(snap)
+	idx := model.NewAllocationDeviceIndex(snap)
 	names := podClaims(p)
 	out := []int{}
 	for _, c := range allocated(snap) {
@@ -186,11 +186,11 @@ func deviceNuma(snap model.Snapshot, p model.PodRef) ([]int, error) {
 			continue
 		}
 		for _, r := range c.Status.Allocation.Devices.Results {
-			ref := idx.find(r.Driver, r.Pool, r.Device)
-			if ref.state == deviceMissing {
+			ref := idx.Resolve(r.Driver, r.Pool, r.Device)
+			if ref.State == model.DeviceMissing {
 				continue
 			}
-			top, err := model.TopologyOf(ref.dev, r.Driver)
+			top, err := model.TopologyOf(ref.Device, r.Driver)
 			if err != nil {
 				return nil, err
 			}

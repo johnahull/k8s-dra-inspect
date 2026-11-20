@@ -7,7 +7,7 @@ import (
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
 )
@@ -34,7 +34,7 @@ func (c Consumer) String() string { return c.Kind + "/" + c.Name }
 
 // ClaimUse is a claim with everything that uses it.
 type ClaimUse struct {
-	Claim     *resourceapi.ResourceClaim
+	Claim     *resourcev1.ResourceClaim
 	Consumers []Consumer
 }
 
@@ -67,7 +67,7 @@ type ClaimMap struct {
 // scheduler reads them. A generated claim must also be owned by the pod (or
 // its PodGroup), as resourceclaim.IsForPod checks; otherwise the pod's real
 // claim does not exist yet.
-func MapClaims(pods []*corev1.Pod, claims []*resourceapi.ResourceClaim) *ClaimMap {
+func MapClaims(pods []*corev1.Pod, claims []*resourcev1.ResourceClaim) *ClaimMap {
 	m := &ClaimMap{}
 	byName := make(map[string]*ClaimUse, len(claims))
 	for _, c := range claims {

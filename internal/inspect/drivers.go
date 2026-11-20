@@ -29,7 +29,7 @@ func Drivers(attributes bool) Inspector {
 			},
 		},
 		Run: func(snap model.Snapshot) []model.Result {
-			const check = "inspect.drivers"
+			const check = NameDrivers
 			if res, ok := unavailable(snap, check); ok {
 				return res
 			}

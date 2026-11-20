@@ -229,3 +229,45 @@ func (x DeviceIndex) Find(driver, pool, device string) (resourcev1.Device, *reso
 func IsListAttr(a resourcev1.DeviceAttribute) bool {
 	return a.IntValues != nil || a.BoolValues != nil || a.StringValues != nil || a.VersionValues != nil
 }
+
+// AllocationDeviceState says where an allocated device was found.
+type AllocationDeviceState int
+
+const (
+	DeviceCurrent AllocationDeviceState = iota // in the pool's selected generation
+	DeviceStale                                // only in an older generation of the pool
+	DeviceMissing                              // in no ResourceSlice
+)
+
+// AllocationDevice is a resolved allocation result; Slice is nil when Missing.
+type AllocationDevice struct {
+	Device resourcev1.Device
+	Slice  *resourcev1.ResourceSlice
+	State  AllocationDeviceState
+}
+
+// AllocationDeviceIndex resolves allocated devices against the selected
+// generation of their pool, so stale allocations are flagged rather than
+// silently dropped.
+type AllocationDeviceIndex struct {
+	devs DeviceIndex
+	sel  map[PoolKey]PoolSel
+}
+
+// NewAllocationDeviceIndex indexes snap's slices; snap must outlive the index.
+func NewAllocationDeviceIndex(snap Snapshot) AllocationDeviceIndex {
+	return AllocationDeviceIndex{NewDeviceIndex(snap.ResourceSlices), SelectGenerations(snap)}
+}
+
+// Resolve finds a device in the newest generation that lists it and reports
+// whether that generation is the pool's selected one.
+func (x AllocationDeviceIndex) Resolve(driver, pool, device string) AllocationDevice {
+	d, s, ok := x.devs.Find(driver, pool, device)
+	switch {
+	case !ok:
+		return AllocationDevice{State: DeviceMissing}
+	case s.Spec.Pool.Generation != x.sel[PoolKey{driver, pool}].Gen:
+		return AllocationDevice{Device: d, Slice: s, State: DeviceStale}
+	}
+	return AllocationDevice{Device: d, Slice: s, State: DeviceCurrent}
+}

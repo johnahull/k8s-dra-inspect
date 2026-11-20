@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/johnahull/k8s-dra-inspect/internal/check"
+	"github.com/johnahull/k8s-dra-inspect/internal/inspect"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -137,7 +138,7 @@ func subjectOf(r model.Result, d *decoder) string {
 		if n := detStr(r, "nodeName"); n != "" {
 			return r.Subject + " (node: " + n + ")"
 		}
-	case "inspect.topology":
+	case inspect.NameTopology:
 		return topologyPlace(r, d)
 	}
 	return r.Subject

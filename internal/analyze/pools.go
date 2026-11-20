@@ -10,8 +10,10 @@ import (
 	"strings"
 
 	corev1 "k8s.io/api/core/v1"
-	resourceapi "k8s.io/api/resource/v1"
+	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/dynamic-resource-allocation/structured"
+
+	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
 // PoolID identifies a pool. Pool names are only unique per driver.
@@ -35,7 +37,7 @@ type Pool struct {
 	Generation int64
 
 	// Slices holds the slices at Generation, sorted by name.
-	Slices []*resourceapi.ResourceSlice
+	Slices []*resourcev1.ResourceSlice
 
 	// OutdatedSlices counts slices from older generations. A non-zero
 	// count is normal for a moment while a driver republishes the pool.
@@ -64,8 +66,8 @@ func (p *Pool) Usable() bool {
 // DeviceRef points at one device of a pool and the slice publishing it.
 type DeviceRef struct {
 	ID     structured.DeviceID
-	Slice  *resourceapi.ResourceSlice
-	Device *resourceapi.Device
+	Slice  *resourcev1.ResourceSlice
+	Device *resourcev1.Device
 }
 
 // Devices returns the devices of the current generation, in slice order.
@@ -82,49 +84,8 @@ func (p *Pool) Devices() []DeviceRef {
 		}
 	}
 	// Drivers publish devices in any order; list them as people count.
-	sort.SliceStable(refs, func(i, j int) bool { return NaturalLess(refs[i].Device.Name, refs[j].Device.Name) })
+	slices.SortStableFunc(refs, func(a, b DeviceRef) int { return model.CompareNatural(a.Device.Name, b.Device.Name) })
 	return refs
-}
-
-// NaturalLess orders strings with embedded numbers by value, so gpu-2 comes
-// before gpu-10. Runs of digits compare as numbers, everything else byte by
-// byte.
-func NaturalLess(a, b string) bool {
-	for a != "" && b != "" {
-		ca, cb := a[0], b[0]
-		if isDigit(ca) && isDigit(cb) {
-			na, nb := digitRun(a), digitRun(b)
-			// Compare by value: strip leading zeros, then length, then
-			// digits.
-			va, vb := strings.TrimLeft(a[:na], "0"), strings.TrimLeft(b[:nb], "0")
-			if len(va) != len(vb) {
-				return len(va) < len(vb)
-			}
-			if va != vb {
-				return va < vb
-			}
-			if na != nb {
-				return na < nb
-			}
-			a, b = a[na:], b[nb:]
-			continue
-		}
-		if ca != cb {
-			return ca < cb
-		}
-		a, b = a[1:], b[1:]
-	}
-	return len(a) < len(b)
-}
-
-func isDigit(c byte) bool { return c >= '0' && c <= '9' }
-
-func digitRun(s string) int {
-	n := 0
-	for n < len(s) && isDigit(s[n]) {
-		n++
-	}
-	return n
 }
 
 // ScopeSummary describes where the pool's devices are usable: their common
@@ -161,22 +122,22 @@ func (p *Pool) ReachableFrom(node *corev1.Node) (bool, error) {
 // scopes returns the node scope of every device. A pool without devices
 // (for example one that only publishes shared counters) falls back to the
 // slice-level scope.
-func (p *Pool) scopes() []NodeScope {
-	var scopes []NodeScope
+func (p *Pool) scopes() []model.NodeScope {
+	var scopes []model.NodeScope
 	for _, d := range p.Devices() {
-		scopes = append(scopes, ScopeOf(d.Slice, d.Device))
+		scopes = append(scopes, model.ScopeOf(d.Slice, d.Device))
 	}
 	if len(scopes) == 0 {
 		for _, s := range p.Slices {
-			scopes = append(scopes, ScopeOf(s, &resourceapi.Device{}))
+			scopes = append(scopes, model.ScopeOf(s, &resourcev1.Device{}))
 		}
 	}
 	return scopes
 }
 
 // Pools groups slices into pools, sorted by driver and pool name.
-func Pools(resourceSlices []*resourceapi.ResourceSlice) []*Pool {
-	byID := make(map[PoolID][]*resourceapi.ResourceSlice)
+func Pools(resourceSlices []*resourcev1.ResourceSlice) []*Pool {
+	byID := make(map[PoolID][]*resourcev1.ResourceSlice)
 	for _, s := range resourceSlices {
 		id := PoolID{Driver: s.Spec.Driver, Pool: s.Spec.Pool.Name}
 		byID[id] = append(byID[id], s)
@@ -195,7 +156,7 @@ func Pools(resourceSlices []*resourceapi.ResourceSlice) []*Pool {
 	return pools
 }
 
-func newPool(id PoolID, poolSlices []*resourceapi.ResourceSlice) *Pool {
+func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice) *Pool {
 	p := &Pool{ID: id, Generation: poolSlices[0].Spec.Pool.Generation}
 	for _, s := range poolSlices {
 		p.Generation = max(p.Generation, s.Spec.Pool.Generation)
