@@ -8,8 +8,14 @@ import (
 	resourcev1 "k8s.io/api/resource/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
+
+func usage(snap model.Snapshot) (map[model.DeviceKey]model.Usage, model.UsageScope) {
+	users, _ := analyze.ClaimPodNames(snap)
+	return model.DeviceUsage(snap, users)
+}
 
 func uclaim(ns, name string, reserved []string, devs ...string) resourcev1.ResourceClaim {
 	c := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: ns, Name: name}}
@@ -42,8 +48,10 @@ func TestDeviceUsageInverts(t *testing.T) {
 	snap := usnap(
 		[]resourcev1.ResourceClaim{uclaim("ns", "c1", []string{"reserved-pod"}, "gpu-0", "gpu-1"), uclaim("ns", "free", nil)},
 		[]model.PodRef{{Namespace: "ns", Name: "p1", ResourceClaims: []corev1.PodResourceClaim{{Name: "x", ResourceClaimName: &cn}}}})
-	u, sc := model.DeviceUsage(snap)
-	want := model.Usage{Claims: []string{"ns/c1"}, Pods: []string{"ns/p1", "ns/reserved-pod"}}
+	u, sc := usage(snap)
+	// reserved-pod is in reservedFor but no collected pod has that name and
+	// UID, so it is a stale reservation, not a user.
+	want := model.Usage{Claims: []string{"ns/c1"}, Pods: []string{"ns/p1"}}
 	for _, d := range []string{"gpu-0", "gpu-1"} {
 		if !reflect.DeepEqual(u[key(d)], want) {
 			t.Errorf("%s: got %+v want %+v", d, u[key(d)], want)
@@ -58,14 +66,14 @@ func TestDeviceUsageInverts(t *testing.T) {
 }
 
 func TestDeviceUsageAllocatedWithoutReservation(t *testing.T) {
-	u, _ := model.DeviceUsage(usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", nil, "gpu-0")}, nil))
+	u, _ := usage(usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", nil, "gpu-0")}, nil))
 	if got := u[key("gpu-0")]; !reflect.DeepEqual(got.Claims, []string{"ns/c"}) || len(got.Pods) != 0 {
 		t.Errorf("got %+v", got)
 	}
 }
 
 func TestDeviceUsageDedupesRepeatedPairs(t *testing.T) {
-	u, _ := model.DeviceUsage(usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", nil, "gpu-0", "gpu-0")}, nil))
+	u, _ := usage(usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", nil, "gpu-0", "gpu-0")}, nil))
 	if got := u[key("gpu-0")].Claims; !reflect.DeepEqual(got, []string{"ns/c"}) {
 		t.Errorf("got %v", got)
 	}
@@ -80,7 +88,7 @@ func TestDeviceUsageShareableDeviceTwoClaims(t *testing.T) {
 			{Namespace: "ns2", Name: "pb", ResourceClaims: []corev1.PodResourceClaim{{ResourceClaimName: &b}}},
 			{Namespace: "ns1", Name: "other-ns-pod", ResourceClaims: []corev1.PodResourceClaim{{ResourceClaimName: &b}}},
 		})
-	u, _ := model.DeviceUsage(snap)
+	u, _ := usage(snap)
 	want := model.Usage{Claims: []string{"ns1/a", "ns2/b"}, Pods: []string{"ns1/pa", "ns2/pb"}}
 	if !reflect.DeepEqual(u[key("gpu-0")], want) {
 		t.Errorf("got %+v want %+v", u[key("gpu-0")], want)
@@ -88,10 +96,14 @@ func TestDeviceUsageShareableDeviceTwoClaims(t *testing.T) {
 }
 
 func TestDeviceUsageTemplateClaimPodViaStatus(t *testing.T) {
-	gen := "pod-tmpl-abcde"
-	snap := usnap([]resourcev1.ResourceClaim{uclaim("ns", gen, nil, "gpu-0")},
-		[]model.PodRef{{Namespace: "ns", Name: "p", ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "x", ResourceClaimName: &gen}}}})
-	u, _ := model.DeviceUsage(snap)
+	gen, tmpl := "pod-tmpl-abcde", "tmpl"
+	claim := uclaim("ns", gen, nil, "gpu-0")
+	claim.OwnerReferences = []metav1.OwnerReference{{APIVersion: "v1", Kind: "Pod", Name: "p", UID: "uid-p", Controller: new(true)}}
+	snap := usnap([]resourcev1.ResourceClaim{claim},
+		[]model.PodRef{{Namespace: "ns", Name: "p", UID: "uid-p",
+			ResourceClaims:        []corev1.PodResourceClaim{{Name: "x", ResourceClaimTemplateName: &tmpl}},
+			ResourceClaimStatuses: []corev1.PodResourceClaimStatus{{Name: "x", ResourceClaimName: &gen}}}})
+	u, _ := usage(snap)
 	if got := u[key("gpu-0")].Pods; !reflect.DeepEqual(got, []string{"ns/p"}) {
 		t.Errorf("got %v", got)
 	}
@@ -100,12 +112,12 @@ func TestDeviceUsageTemplateClaimPodViaStatus(t *testing.T) {
 func TestDeviceUsageClaimsForbidden(t *testing.T) {
 	snap := usnap([]resourcev1.ResourceClaim{uclaim("ns", "c", nil, "gpu-0")}, nil)
 	snap.Collection["resourceclaims"] = model.CollectionStatus{State: model.StateForbidden, Reason: "forbidden: list resourceclaims"}
-	u, sc := model.DeviceUsage(snap)
+	u, sc := usage(snap)
 	if sc.Available || sc.Reason != "forbidden: list resourceclaims" || len(u) != 0 {
 		t.Errorf("scope %+v usage %+v", sc, u)
 	}
 	delete(snap.Collection, "resourceclaims")
-	if _, sc = model.DeviceUsage(snap); sc.Available || sc.Reason != "resourceclaims collection state: not collected" {
+	if _, sc = usage(snap); sc.Available || sc.Reason != "resourceclaims collection state: not collected" {
 		t.Errorf("scope %+v", sc)
 	}
 }
@@ -115,7 +127,7 @@ func TestDeviceUsageNamespaceAndPodsNotCollected(t *testing.T) {
 	snap.Namespace = "ns"
 	snap.Collection["globalallocations"] = model.CollectionStatus{State: model.StateOK}
 	snap.Collection["pods"] = model.CollectionStatus{State: model.StateForbidden}
-	u, sc := model.DeviceUsage(snap)
+	u, sc := usage(snap)
 	if sc.Namespace != "ns" || sc.PodsAvailable || !sc.Available {
 		t.Errorf("scope %+v", sc)
 	}
@@ -131,51 +143,8 @@ func TestDeviceUsageIncludesMaskedOutsideNamespaceAllocation(t *testing.T) {
 	snap.GlobalAllocations = []resourcev1.AllocationResult{{Devices: resourcev1.DeviceAllocationResult{
 		Results: []resourcev1.DeviceRequestAllocationResult{{Driver: "drv", Pool: "pool", Device: "gpu-0"}},
 	}}}
-	u, scope := model.DeviceUsage(snap)
+	u, scope := usage(snap)
 	if !scope.Available || !scope.ForeignClaims || !reflect.DeepEqual(u[key("gpu-0")].Claims, []string{"allocated outside namespace"}) {
 		t.Fatalf("scope=%+v usage=%+v", scope, u)
-	}
-}
-
-func TestPodsUsingKeepsBareNames(t *testing.T) {
-	cn := "c"
-	snap := usnap(nil, []model.PodRef{
-		{Namespace: "ns", Name: "p", ResourceClaims: []corev1.PodResourceClaim{{ResourceClaimName: &cn}, {ResourceClaimName: &cn}}},
-		{Namespace: "x", Name: "q", ResourceClaims: []corev1.PodResourceClaim{{ResourceClaimName: &cn}}}})
-	c := uclaim("ns", "c", []string{"r", "p"}, "d")
-	if got := model.PodsUsing(snap, c); !reflect.DeepEqual(got, []string{"p", "r"}) {
-		t.Errorf("got %v", got)
-	}
-}
-
-func TestAttrString(t *testing.T) {
-	d := dev(map[string]resourcev1.DeviceAttribute{
-		"resource.kubernetes.io/pciBusID": strAttr("std"), "gpu.example.com/pciBusID": strAttr("drv"), "pciBusID": strAttr("bare"),
-		"gpu.example.com/model": strAttr("drvmodel"), "model": strAttr("baremodel"),
-		"productName": strAttr("bareprod"), "other.io/vendor": strAttr("x"), "n": intAttr(1),
-	})
-	for _, c := range []struct {
-		name, want string
-		ok         bool
-	}{
-		{"pciBusID", "std", true},   // standard key wins
-		{"model", "drvmodel", true}, // then <driver>/<name>
-		{"productName", "bareprod", true},
-		{"vendor", "", false}, // other vendors' keys never match
-		{"missing", "", false},
-		{"n", "", false}, // not a string attribute
-	} {
-		got, ok := model.AttrString(d, "gpu.example.com", c.name)
-		if got != c.want || ok != c.ok {
-			t.Errorf("%s: got %q,%v want %q,%v", c.name, got, ok, c.want, c.ok)
-		}
-	}
-	delete(d.Attributes, "resource.kubernetes.io/pciBusID")
-	if got, _ := model.AttrString(d, "gpu.example.com", "pciBusID"); got != "drv" {
-		t.Errorf("driver key: %q", got)
-	}
-	delete(d.Attributes, "gpu.example.com/pciBusID")
-	if got, _ := model.AttrString(d, "gpu.example.com", "pciBusID"); got != "bare" {
-		t.Errorf("bare key: %q", got)
 	}
 }

@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata: {name: pod-1, namespace: default, uid: 00000000-0000-4000-8000-000000000007}
+  spec:
+    nodeName: node-a.example.com
+    resourceClaims:
+    - {name: devices, resourceClaimName: vm-final-all}

@@ -72,6 +72,9 @@ func Claims(p *render.Printer, snap model.Snapshot, results []model.Result) {
 			continue
 		}
 		p.Line(0, "%s → %s", p.Bold(r.Subject), consumers(r, &d, podsDown, vmiDown))
+		if stale := detail[[]string](&d, r, "staleReservedFor"); len(stale) > 0 {
+			p.Note(2, model.StatusWarn, "stale reservation: reservedFor names pods that no longer exist: "+strings.Join(stale, ", "))
+		}
 		var as []alloc
 		for _, m := range detail[[]map[string]any](&d, r, "results") {
 			as = append(as, alloc{

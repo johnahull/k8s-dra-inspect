@@ -15,3 +15,7 @@ Scrub command (source files copied into one directory first):
 The script needs python3 with PyYAML (`pip install pyyaml`). It also replaces
 UUIDs, `uuid`/`shareID`/`serial*` attributes and `reservedFor` pod identities
 with deterministic fakes. `hack/test-scrub.sh` self-tests it.
+
+`pods.yaml` is hand-written: the source had no Pod object. It stands in for
+the scrubbed `reservedFor` pod (`pod-1`, same fake UID) so the snapshot's
+"pods collected" state is self-consistent and the reservation is not stale.

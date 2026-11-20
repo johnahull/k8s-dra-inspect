@@ -4,12 +4,15 @@ package analyze
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"sort"
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/dynamic-resource-allocation/resourceclaim"
+
+	"github.com/johnahull/k8s-dra-inspect/internal/model"
 )
 
 // Consumer is something using a claim: a pod that references it in its
@@ -165,4 +168,31 @@ func (u *ClaimUse) addConsumer(c Consumer) {
 		return
 	}
 	u.Consumers = append(u.Consumers, c)
+}
+
+// ClaimPodNames maps every collected claim ("ns/name") to the bare names of
+// the pods using it, by the scheduler's rules (owner-checked template claims,
+// reservedFor matched by UID), and separately to its stale reservations:
+// reservedFor pods that match no collected pod, typically left by a deleted
+// pod. Without a pods collection nothing can be called stale, so every
+// reservation counts as a user.
+func ClaimPodNames(s model.Snapshot) (users, stale map[string][]string) {
+	data := FromModel(s)
+	podsOK := s.Collection["pods"].State == model.StateOK
+	users, stale = map[string][]string{}, map[string][]string{}
+	for _, use := range MapClaims(data.Pods, data.NamespaceClaims()).Claims {
+		key := use.Claim.Namespace + "/" + use.Claim.Name
+		for _, c := range use.Consumers {
+			switch {
+			case c.Kind != "pod":
+			case c.Pod != nil || (c.Reserved && !podsOK):
+				users[key] = append(users[key], c.Name)
+			case c.Reserved:
+				stale[key] = append(stale[key], c.Name)
+			}
+		}
+		users[key] = slices.Compact(slices.Sorted(slices.Values(users[key])))
+		stale[key] = slices.Compact(slices.Sorted(slices.Values(stale[key])))
+	}
+	return users, stale
 }

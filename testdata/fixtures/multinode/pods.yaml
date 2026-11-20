@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: List
+items:
+- apiVersion: v1
+  kind: Pod
+  metadata: {name: pair-pod, namespace: demo, uid: 00000000-0000-4000-8000-000000000002}
+  spec:
+    nodeName: node-a.example.com
+    resourceClaims:
+    - {name: gpu, resourceClaimName: pair-a}

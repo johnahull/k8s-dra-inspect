@@ -65,7 +65,11 @@ items:
         - {request: gpu0, driver: gpu.example.com, pool: node-b.example.com, device: gpu-b0}
 - apiVersion: resource.k8s.io/v1
   kind: ResourceClaim
-  metadata: {name: generated-partitions, namespace: demo}
+  metadata:
+    name: generated-partitions
+    namespace: demo
+    ownerReferences:
+    - {apiVersion: v1, kind: Pod, name: virt-launcher-vm-template-abcde, uid: pod-template-fixture, controller: true, blockOwnerDeletion: true}
   spec:
     devices:
       requests:

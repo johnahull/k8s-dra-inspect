@@ -101,3 +101,27 @@ func TestNodesRequiresClusterwidePluginEvidence(t *testing.T) {
 		t.Fatalf("nodes without plugin evidence = %+v", results)
 	}
 }
+
+func TestClaimsMarksStaleReservation(t *testing.T) {
+	ok := model.CollectionStatus{State: model.StateOK}
+	claim := resourcev1.ResourceClaim{ObjectMeta: metav1.ObjectMeta{Namespace: "ns", Name: "shared"},
+		Status: resourcev1.ResourceClaimStatus{ReservedFor: []resourcev1.ResourceClaimConsumerReference{
+			{Resource: "pods", Name: "app", UID: "uid-old"},
+		}}}
+	snap := model.Snapshot{Collection: map[string]model.CollectionStatus{"resourceclaims": ok, "pods": ok},
+		ResourceClaims: []resourcev1.ResourceClaim{claim},
+		Pods: []model.PodRef{{Namespace: "ns", Name: "app", UID: "uid-new",
+			ResourceClaims: []corev1.PodResourceClaim{{Name: "x", ResourceClaimName: ptr.To("shared")}}}}}
+	r := inspect.Claims().Run(snap)[0]
+	used, _ := r.Details["usedBy"].([]string)
+	reserved, _ := r.Details["reservedFor"].([]string)
+	if r.Status != model.StatusWarn || len(used) != 1 || used[0] != "app" || len(reserved) != 1 || reserved[0] != "app (stale)" {
+		t.Fatalf("result = %+v", r)
+	}
+	if len(r.Findings) != 1 || r.Findings[0].Kind != model.KindStaleReservation {
+		t.Fatalf("findings = %+v", r.Findings)
+	}
+	if !strings.HasPrefix(r.Details["usedByState"].(string), "stale: ") {
+		t.Fatalf("usedByState = %v", r.Details["usedByState"])
+	}
+}

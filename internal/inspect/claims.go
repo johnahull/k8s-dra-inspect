@@ -9,6 +9,7 @@ import (
 	resourcev1 "k8s.io/api/resource/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -117,7 +118,7 @@ func Claims() Inspector {
 				nodes, _ := r.Details["nodes"].([]string)
 				used, _ := r.Details["usedBy"].([]string)
 				usedBy := strings.Join(used, ",")
-				if str(r, "usedByState") != "" {
+				if strings.HasPrefix(str(r, "usedByState"), "unavailable") {
 					usedBy = "unavailable"
 				}
 				if v := str(r, "vmi"); v != "" && !strings.HasPrefix(v, "unavailable") {
@@ -133,8 +134,10 @@ func Claims() Inspector {
 			}
 			slicesOK := snap.Collection["resourceslices"].State == model.StateOK
 			vmiSt := snap.Collection["virtualmachineinstances"]
+			users, stale := analyze.ClaimPodNames(snap)
 			out := []model.Result{}
 			for _, c := range snap.ResourceClaims {
+				key := c.Namespace + "/" + c.Name
 				al := c.Status.Allocation
 				results := []map[string]any{}
 				var nodes, missing []string
@@ -166,9 +169,13 @@ func Claims() Inspector {
 				}
 				reserved := []string{}
 				for _, r := range c.Status.ReservedFor {
+					if r.Resource == "pods" && slices.Contains(stale[key], r.Name) {
+						reserved = append(reserved, r.Name+" (stale)")
+						continue
+					}
 					reserved = append(reserved, r.Name)
 				}
-				used := model.PodsUsing(snap, c)
+				used := append([]string{}, users[key]...)
 				det := map[string]any{
 					"deviceRequests": requestsOf(c), "allocated": al != nil, "results": results, "deviceCount": len(results),
 					"nodes": sortedUnique(nodes), "reservedFor": reserved, "usedBy": used,
@@ -196,11 +203,19 @@ func Claims() Inspector {
 				}
 				status := model.StatusPass
 				var findings []model.Finding
+				if len(stale[key]) > 0 { // never with pods down: ClaimPodNames counts every reservation as a user then
+					status = model.StatusWarn
+					reason := "reservedFor names pods that no longer exist: " + strings.Join(stale[key], ", ")
+					det["staleReservedFor"] = stale[key]
+					det["reason"] = reason
+					det["usedByState"] = "stale: " + reason
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindStaleReservation, Text: reason, Items: stale[key]})
+				}
 				if len(missing) > 0 {
 					status = model.StatusWarn
 					det["missingDevices"] = missing
 					det["reason"] = "allocated device not found in ResourceSlices: " + strings.Join(missing, ", ")
-					findings = []model.Finding{{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing}}
+					findings = append(findings, model.Finding{Status: status, Kind: model.KindMissingDevice, Text: det["reason"].(string), Items: missing})
 				}
 				out = append(out, model.Result{Check: check, Status: status, Subject: c.Namespace + "/" + c.Name, Details: det, Findings: findings})
 			}

@@ -6,6 +6,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/johnahull/k8s-dra-inspect/internal/analyze"
 	"github.com/johnahull/k8s-dra-inspect/internal/model"
 	"github.com/johnahull/k8s-dra-inspect/internal/render"
 )
@@ -75,7 +76,8 @@ func sliceNode(snap model.Snapshot, r model.Result) (node string, ok bool) {
 // node, hardware label and users.
 func Slices(p *render.Printer, snap model.Snapshot, results []model.Result) {
 	p.Banner("ResourceSlice Hardware Summary")
-	usage, sc := model.DeviceUsage(snap)
+	users, _ := analyze.ClaimPodNames(snap)
+	usage, sc := model.DeviceUsage(snap, users)
 	cur, sel := model.CurrentSlices(snap)
 
 	rows := map[string]map[string][]deviceRow{} // node -> driver -> devices
