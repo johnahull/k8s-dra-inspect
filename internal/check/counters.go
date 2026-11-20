@@ -93,7 +93,7 @@ func Counters() Check {
 			}
 		}
 
-		idx := newDeviceIndex(snap)
+		idx := model.NewAllocationDeviceIndex(snap)
 		seen := map[model.PoolKey]map[string]bool{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {
@@ -104,10 +104,10 @@ func Counters() Check {
 				}
 				d, ok := p.devices[r.Device]
 				if !ok {
-					switch idx.find(r.Driver, r.Pool, r.Device).state {
-					case deviceStale:
+					switch idx.Resolve(r.Driver, r.Pool, r.Device).State {
+					case model.DeviceStale:
 						p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("claim %s/%s allocates %s from a stale generation; its counters are not counted", c.Namespace, c.Name, devName(r))})
-					case deviceMissing:
+					case model.DeviceMissing:
 						p.pool = append(p.pool, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("claim %s/%s allocates %s, which no ResourceSlice publishes", c.Namespace, c.Name, devName(r))})
 					}
 					continue

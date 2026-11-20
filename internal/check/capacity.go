@@ -14,7 +14,7 @@ import (
 )
 
 type capDevice struct {
-	ref      deviceRef
+	ref      model.AllocationDevice
 	consumed map[resourcev1.QualifiedName]*resource.Quantity
 	by       map[string]bool
 	fs       []finding
@@ -34,7 +34,7 @@ func Capacity() Check {
 		if r, ok := needAllocations(snap, NameCapacity); ok {
 			return r
 		}
-		idx := newDeviceIndex(snap)
+		idx := model.NewAllocationDeviceIndex(snap)
 		devs := map[string]*capDevice{}
 		for _, c := range allocated(snap) {
 			for _, r := range c.Status.Allocation.Devices.Results {
@@ -44,27 +44,27 @@ func Capacity() Check {
 				key := devName(r)
 				d := devs[key]
 				if d == nil {
-					d = &capDevice{ref: idx.find(r.Driver, r.Pool, r.Device), consumed: map[resourcev1.QualifiedName]*resource.Quantity{}, by: map[string]bool{}}
+					d = &capDevice{ref: idx.Resolve(r.Driver, r.Pool, r.Device), consumed: map[resourcev1.QualifiedName]*resource.Quantity{}, by: map[string]bool{}}
 					devs[key] = d
-					switch d.ref.state {
-					case deviceMissing:
+					switch d.ref.State {
+					case model.DeviceMissing:
 						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("allocated device %s is not in any ResourceSlice", key)})
-					case deviceStale:
+					case model.DeviceStale:
 						d.fs = append(d.fs, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("allocated device %s is only in a stale generation of its pool", key)})
 					}
 				}
 				d.by[c.Namespace+"/"+c.Name] = true
-				if d.ref.state == deviceMissing {
+				if d.ref.State == model.DeviceMissing {
 					continue
 				}
 				for _, name := range slices.Sorted(maps.Keys(r.ConsumedCapacity)) {
 					v := r.ConsumedCapacity[name]
-					k, ok := resolveKey(d.ref.dev.Capacity, r.Driver, string(name))
+					k, ok := resolveKey(d.ref.Device.Capacity, r.Driver, string(name))
 					if !ok {
 						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("consumed capacity %s is not published by %s", name, key)})
 						continue
 					}
-					pub := d.ref.dev.Capacity[k]
+					pub := d.ref.Device.Capacity[k]
 					if v.Cmp(pub.Value) > 0 {
 						d.fs = append(d.fs, finding{status: model.StatusFail, kind: model.KindCapacity, reason: fmt.Sprintf("claim %s/%s consumes %s of %s, more than the published %s", c.Namespace, c.Name, v.String(), k, pub.Value.String())})
 					}
@@ -91,7 +91,7 @@ func Capacity() Check {
 			d := devs[key]
 			caps := map[string]map[string]string{}
 			for k, used := range d.consumed {
-				pub := d.ref.dev.Capacity[k].Value
+				pub := d.ref.Device.Capacity[k].Value
 				rem := pub.DeepCopy()
 				rem.Sub(*used)
 				caps[string(k)] = map[string]string{"published": pub.String(), "consumed": used.String(), "remaining": rem.String()}

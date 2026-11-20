@@ -113,7 +113,7 @@ type allocDev struct {
 	name   string // driver/pool/device
 	driver string
 	req    string
-	ref    deviceRef
+	ref    model.AllocationDevice
 }
 
 // evalConstraint evaluates one matchAttribute constraint over devs.
@@ -132,10 +132,10 @@ func evalConstraint(c resourcev1.DeviceConstraint, devs []allocDev, derived map[
 	var sets, typed [][]string
 	var missing []string
 	for _, d := range devs {
-		if d.ref.state == deviceMissing || !inScope(d.req, c.Requests) {
+		if d.ref.State == model.DeviceMissing || !inScope(d.req, c.Requests) {
 			continue
 		}
-		a, ok := lookupKey(d.ref.dev.Attributes, d.driver, attr)
+		a, ok := lookupKey(d.ref.Device.Attributes, d.driver, attr)
 		set := model.AttrSet(a)
 		if !ok || len(set) == 0 {
 			missing = append(missing, d.name)
@@ -175,10 +175,10 @@ func summarize(devs []allocDev, pick func(model.Topology) model.Resolved) (topoS
 	var missing []string
 	keys := map[string]bool{}
 	for _, d := range devs {
-		if d.ref.state == deviceMissing {
+		if d.ref.State == model.DeviceMissing {
 			continue
 		}
-		top, err := model.TopologyOf(d.ref.dev, d.driver)
+		top, err := model.TopologyOf(d.ref.Device, d.driver)
 		if err != nil {
 			return topoSummary{}, err
 		}
@@ -221,7 +221,7 @@ func coveredBy(cons []resourcev1.DeviceConstraint, names []string, devs []allocD
 		}
 	}
 	for _, d := range devs {
-		if d.ref.state != deviceMissing && !covered[d.name+"|"+d.req] {
+		if d.ref.State != model.DeviceMissing && !covered[d.name+"|"+d.req] {
 			return false
 		}
 	}
@@ -246,19 +246,19 @@ func derivedNames(c resourcev1.ResourceClaim) map[string]bool {
 	return out
 }
 
-func alignClaim(c resourcev1.ResourceClaim, idx deviceIndex) model.Result {
+func alignClaim(c resourcev1.ResourceClaim, idx model.AllocationDeviceIndex) model.Result {
 	var devs []allocDev
 	var fs []finding
 	var deviceNames []string
 	for _, r := range c.Status.Allocation.Devices.Results {
-		ref := idx.find(r.Driver, r.Pool, r.Device)
+		ref := idx.Resolve(r.Driver, r.Pool, r.Device)
 		d := allocDev{name: devName(r), driver: r.Driver, req: r.Request, ref: ref}
 		devs = append(devs, d)
 		deviceNames = append(deviceNames, d.name)
-		switch ref.state {
-		case deviceMissing:
+		switch ref.State {
+		case model.DeviceMissing:
 			fs = append(fs, finding{status: model.StatusFail, kind: model.KindMissingDevice, reason: fmt.Sprintf("allocated device %s is not in any ResourceSlice (data inconsistency)", d.name)})
-		case deviceStale:
+		case model.DeviceStale:
 			fs = append(fs, finding{status: model.StatusWarn, kind: model.KindStaleDevice, reason: fmt.Sprintf("allocated device %s is only in a stale generation of its pool", d.name)})
 		}
 	}
@@ -345,7 +345,7 @@ func Alignment(target, namespace string) Check {
 		if r, ok := needAllocations(snap, NameAlignment); ok {
 			return r
 		}
-		idx := newDeviceIndex(snap)
+		idx := model.NewAllocationDeviceIndex(snap)
 		ns, name := namespace, target
 		if a, b, ok := strings.Cut(target, "/"); ok {
 			ns, name = a, b

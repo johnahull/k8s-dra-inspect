@@ -85,58 +85,6 @@ func single(check string, st model.Status, subject, reason string) []model.Resul
 	return []model.Result{r}
 }
 
-type deviceState int
-
-const (
-	deviceCurrent deviceState = iota // in the pool's selected generation
-	deviceStale                      // only in another generation of the pool
-	deviceMissing                    // in no ResourceSlice
-)
-
-type deviceRef struct {
-	dev   resourcev1.Device
-	state deviceState
-}
-
-type deviceKey [3]string
-
-// deviceIndex finds allocated devices in the current generation of their
-// pool, falling back to the newest other generation so stale allocations
-// can be flagged rather than silently dropped.
-type deviceIndex struct{ cur, other map[deviceKey]deviceRef }
-
-func newDeviceIndex(snap model.Snapshot) deviceIndex {
-	cur, _ := model.CurrentSlices(snap)
-	x := deviceIndex{cur: map[deviceKey]deviceRef{}, other: map[deviceKey]deviceRef{}}
-	for _, s := range cur {
-		for _, d := range s.Spec.Devices {
-			x.cur[deviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}] = deviceRef{d, deviceCurrent}
-		}
-	}
-	gen := map[deviceKey]int64{}
-	for _, s := range snap.ResourceSlices {
-		for _, d := range s.Spec.Devices {
-			k := deviceKey{s.Spec.Driver, s.Spec.Pool.Name, d.Name}
-			if g, ok := gen[k]; !ok || s.Spec.Pool.Generation > g {
-				gen[k] = s.Spec.Pool.Generation
-				x.other[k] = deviceRef{d, deviceStale}
-			}
-		}
-	}
-	return x
-}
-
-func (x deviceIndex) find(driver, pool, device string) deviceRef {
-	k := deviceKey{driver, pool, device}
-	if r, ok := x.cur[k]; ok {
-		return r
-	}
-	if r, ok := x.other[k]; ok {
-		return r
-	}
-	return deviceRef{state: deviceMissing}
-}
-
 func devName(r resourcev1.DeviceRequestAllocationResult) string {
 	return r.Driver + "/" + r.Pool + "/" + r.Device
 }

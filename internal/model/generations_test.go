@@ -55,3 +55,34 @@ func TestSelectedGenerationInvalidWhenTooManySlicesObserved(t *testing.T) {
 		t.Fatalf("selection = %+v, want invalid and incomplete", got)
 	}
 }
+
+func TestAllocationDeviceIndexResolve(t *testing.T) {
+	snap := Snapshot{ResourceSlices: []resourcev1.ResourceSlice{
+		gslice("old", "p", 1, 1, "only-old", "both"),
+		gslice("new", "p", 2, 1, "both", "only-new"),
+	}}
+	idx := NewAllocationDeviceIndex(snap)
+	for _, tt := range []struct {
+		dev   string
+		state AllocationDeviceState
+		slice string
+	}{
+		{"both", DeviceCurrent, "new"},
+		{"only-new", DeviceCurrent, "new"},
+		{"only-old", DeviceStale, "old"},
+		{"absent", DeviceMissing, ""},
+	} {
+		got := idx.Resolve("d.example.com", "p", tt.dev)
+		if got.State != tt.state {
+			t.Errorf("%s: state %v, want %v", tt.dev, got.State, tt.state)
+		}
+		if name := ""; got.Slice != nil {
+			name = got.Slice.Name
+			if name != tt.slice {
+				t.Errorf("%s: slice %q, want %q", tt.dev, name, tt.slice)
+			}
+		} else if tt.slice != "" {
+			t.Errorf("%s: no slice, want %q", tt.dev, tt.slice)
+		}
+	}
+}
