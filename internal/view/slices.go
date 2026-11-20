@@ -41,7 +41,7 @@ func sliceNote(d *decoder, snap model.Snapshot, sel map[model.PoolKey]model.Pool
 		}
 		return fmt.Sprintf("slice %s (generation %d) is stale: pool %s is at generation %d", r.Subject, gen, pool, cur)
 	case "invalid":
-		return fmt.Sprintf("slice %s (generation %d): slices in pool %s disagree on resourceSliceCount", r.Subject, gen, pool)
+		return fmt.Sprintf("slice %s (generation %d): pool %s is invalid: %s", r.Subject, gen, pool, strings.Join(sel[model.PoolKey{driver, pool}].Problems, "; "))
 	case "incomplete":
 		return fmt.Sprintf("slice %s (generation %d): pool %s has %d of %d slices for its newest generation", r.Subject, gen, pool, seen, want)
 	}

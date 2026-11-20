@@ -93,10 +93,10 @@ func Drivers(attributes bool) Inspector {
 				}
 				if len(a.invalid) > 0 {
 					slices.Sort(a.invalid)
-					findings = append(findings, model.Finding{Status: model.StatusWarn, Kind: model.KindInvalid, Text: invalidGenerationReason(strings.Join(a.invalid, ", ")), Items: a.invalid})
+					findings = append(findings, model.Finding{Status: model.StatusWarn, Kind: model.KindInvalid, Text: invalidPoolsReason(a.invalid), Items: a.invalid})
 					status = model.StatusWarn
 					d["invalidPools"] = a.invalid
-					d["reason"] = invalidGenerationReason(strings.Join(a.invalid, ", "))
+					d["reason"] = invalidPoolsReason(a.invalid)
 				}
 				if len(a.placeholders) > 0 {
 					d["nodeSelection"] = slices.Sorted(maps.Keys(a.placeholders))

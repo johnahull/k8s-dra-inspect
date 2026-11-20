@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"slices"
 	"sort"
-	"strings"
 
 	corev1 "k8s.io/api/core/v1"
 	resourcev1 "k8s.io/api/resource/v1"
@@ -143,9 +142,10 @@ func Pools(resourceSlices []*resourcev1.ResourceSlice) []*Pool {
 		byID[id] = append(byID[id], s)
 	}
 
+	sel := model.SelectGenerationsOf(resourceSlices)
 	pools := make([]*Pool, 0, len(byID))
 	for id, poolSlices := range byID {
-		pools = append(pools, newPool(id, poolSlices))
+		pools = append(pools, newPool(id, poolSlices, sel[model.PoolKey{id.Driver, id.Pool}]))
 	}
 	sort.Slice(pools, func(i, j int) bool {
 		if pools[i].ID.Driver != pools[j].ID.Driver {
@@ -156,12 +156,10 @@ func Pools(resourceSlices []*resourcev1.ResourceSlice) []*Pool {
 	return pools
 }
 
-func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice) *Pool {
-	p := &Pool{ID: id, Generation: poolSlices[0].Spec.Pool.Generation}
-	for _, s := range poolSlices {
-		p.Generation = max(p.Generation, s.Spec.Pool.Generation)
-	}
-
+// newPool groups one pool's slices; validity comes from the shared model
+// selection so every command judges pools the same way.
+func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice, sel model.PoolSel) *Pool {
+	p := &Pool{ID: id, Generation: sel.Gen, Problems: sel.Problems}
 	var counts []int64
 	for _, s := range poolSlices {
 		if s.Spec.Pool.Generation < p.Generation {
@@ -174,43 +172,8 @@ func newPool(id PoolID, poolSlices []*resourcev1.ResourceSlice) *Pool {
 		}
 	}
 	sort.Slice(p.Slices, func(i, j int) bool { return p.Slices[i].Name < p.Slices[j].Name })
-
-	// The scheduler takes the count from whichever slice it sees first, so
-	// disagreement makes its view of the pool depend on ordering.
 	if len(counts) == 1 {
 		p.ResourceSliceCount = counts[0]
-	} else {
-		slices.Sort(counts)
-		p.Problems = append(p.Problems, fmt.Sprintf(
-			"slices at generation %d disagree on resourceSliceCount (%s), so the scheduler's view depends on slice order",
-			p.Generation, joinInts(counts)))
-	}
-
-	// Matches validateDeviceNames in the upstream allocator, which marks
-	// the whole pool invalid.
-	publishedBy := make(map[string]string)
-	reported := make(map[string]bool)
-	for _, s := range p.Slices {
-		for _, d := range s.Spec.Devices {
-			prev, dup := publishedBy[d.Name]
-			if !dup {
-				publishedBy[d.Name] = s.Name
-				continue
-			}
-			if !reported[d.Name] {
-				reported[d.Name] = true
-				p.Problems = append(p.Problems, fmt.Sprintf(
-					"device name %q is published by both %s and %s, which makes the pool invalid", d.Name, prev, s.Name))
-			}
-		}
 	}
 	return p
-}
-
-func joinInts(values []int64) string {
-	parts := make([]string, len(values))
-	for i, v := range values {
-		parts[i] = fmt.Sprint(v)
-	}
-	return strings.Join(parts, ", ")
 }

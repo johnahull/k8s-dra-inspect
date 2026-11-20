@@ -152,7 +152,7 @@ func Drivers(p *render.Printer, snap model.Snapshot, results []model.Result) {
 
 func invalidPoolNote(f model.Finding, pools []string) model.Finding {
 	f.Items = pools
-	f.Text = "slices in the newest generation disagree on resourceSliceCount: " + strings.Join(pools, ", ")
+	f.Text = "newest generation is invalid in pools: " + strings.Join(pools, ", ")
 	return f
 }
 

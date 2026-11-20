@@ -73,8 +73,8 @@ func Counters() Check {
 			if sel[k].Incomplete {
 				p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindIncomplete, reason: incompleteReason(k[1])})
 			}
-			if sel[k].Invalid {
-				p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindInvalid, reason: "slices in the newest generation disagree on resourceSliceCount"})
+			for _, problem := range sel[k].Problems {
+				p.pool = append(p.pool, finding{status: model.StatusWarn, kind: model.KindInvalid, reason: problem})
 			}
 			// Publication integrity: every consumed set/counter must be defined by the pool.
 			for _, name := range slices.Sorted(maps.Keys(p.devices)) {

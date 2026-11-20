@@ -92,8 +92,14 @@ func incompleteReason(pools ...string) string {
 	return "pool has fewer ResourceSlices than expected for its newest generation: " + strings.Join(pools, ", ")
 }
 
-func invalidGenerationReason(pool string) string {
-	return "slices in the newest generation disagree on resourceSliceCount: " + pool
+// invalidReason explains a warn status for a pool the scheduler refuses.
+func invalidReason(pool string, sel model.PoolSel) string {
+	return "pool " + pool + " is invalid: " + strings.Join(sel.Problems, "; ")
+}
+
+// invalidPoolsReason names several invalid pools; inspect pools has the details.
+func invalidPoolsReason(pools []string) string {
+	return "newest generation is invalid in pools: " + strings.Join(pools, ", ")
 }
 
 // incompleteFinding is the Finding behind incompleteReason.

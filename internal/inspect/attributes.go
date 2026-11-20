@@ -72,7 +72,7 @@ func Attributes(all, capacity bool) Inspector {
 						det["incomplete"] = true
 						det["reason"] = incompleteReason(s.Spec.Pool.Name)
 						if pool.Invalid {
-							det["reason"] = invalidGenerationReason(s.Spec.Pool.Name)
+							det["reason"] = invalidReason(s.Spec.Pool.Name, pool)
 						}
 					}
 					if capacity {
@@ -86,7 +86,7 @@ func Attributes(all, capacity bool) Inspector {
 						Subject: s.Spec.Driver + "/" + s.Spec.Pool.Name + "/" + d.Name, Details: det}
 					if incomplete {
 						if pool.Invalid {
-							res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidGenerationReason(s.Spec.Pool.Name)}}
+							res.Findings = []model.Finding{{Status: status, Kind: model.KindInvalid, Text: invalidReason(s.Spec.Pool.Name, pool)}}
 						} else {
 							res.Findings = incompleteFinding(s.Spec.Pool.Name)
 						}

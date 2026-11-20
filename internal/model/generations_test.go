@@ -85,3 +85,29 @@ func TestAllocationDeviceIndexResolve(t *testing.T) {
 		}
 	}
 }
+
+func TestSelectedGenerationProblems(t *testing.T) {
+	snap := Snapshot{ResourceSlices: []resourcev1.ResourceSlice{
+		gslice("b", "dup", 1, 2, "gpu-0"), gslice("a", "dup", 1, 2, "gpu-0", "gpu-1"),
+		gslice("x", "over", 1, 2, "a"), gslice("y", "over", 1, 2, "b"), gslice("z", "over", 1, 2, "c"),
+		gslice("m", "mixed", 1, 2, "a"), gslice("n", "mixed", 1, 3, "b"),
+		gslice("ok", "ok", 1, 1, "a"), gslice("stale", "ok", 0, 1, "a"),
+	}}
+	sel := SelectGenerations(snap)
+	for pool, want := range map[string]string{
+		"dup":   `device name "gpu-0" is published by both a and b, which makes the pool invalid`,
+		"over":  "3 slices observed at generation 1 but resourceSliceCount is 2, which makes the pool invalid",
+		"mixed": "slices at generation 1 disagree on resourceSliceCount (2, 3), so the scheduler's view depends on slice order",
+	} {
+		got := sel[PoolKey{"d.example.com", pool}]
+		if !got.Invalid || len(got.Problems) != 1 || got.Problems[0] != want {
+			t.Errorf("%s = %+v, want invalid with %q", pool, got, want)
+		}
+	}
+	if got := sel[PoolKey{"d.example.com", "dup"}]; got.Incomplete || got.Observed != 2 {
+		t.Errorf("dup = %+v, want complete with 2 observed", got)
+	}
+	if got := sel[PoolKey{"d.example.com", "ok"}]; got.Invalid || got.Incomplete || got.Gen != 1 || got.Problems != nil {
+		t.Errorf("ok = %+v, want valid generation 1", got)
+	}
+}
