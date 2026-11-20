@@ -1,0 +1,223 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "0001-07-00-3",
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n0-sriovnetwork-k8snetworkplumbingwg-io",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "gpu-vfio-7",
+        "driver": "gpu.amd.com",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n0-gpu-amd-com",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "cpudevnuma001",
+        "driver": "dra.cpu",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n0-dra-cpu",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "memory-bjd9hw",
+        "driver": "dra.memory",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n0-dra-memory",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "0001-07-00-4",
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n1-sriovnetwork-k8snetworkplumbingwg-io",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "gpu-vfio-0",
+        "driver": "gpu.amd.com",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n1-gpu-amd-com",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "cpudevnuma002",
+        "driver": "dra.cpu",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n1-dra-cpu",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "memory-t5wtkl",
+        "driver": "dra.memory",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n1-dra-memory",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "0001-07-00-5",
+        "driver": "sriovnetwork.k8snetworkplumbingwg.io",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n2-sriovnetwork-k8snetworkplumbingwg-io",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "gpu-vfio-1",
+        "driver": "gpu.amd.com",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n2-gpu-amd-com",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "cpudevnuma003",
+        "driver": "dra.cpu",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n2-dra-cpu",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "default/vm-final-all",
+      "details": {
+        "adminAccess": false,
+        "claim": "vm-final-all",
+        "consumer": "pod/pod-1",
+        "device": "memory-4qhskf",
+        "driver": "dra.memory",
+        "namespace": "default",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "n2-dra-memory",
+        "reserved": true,
+        "state": "allocated"
+      }
+    }
+  ]
+}

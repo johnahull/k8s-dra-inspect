@@ -1,0 +1,119 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.devices",
+      "status": "pass",
+      "subject": "gpu.example.com/node-a.example.com/a-gpu-0",
+      "details": {
+        "attributes": {
+          "resource.kubernetes.io/numaNode": "[0,1,2,3]",
+          "resource.kubernetes.io/pcieRoot": "pci0000:00"
+        },
+        "capacity": null,
+        "claimDetails": [
+          {
+            "adminAccess": false,
+            "name": "pair-a",
+            "namespace": "demo",
+            "request": "gpu",
+            "subRequest": ""
+          }
+        ],
+        "claims": "demo/pair-a",
+        "detail": "",
+        "device": "a-gpu-0",
+        "driver": "gpu.example.com",
+        "holders": [
+          "demo/pair-a"
+        ],
+        "pool": "node-a.example.com",
+        "scope": "node-a.example.com",
+        "state": "Allocated",
+        "taintDetails": null,
+        "taints": ""
+      }
+    },
+    {
+      "check": "inspect.devices",
+      "status": "pass",
+      "subject": "gpu.example.com/node-a.example.com/a-gpu-1",
+      "details": {
+        "attributes": {
+          "resource.kubernetes.io/numaNode": "[0,1,2,3]",
+          "resource.kubernetes.io/pcieRoot": "pci0000:00"
+        },
+        "capacity": null,
+        "claimDetails": [
+          {
+            "adminAccess": false,
+            "name": "pair-a",
+            "namespace": "demo",
+            "request": "gpu",
+            "subRequest": ""
+          }
+        ],
+        "claims": "demo/pair-a",
+        "detail": "",
+        "device": "a-gpu-1",
+        "driver": "gpu.example.com",
+        "holders": [
+          "demo/pair-a"
+        ],
+        "pool": "node-a.example.com",
+        "scope": "node-a.example.com",
+        "state": "Allocated",
+        "taintDetails": null,
+        "taints": ""
+      }
+    },
+    {
+      "check": "inspect.devices",
+      "status": "pass",
+      "subject": "gpu.example.com/node-b.example.com/b-gpu-0",
+      "details": {
+        "attributes": {
+          "resource.kubernetes.io/numaNode": "2",
+          "resource.kubernetes.io/pcieRoot": "pci0000:40"
+        },
+        "capacity": null,
+        "claimDetails": [],
+        "claims": "",
+        "detail": "",
+        "device": "b-gpu-0",
+        "driver": "gpu.example.com",
+        "holders": null,
+        "pool": "node-b.example.com",
+        "scope": "node-b.example.com",
+        "state": "Free",
+        "taintDetails": null,
+        "taints": ""
+      }
+    },
+    {
+      "check": "inspect.devices",
+      "status": "pass",
+      "subject": "gpu.example.com/node-b.example.com/b-gpu-1",
+      "details": {
+        "attributes": {
+          "resource.kubernetes.io/numaNode": "[2,3]",
+          "resource.kubernetes.io/pcieRoot": "pci0000:c0"
+        },
+        "capacity": null,
+        "claimDetails": [],
+        "claims": "",
+        "detail": "",
+        "device": "b-gpu-1",
+        "driver": "gpu.example.com",
+        "holders": null,
+        "pool": "node-b.example.com",
+        "scope": "node-b.example.com",
+        "state": "Free",
+        "taintDetails": null,
+        "taints": ""
+      }
+    }
+  ]
+}

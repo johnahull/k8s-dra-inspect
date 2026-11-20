@@ -1,0 +1,5 @@
+DRIVER        POOL          NODES        GEN   SLICES   DEVICES  ALLOCATED  STATE       DETAIL
+dra.cpu       node-a.exam…  node-a.exa…  1     1/1      8        3          Complete
+dra.memory    node-a.exam…  node-a.exa…  1     1/1      8        3          Complete
+gpu.amd.com   node-a.exam…  node-a.exa…  1     2/2      8        3          Complete
+sriovnetwor…  node-a.exam…  node-a.exa…  1     1/1      8        3          Complete

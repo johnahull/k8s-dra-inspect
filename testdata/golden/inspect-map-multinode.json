@@ -1,0 +1,43 @@
+{
+  "schemaVersion": "dra-inspect/v1alpha1",
+  "generatedAt": "2026-03-04T05:06:07Z",
+  "source": "snapshot",
+  "results": [
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "demo/pair-a",
+      "details": {
+        "adminAccess": false,
+        "claim": "pair-a",
+        "consumer": "pod/pair-pod",
+        "device": "a-gpu-0",
+        "driver": "gpu.example.com",
+        "namespace": "demo",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "gpu",
+        "reserved": true,
+        "state": "allocated"
+      }
+    },
+    {
+      "check": "inspect.map",
+      "status": "pass",
+      "subject": "demo/pair-a",
+      "details": {
+        "adminAccess": false,
+        "claim": "pair-a",
+        "consumer": "pod/pair-pod",
+        "device": "a-gpu-1",
+        "driver": "gpu.example.com",
+        "namespace": "demo",
+        "node": "node-a.example.com",
+        "pool": "node-a.example.com",
+        "request": "gpu",
+        "reserved": true,
+        "state": "allocated"
+      }
+    }
+  ]
+}

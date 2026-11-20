@@ -394,3 +394,59 @@ func TestDRAViewsLayout(t *testing.T) {
 		}
 	}
 }
+
+// The analysis inspectors (map, devices, pools) have no text view of their
+// own: pin their default output and JSON on real and multi-node fixtures.
+func TestInspectAnalysisGolden(t *testing.T) {
+	for _, fx := range []string{"xe9785l", "multinode"} {
+		snap := testutil.LoadFixture(t, "testdata/fixtures/"+fx)
+		snap.Collection["devicetaintrules"] = model.CollectionStatus{State: model.StateOK}
+		for _, cmd := range []string{"map", "devices", "pools"} {
+			for _, format := range []string{"", "json"} {
+				args := []string{cmd}
+				ext := "txt"
+				if format != "" {
+					args, ext = append(args, "-o", format), format
+				}
+				t.Run(cmd+"/"+fx+"/"+ext, func(t *testing.T) {
+					out, code := inspectRun(t, snap, args...)
+					if code != 0 {
+						t.Fatalf("exit %d:\n%s", code, out)
+					}
+					testutil.Golden(t, "inspect-"+cmd+"-"+fx+"."+ext, []byte(out))
+				})
+			}
+		}
+	}
+}
+
+// Only inspect nodes asks the live collector for node plugin pods.
+func TestInspectNodesEnablesNodePluginCollection(t *testing.T) {
+	for cmd, want := range map[string]bool{"nodes": true, "pools": false, "map": false} {
+		var got bool
+		deps := Deps{NewSource: func(o *Options) (model.Source, error) {
+			got = o.CollectNodePlugins
+			return fakeSource{model.Snapshot{Collection: map[string]model.CollectionStatus{}}}, nil
+		}, Now: time.Now}
+		var stdout, stderr bytes.Buffer
+		run([]string{"inspect", cmd}, &stdout, &stderr, "v", deps)
+		if got != want {
+			t.Errorf("inspect %s: CollectNodePlugins = %v, want %v", cmd, got, want)
+		}
+	}
+}
+
+// Replaying a snapshot without optional evidence reports it unavailable;
+// with the evidence collected, the same command runs.
+func TestInspectNodesReplayOptionalEvidence(t *testing.T) {
+	snap := testutil.LoadFixture(t, "testdata/fixtures/multinode")
+	snap.Collection["devicetaintrules"] = model.CollectionStatus{State: model.StateOK}
+	out, _ := inspectRun(t, snap, "nodes")
+	if !strings.Contains(out, "UNAVAILABLE: inspect.nodes: nodepluginpods collection state: not collected") {
+		t.Fatalf("without node plugin evidence:\n%s", out)
+	}
+	snap.Collection["nodepluginpods"] = model.CollectionStatus{State: model.StateOK}
+	if out, _ = inspectRun(t, snap, "nodes"); strings.Contains(out, "UNAVAILABLE:") {
+		t.Fatalf("with node plugin evidence:\n%s", out)
+	}
+}

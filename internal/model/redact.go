@@ -33,8 +33,9 @@ func deepCopy[T any, P interface {
 
 // Redact returns a deep copy of s without opaque driver parameters, device
 // status data, last-applied annotations, managedFields, or inline VMI
-// cloud-init data and access credentials. Nodes keep only name, labels and
-// status.allocatable; VMIs keep only the allow-list in redactVMI. Evidence is
+// cloud-init data and access credentials. Nodes keep only name, labels,
+// taints, unschedulable, status.allocatable and the Ready condition (the
+// scheduler inputs); VMIs keep only the allow-list in redactVMI. Evidence is
 // left as is. It is idempotent.
 func Redact(s Snapshot) Snapshot {
 	out := s
